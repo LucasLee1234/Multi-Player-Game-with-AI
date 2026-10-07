@@ -7,6 +7,8 @@ Primary next task: participant two-context gameplay inspection, then SYS-03 onbo
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
+Gameplay exploration update (October 6): [cooperative-robot-alternatives.md](cooperative-robot-alternatives.md) compares relay/gate, tether, and parallel-world robot adventures. R1 relay/gate research is recommended for a bounded experiment; participant selection is pending. This research does not replace J1, authorize new mechanics, or establish human enjoyment. Resolve this gameplay choice before expanding J1 content.
+
 ## Completed setup
 
 | ID | Priority | Status | Deliverable | Evidence |
