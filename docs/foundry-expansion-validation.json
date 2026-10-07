@@ -1,0 +1,520 @@
+{
+  "date": "2026-10-07",
+  "scope": "Proposed expansion research, not browser/production/human evidence",
+  "checks": {
+    "pressure door can close without trapping occupant": "PASS",
+    "closed pressure door rejects entry": "PASS",
+    "new relay occupancy cannot power entry retroactively": "PASS",
+    "crate can power a relay while robots leave": "PASS",
+    "pull shifts crate into robot previous cell": "PASS",
+    "blocked push leaves crate unchanged": "PASS",
+    "two requests for one crate cancel": "PASS",
+    "direct robot swap cancels": "PASS",
+    "closed onward gate makes following collide and cancel": "PASS",
+    "following into a vacated cell with open onward route": "PASS",
+    "trying to trade places in the narrow passage blocks": "PASS",
+    "northern route reaches (1, 13)": "PASS",
+    "northern route reaches (6, 8)": "PASS",
+    "northern route reaches (6, 3)": "PASS",
+    "northern route reaches (6, 2)": "PASS",
+    "northern route reaches (6, 1)": "PASS",
+    "northern route reaches (6, 0)": "PASS",
+    "northern route reaches (1, 0)": "PASS",
+    "northern route reaches (2, 1)": "PASS",
+    "northern route reaches (3, 6)": "PASS",
+    "northern route reaches (8, 6)": "PASS",
+    "northern route reaches (3, 11)": "PASS",
+    "northern route reaches (4, 10)": "PASS",
+    "northern alternate route completes": "PASS",
+    "SF-M2 Trade Places has a solution": "PASS",
+    "SF-M2 Trade Places all reachable states recover": "PASS",
+    "SF-M3 Keep the Power On has a solution": "PASS",
+    "SF-M3 Keep the Power On all reachable states recover": "PASS",
+    "original cargo map exposes a softlock": "PASS",
+    "cargo map requires a pull-capable control": "PASS"
+  },
+  "levels": [
+    {
+      "level": "SF-M2 Trade Places",
+      "reachable_states": 220,
+      "transitions": 1962,
+      "winning_states": 2,
+      "recoverable_states": 220,
+      "softlocked_states": 0,
+      "shortest_turns": 9,
+      "wait_slots_in_this_shortest_witness": 2,
+      "initial_state": [
+        0,
+        14,
+        -1,
+        false
+      ],
+      "shortest_witness": [
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            1,
+            13,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            6,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              11
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            11,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              12
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            12,
+            13,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              13
+            ],
+            [
+              "move",
+              14
+            ]
+          ],
+          "state": [
+            13,
+            14,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              8
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            8,
+            13,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              8
+            ],
+            [
+              "move",
+              12
+            ]
+          ],
+          "state": [
+            8,
+            12,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              3
+            ],
+            [
+              "move",
+              11
+            ]
+          ],
+          "state": [
+            3,
+            11,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              10
+            ]
+          ],
+          "state": [
+            4,
+            10,
+            -1,
+            false
+          ]
+        }
+      ],
+      "softlock_example": null,
+      "disabled_gate_counterchecks": {
+        "2": false,
+        "11": true
+      }
+    },
+    {
+      "level": "SF-M3 Keep the Power On",
+      "reachable_states": 2496,
+      "transitions": 79842,
+      "winning_states": 2,
+      "recoverable_states": 2496,
+      "softlocked_states": 0,
+      "shortest_turns": 11,
+      "wait_slots_in_this_shortest_witness": 4,
+      "initial_state": [
+        0,
+        14,
+        12,
+        false
+      ],
+      "shortest_witness": [
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            0,
+            13,
+            12,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "pull",
+              14
+            ]
+          ],
+          "state": [
+            0,
+            14,
+            13,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "move",
+              9
+            ]
+          ],
+          "state": [
+            0,
+            9,
+            13,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            1,
+            8,
+            13,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "pull",
+              3
+            ]
+          ],
+          "state": [
+            6,
+            3,
+            8,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              2
+            ]
+          ],
+          "state": [
+            1,
+            2,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "move",
+              1
+            ]
+          ],
+          "state": [
+            0,
+            1,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            1,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              2
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            2,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              3
+            ],
+            [
+              "move",
+              11
+            ]
+          ],
+          "state": [
+            3,
+            11,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              10
+            ]
+          ],
+          "state": [
+            4,
+            10,
+            8,
+            true
+          ]
+        }
+      ],
+      "softlock_example": null,
+      "disabled_gate_counterchecks": {
+        "2": false,
+        "11": true
+      }
+    }
+  ],
+  "state_fields": [
+    "A",
+    "B",
+    "crate (-1 when absent)",
+    "latch for gate 2"
+  ],
+  "rejected_cargo_map": {
+    "reachable_states": 1662,
+    "softlocked_states": 4,
+    "softlock_example": [
+      12,
+      14,
+      13,
+      false
+    ]
+  },
+  "push_only_countercheck": {
+    "reachable_states": 778,
+    "winning_states": 0
+  },
+  "northern_alternate_route": [
+    [
+      1,
+      13
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      3
+    ],
+    [
+      6,
+      2
+    ],
+    [
+      6,
+      1
+    ],
+    [
+      6,
+      0
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      8,
+      6
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      4,
+      10
+    ]
+  ],
+  "limitations": [
+    "Full-information model",
+    "No timing or networking",
+    "Not an actual phone test",
+    "One shortest witness does not characterize every strategy or enjoyment"
+  ]
+}

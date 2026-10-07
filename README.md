@@ -83,6 +83,7 @@ Recorded 0.2 evidence includes 15 passing boundary tests and an exhaustive check
 - [Requirements readiness review](docs/requirements-readiness-review.md): completeness findings and conditions for system design.
 - [System architecture](docs/architecture.md): authoritative rooms, filtered views, command/lifecycle contracts, Azure candidate, and the first implementation slice.
 - [Current tasks](docs/tasks.md): progress and dependencies.
+- [Foundry expansion design](docs/foundry-expansion-design.md): checked shared-passage/pressure-gate and crate room proposals; not yet implemented in the browser.
 - [Short development cycle](docs/short-development-cycle.md): define, implement, verify, inspect, adjust, and sync.
 - [Development workflow](docs/development-workflow.md): stage gates and evidence standards.
 - [Audited 0.2 rules](docs/game-design.md): the rule set used by the existing research code.

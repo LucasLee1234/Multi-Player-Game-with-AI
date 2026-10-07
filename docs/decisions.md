@@ -167,3 +167,14 @@ Date: October 6, 2026. Status: Participant explicitly requested implementation; 
 - Actual TypeScript search matches the research audit's 21 reachable states and 120 transitions; every state can complete. Forty-six automated tests passed, including retained J1/room checks and foundry wire completion/reset/recovery.
 - Browser A plus a development-only B helper completed in five turns and checked refresh/retry. A measured 390-pixel browser viewport fit without horizontal overflow. This is not actual phone/touch, human enjoyment, public deployment, or full release acceptance.
 - Updated scoped SRS/architecture/specification/README; preserve original information-cooperation requirement as unresolved rather than calling a public teaching map sufficient. No Azure spending, remote repository creation, or push.
+
+## DEC-011 - Expand cooperative obstacles after participant feedback
+
+Date: October 7, 2026. Status: Participant reports the teaching room is enjoyable and requests complexity/obstacle/cooperation design; research package completed.
+
+- Preserve SF-T1 as onboarding. Recommend SF-M2 with shared passages, parking spaces and a hold-open pressure gate, followed by SF-M3 with a pushable/pullable crate and sustained relay power.
+- Validate concrete 5-by-3 layouts instead of assuming additional obstacles improve the experience. The proposed teaching gate's latching behavior remains unchanged.
+- SF-M2 has a nine-turn shortest route and a verified twelve-turn alternative. Gate 2 is an optional route, not required by every solution. SF-M3 has an eleven-turn shortest route after adding a service bay to repair four reachable deadlocks in the rejected map. Pull is necessary for the authored delivery objective.
+- Revised research models have completion paths from all 220 SF-M2 and 2,496 SF-M3 reachable states. Thirty explicit checks passed; no new browser or TypeScript gameplay was implemented in this design pass.
+- Owner feedback does not imply an observed friend test or equal participation. Record waiting/handler imbalance and Ready friction in subsequent human inspection. Existing dates, Azure budget verification, and public-device requirements remain.
+- Authority: [foundry-expansion-design.md](foundry-expansion-design.md); evidence: [foundry-expansion-validation.json](foundry-expansion-validation.json).

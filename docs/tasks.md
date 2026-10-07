@@ -1,9 +1,9 @@
 # Signal Rescue Task Board
 
-Updated: October 6, 2026
+Updated: October 7, 2026
 Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
-Primary next task: participant two-context inspection of SF-T1 First Connection, then actual phone/public proof and adjustments based on observations; SF-01 implemented, human/public proof pending
+Primary next task: implement the bounded SF-M2 shared-passage/pressure-gate cycle from the checked expansion design; retain actual phone/public and two-human inspection requirements
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
@@ -12,6 +12,8 @@ Gameplay exploration update (October 6): [cooperative-robot-alternatives.md](coo
 R1 follow-up: requested design/validation completed in [signal-foundry-spec.md](signal-foundry-spec.md). The momentary-gate proposal exposed a reachable softlock; latch-on-entry SF-T1 v2 has completion paths from all 21 reachable research states. This is a bounded prototype recommendation, not a browser implementation or full product replacement. Next gameplay increment: the single SF-T1 room; detailed requirement/contract updates precede its integration.
 
 Implementation follow-up: the participant requested implementation. SF-01 is complete locally; First Connection is now the default startup profile. Previous research-only notes above are historical. J1 remains a developer comparison; full product/human acceptance is still open.
+
+October 7 feedback: the participant reports enjoying First Connection and requests more complex obstacles/cooperation. [foundry-expansion-design.md](foundry-expansion-design.md) supplies two concrete room designs. Executed research found no unrecoverable reachable state in either revised design; a rejected crate map did contain deadlocks and was repaired with a service bay. This is design/model evidence, not a new browser build or independently observed friend test.
 
 ## Completed setup
 
@@ -33,6 +35,9 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | SYS-01 | P0 | DONE | Local create/join, exactly two sessions, authorized live lobby, recovery/expiry, takeover, and Leave; 14 automated tests plus browser inspection | Candidate preparation; coding explicitly resumed | FR-01 to FR-06, FR-18 to FR-20, FR-24; NFR-01 to NFR-03, NFR-15, NFR-16 |
 | SYS-02 | P0 | DONE | J1-C1 authoritative turns/private views implemented; mutual start, signals, proposals, revision-bound Ready, outcomes/retry/recovery; 36 automated tests and scripted-partner browser inspection | SYS-01, J1-C1 | FR-07 to FR-14; NFR-01, NFR-02 |
 | SF-01 | P1 | DONE | Implement the SF-T1 relay/gate teaching room, tile pings, joint exit and mutual retry; actual rules match research state counts and recover from every reachable state | Participant implementation request; SF-T1 spec | SF-01 to SF-07; SR-01 to SR-08 scoped experimental coverage |
+| SF-D02 | P1 | DONE | Define shared-passage and crate rooms, exact gate/transport rules, routes, deadlock repairs and implementation criteria; 30 research checks and exhaustive reachability | Participant complexity-design request | SR-03, SR-04, SR-07 |
+| SF-02 | P1 | TODO | Generalize authored geometry; add SF-M2 pressure gate/shared passages and mutually agreed progression; verify both routes under actual rules | SF-D02 | SR-03 to SR-08 |
+| SF-03 | P1 | TODO | Add one crate with explicit Push/Pull and sustained-power completion; implement SF-M3 and verify recovery/reset/transport conflicts | SF-02 | SR-03 to SR-08 |
 | SYS-03 | P1 | TODO | Observe first-time SF-T1 understanding and inspect actual phone controls; adjust onboarding/interaction to concrete confusion | SF-01; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
 | TECH-01 | P0 | TODO | Confirm Azure balance/expiry/access; select and cost a small deployment route, including review-window operation | Participant account access | SR-09 |
 | TECH-02 | P0 | TODO | Establish source control/runtime and deploy one playable interaction on two devices with correct private views | GP-01, TECH-01; provisional rules clearly labeled | SR-01, SR-02, SR-05, SR-09 |
