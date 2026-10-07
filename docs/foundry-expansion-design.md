@@ -2,6 +2,8 @@
 
 Date: October 7, 2026
 Version: Expansion research E1
+
+Control update, October 7: the participant requested independent movement. [independent-movement-spec.md](independent-movement-spec.md) overrides the confirmation/turn assumptions below. An ordered, single-action re-audit found no unrecoverable state in either room, with shortest routes of 16/18 individual steps: [new evidence](foundry-independent-expansion-validation.json). The nine/eleven-turn witnesses below remain historical simultaneous examples. Do not add Ready to the future expansion or treat two simultaneous crate requests as its new resolution model.
 Status: Concrete designs and executable research checks completed. These rooms and controls are not implemented in the browser. SF-T1 remains the running teaching room.
 
 ## 1. Feedback and intended outcome

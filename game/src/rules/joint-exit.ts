@@ -50,7 +50,7 @@ export function signal(m: Mission, role: Role, cell: number): Mission {
   if (m.result) throw new RuleFault('NOT_PLANNING');
   if (isFoundry(m)) {
     if (!Number.isInteger(cell) || !foundryFloor.includes(cell)) throw new RuleFault('INVALID_INPUT');
-    if (m.signals[role]) throw new RuleFault('SIGNAL_UNAVAILABLE');
+    if (!m.definition.independent && m.signals[role]) throw new RuleFault('SIGNAL_UNAVAILABLE');
     const next = structuredClone(m);
     // Foundry reuses the bounded signal command as a public tile ping, not a private safety disclosure.
     next.signals[role] = { cell, safety: 'Safe' }; revision(next); return next;
@@ -62,10 +62,24 @@ export function signal(m: Mission, role: Role, cell: number): Mission {
   next.signals[role] = { cell, safety }; learn(next, receiver, cell, safety, 'signal'); revision(next); return next;
 }
 export function ready(m: Mission, role: Role): Mission {
+  if (m.definition.independent) throw new RuleFault('INVALID_INPUT');
   if (m.result) throw new RuleFault('NOT_PLANNING');
   if (m.ready[role]) return m;
   const next = structuredClone(m); next.ready[role] = true;
   return next.ready.A && next.ready.B ? resolve(next) : next;
+}
+/** One authorized seat moves immediately; the other robot remains in place. */
+export function moveFoundry(m: Mission, role: Role, destination: number): Mission {
+  if (!isFoundry(m) || !m.definition.independent) throw new RuleFault('INVALID_INPUT');
+  const planned = propose(m, role, destination); // Validates geometry and terminal state.
+  if (destination === m.positions[role]) return m;
+  const intent = structuredClone(planned);
+  intent.proposals = { ...m.positions, [role]: destination };
+  const next = resolveFoundry(intent);
+  next.signals = structuredClone(m.signals);
+  // Display successful individual steps, not idle time or blocked requests.
+  if (next.positions[role] === m.positions[role]) { next.turnsResolved = m.turnsResolved; next.turn = m.turn; }
+  return next;
 }
 /** Pure transition: hazards, then overlap/swap, then failure/joint exit/turn limit. */
 export function resolve(m: Mission): Mission {
@@ -106,7 +120,8 @@ function resolveFoundry(m: Mission): Mission {
       && !roles.some(r => m.positions[r] === gate.relay)) {
       tentative[role] = m.positions[role];
       const nowPowered = roles.some(r => m.proposals[r] === gate.relay);
-      next.explanations.push(`${role}: Gate ${gate.cell} was not powered at turn start.${nowPowered ? ' Check the relay after this turn.' : ' Ask your partner to reach its relay.'}`);
+      next.explanations.push(m.definition.independent ? `${role}: Gate ${gate.cell} is closed. Ask your partner to reach Relay ${gate.relay}.`
+        : `${role}: Gate ${gate.cell} was not powered at turn start.${nowPowered ? ' Check the relay after this turn.' : ' Ask your partner to reach its relay.'}`);
     }
   }
   const overlap = tentative.A === tentative.B;
@@ -124,7 +139,7 @@ function resolveFoundry(m: Mission): Mission {
   }
   for (const gate of foundryGates) if (!m.latchedGates.includes(gate.cell)
     && !roles.some(r => m.positions[r] === gate.relay) && roles.some(r => next.positions[r] === gate.relay)) {
-    next.explanations.push(`Relay ${gate.relay} now powers Gate ${gate.cell}. You may enter on the next turn.`);
+    next.explanations.push(`Relay ${gate.relay} now powers Gate ${gate.cell}.${m.definition.independent ? ' Your partner can enter now.' : ' You may enter on the next turn.'}`);
   }
   if (!next.explanations.length) next.explanations.push('Both robots waited. Take your time to plan.');
   next.turnsResolved++;
@@ -137,12 +152,12 @@ export function clearAgreement(m: Mission): Mission {
   const next = structuredClone(m); revision(next); next.retryAgreements = { A: false, B: false }; return next;
 }
 export function project(m: Mission, role: Role): MissionView {
-  if (isFoundry(m)) return { id: m.id, ruleVersion: 'SF-T1-v2', title: m.definition.title, turn: m.turn,
+  if (isFoundry(m)) return { id: m.id, ruleVersion: m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
     turnsResolved: m.turnsResolved, strikes: 0, positions: { ...m.positions }, exits: { A: 3, B: 11 },
     proposals: { ...m.proposals }, planningRevision: m.planningRevision, ready: { ...m.ready },
     signals: structuredClone(m.signals), ownKnownCells: [], partnerHazards: [], result: m.result,
     explanations: [...m.explanations], retryAgreements: { ...m.retryAgreements },
-    foundry: { width: 4, height: 3, walls: [4, 5, 6, 7], gates: foundryGates.map(g => {
+    foundry: { width: 4, height: 3, walls: [4, 5, 6, 7], movement: m.definition.independent ? 'independent' : 'confirmed', gates: foundryGates.map(g => {
       const powered = roles.some(r => m.positions[r] === g.relay), latched = m.latchedGates.includes(g.cell);
       return { ...g, powered, latched, open: powered || latched };
     }) } };

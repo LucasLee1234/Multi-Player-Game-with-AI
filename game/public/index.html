@@ -40,10 +40,10 @@
       <details id="foundry-instructions" hidden><summary>How to play</summary>
         <ol><li>You control your own robot. Your partner controls the other one.</li>
         <li>Stand on a relay to power its linked gate: Relay 8 opens Gate 1; Relay 2 opens Gate 9.</li>
-        <li>Choose an adjacent move or Wait, then both confirm the plan. Relay power is checked at the start of the turn.</li>
+        <li>Click a direction or use arrow keys / WASD to move immediately. Your partner moves independently. Do nothing to wait.</li>
         <li>Entering a powered gate locks it open for this attempt. You can safely go back through it.</li>
-        <li>Bring A to Exit 3 and B to Exit 11 together. Take your time; there is no turn limit.</li>
-        <li>Select a floor tile to point it out to your partner, once per turn. A new ping clears both confirmations.</li></ol>
+        <li>Bring A to Exit 3 and B to Exit 11 together. Take your time; there is no move limit.</li>
+        <li>Select a floor tile to point it out to your partner. Standing on a relay powers its gate immediately.</li></ol>
       </details>
       <section id="foundry-map" hidden aria-label="Factory floor">
         <div class="factory-heading"><h3>Factory floor</h3><span id="foundry-self"></span></div>
@@ -58,7 +58,8 @@
       </div>
       <p id="j1-legend" class="legend">? Unknown · ! Danger · Safe = confirmed or deduced. Safety applies only to the labeled robot.</p>
       <p id="signals"></p>
-      <h3>Propose your move</h3>
+      <h3 id="move-heading">Move your robot</h3>
+      <p id="move-help" hidden>Use the direction buttons or arrow keys / WASD. Stay still to wait for your partner.</p>
       <div class="moves"><button id="move-up" class="secondary">Up</button><button id="move-left" class="secondary">Left</button><button id="move-wait" class="secondary">Wait</button><button id="move-right" class="secondary">Right</button><button id="move-down" class="secondary">Down</button></div>
       <p id="shared-plan"></p><p id="plan-warning" class="warning"></p><p id="readiness"></p>
       <button id="ready" disabled>Ready - confirm this plan</button>

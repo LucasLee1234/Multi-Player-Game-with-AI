@@ -1,0 +1,656 @@
+{
+  "date": "2026-10-07",
+  "scope": "Independent single-player command ordering for proposed expansion rooms; not production implementation",
+  "levels": [
+    {
+      "level": "SF-M2 Trade Places",
+      "reachable_states": 220,
+      "transitions": 1312,
+      "winning_states": 2,
+      "recoverable_states": 220,
+      "softlocked_states": 0,
+      "shortest_turns": 16,
+      "wait_slots_in_this_shortest_witness": 16,
+      "initial_state": [
+        0,
+        14,
+        -1,
+        false
+      ],
+      "shortest_witness": [
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              14
+            ]
+          ],
+          "state": [
+            1,
+            14,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              14
+            ]
+          ],
+          "state": [
+            6,
+            14,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            6,
+            13,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            6,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              11
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            11,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              12
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            12,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              13
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            13,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              14
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            14,
+            8,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              14
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            14,
+            13,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              14
+            ],
+            [
+              "move",
+              12
+            ]
+          ],
+          "state": [
+            14,
+            12,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              13
+            ],
+            [
+              "move",
+              12
+            ]
+          ],
+          "state": [
+            13,
+            12,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              8
+            ],
+            [
+              "move",
+              12
+            ]
+          ],
+          "state": [
+            8,
+            12,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              8
+            ],
+            [
+              "move",
+              11
+            ]
+          ],
+          "state": [
+            8,
+            11,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              3
+            ],
+            [
+              "move",
+              11
+            ]
+          ],
+          "state": [
+            3,
+            11,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              11
+            ]
+          ],
+          "state": [
+            4,
+            11,
+            -1,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              10
+            ]
+          ],
+          "state": [
+            4,
+            10,
+            -1,
+            false
+          ]
+        }
+      ],
+      "softlock_example": null
+    },
+    {
+      "level": "SF-M3 Keep the Power On",
+      "reachable_states": 2496,
+      "transitions": 28288,
+      "winning_states": 2,
+      "recoverable_states": 2496,
+      "softlocked_states": 0,
+      "shortest_turns": 18,
+      "wait_slots_in_this_shortest_witness": 18,
+      "initial_state": [
+        0,
+        14,
+        12,
+        false
+      ],
+      "shortest_witness": [
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              14
+            ]
+          ],
+          "state": [
+            1,
+            14,
+            12,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              14
+            ]
+          ],
+          "state": [
+            6,
+            14,
+            12,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              13
+            ]
+          ],
+          "state": [
+            6,
+            13,
+            12,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "pull",
+              14
+            ]
+          ],
+          "state": [
+            6,
+            14,
+            13,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              9
+            ]
+          ],
+          "state": [
+            6,
+            9,
+            13,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              8
+            ]
+          ],
+          "state": [
+            6,
+            8,
+            13,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "pull",
+              3
+            ]
+          ],
+          "state": [
+            6,
+            3,
+            8,
+            false
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              6
+            ],
+            [
+              "move",
+              2
+            ]
+          ],
+          "state": [
+            6,
+            2,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              2
+            ]
+          ],
+          "state": [
+            1,
+            2,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "move",
+              2
+            ]
+          ],
+          "state": [
+            0,
+            2,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "move",
+              1
+            ]
+          ],
+          "state": [
+            0,
+            1,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              0
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            0,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              1
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            1,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              2
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            2,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              3
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            3,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              6
+            ]
+          ],
+          "state": [
+            4,
+            6,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              11
+            ]
+          ],
+          "state": [
+            4,
+            11,
+            8,
+            true
+          ]
+        },
+        {
+          "actions": [
+            [
+              "move",
+              4
+            ],
+            [
+              "move",
+              10
+            ]
+          ],
+          "state": [
+            4,
+            10,
+            8,
+            true
+          ]
+        }
+      ],
+      "softlock_example": null
+    }
+  ]
+}

@@ -66,14 +66,19 @@ def step(state, intents, cargo, disabled=None, service_bay=True):
     return (da, db, final_crate, bool(latch))
 
 
-def audit(cargo, disabled=None, service_bay=True, allow_pull=True):
+def audit(cargo, disabled=None, service_bay=True, allow_pull=True, independent=False):
     initial = (0,14,12 if cargo else -1,False)
     routes = {initial: []}; queue = deque([initial]); reverse = {}; transitions = 0
     while queue:
         state = queue.popleft()
         if won(state,cargo):
             continue
-        for intent in product(actions(state[0],cargo,service_bay,allow_pull),actions(state[1],cargo,service_bay,allow_pull)):
+        if independent:
+            intents = [ (action,('move',state[1])) for action in actions(state[0],cargo,service_bay,allow_pull) ]
+            intents += [ (('move',state[0]),action) for action in actions(state[1],cargo,service_bay,allow_pull) ]
+        else:
+            intents = product(actions(state[0],cargo,service_bay,allow_pull),actions(state[1],cargo,service_bay,allow_pull))
+        for intent in intents:
             following = step(state,intent,cargo,disabled,service_bay)
             transitions += 1
             reverse.setdefault(following,set()).add(state)

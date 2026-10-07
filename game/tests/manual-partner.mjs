@@ -31,6 +31,12 @@ function drive() {
     return;
   }
   const base = { missionId: m.id, turn: m.turn, planningRevision: m.planningRevision };
+  if (m.foundry?.movement === 'independent') {
+    const from = m.positions.B;
+    const gate = m.foundry.gates.find(g => g.cell === from + 1);
+    if (from < m.exits.B && (!gate || gate.open)) send({ action: 'move', missionId: m.id, from, destination: from + 1 });
+    return;
+  }
   const foundry = m.ruleVersion === 'SF-T1-v2';
   if (!foundry && m.turn <= 2 && !m.signals.B) { send({ ...base, action: 'signal', cell: m.turn === 1 ? 1 : 7 }); return; }
   const a = (foundry ? [1,2,2,2,3] : [3,3,0,0,3,4,5])[m.turn - 1];

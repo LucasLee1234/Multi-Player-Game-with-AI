@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
 import type { Admission, Command, ErrorCode, GameError, LobbyView, Role, ServerMessage, SessionContext } from '../contracts/lobby.js';
-import { clearAgreement, newMission, project, propose, ready, RuleFault, signal, type Mission } from '../rules/joint-exit.js';
+import { clearAgreement, moveFoundry, newMission, project, propose, ready, RuleFault, signal, type Mission } from '../rules/joint-exit.js';
 import { differentDangers, type MissionDefinition } from '../content/missions.js';
 
 export class Fault extends Error {
@@ -41,6 +41,7 @@ function command(value: unknown): Command {
   if (!value || typeof value !== 'object') throw new Fault('INVALID_INPUT');
   const action = (value as Record<string, unknown>).action;
   const extras: Record<string, string[]> = { leave: [], startAgreement: ['lobbyRevision'],
+    move: ['missionId', 'from', 'destination'], ping: ['missionId', 'cell'],
     propose: ['missionId', 'turn', 'planningRevision', 'destination'], signal: ['missionId', 'turn', 'planningRevision', 'cell'],
     ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'] };
   if (typeof action !== 'string' || !Object.hasOwn(extras, action)) throw new Fault('INVALID_INPUT');
@@ -60,7 +61,7 @@ function command(value: unknown): Command {
 /** All mutations are synchronous on one Node event loop: no await inside this store. */
 export class Store {
   readonly bootId = randomUUID();
-  get releaseId() { return this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
+  get releaseId() { return this.definition.independent ? 'sys-04-free-move' : this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
   readonly limits: Limits;
   private sessions = new Map<string, Session>();
   private rooms = new Map<string, Room>();
@@ -184,6 +185,9 @@ export class Store {
     if (room.phase === 'paused' && Object.values(room.seats).every(s => s.channel)) {
       room.phase = room.resumePhase ?? 'waiting'; room.resumePhase = undefined; room.pauseDeadline = undefined;
     }
+    if (this.definition.independent && room.phase === 'waiting' && room.seats.A?.channel && room.seats.B?.channel) {
+      room.mission = newMission(randomUUID(), this.definition); room.phase = 'planning';
+    }
     this.changed(room, true, false);
     return seat.epoch;
   }
@@ -249,6 +253,7 @@ export class Store {
     if (room.phase === 'paused') throw new Fault('PAUSED', 409);
     if (!room.seats.A?.channel || !room.seats.B?.channel) throw new Fault('NOT_AUTHORIZED', 409);
     if (input.action === 'startAgreement') {
+      if (this.definition.independent) throw new Fault('INVALID_INPUT');
       if (room.phase !== 'waiting' || input.lobbyRevision !== room.lobbyRevision) throw new Fault('STALE_PLAN', 409);
       room.startAgreements[role] = true;
       if (room.startAgreements.A && room.startAgreements.B) {
@@ -267,6 +272,14 @@ export class Store {
       return;
     }
     if (room.phase !== 'planning') throw new Fault('NOT_PLANNING', 409);
+    if (input.action === 'move' || input.action === 'ping') {
+      if (!mission.definition.independent) throw new Fault('INVALID_INPUT');
+      if (input.action === 'move' && input.from !== mission.positions[role]) throw new Fault('STALE_POSITION', 409);
+      room.mission = input.action === 'move' ? moveFoundry(mission, role, input.destination) : signal(mission, role, input.cell);
+      if (room.mission.result) room.phase = 'terminal';
+      return;
+    }
+    if (mission.definition.independent) throw new Fault('INVALID_INPUT');
     if (input.turn !== mission.turn || input.planningRevision !== mission.planningRevision) throw new Fault('STALE_PLAN', 409);
     room.mission = input.action === 'propose' ? propose(mission, role, input.destination)
       : input.action === 'signal' ? signal(mission, role, input.cell) : ready(mission, role);

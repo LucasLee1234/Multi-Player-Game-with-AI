@@ -2,6 +2,8 @@
 
 Date: October 6, 2026
 Version: SF-T1 v2
+
+Supersession on October 7: [independent-movement-spec.md](independent-movement-spec.md) defines implemented SF-T1 v3. It replaces per-turn confirmation/Wait/start agreement with automatic start and direct individual moves; geometry and latch gates remain. The v2 text below is historical rule/verification context.
 Status: Bounded design and executable research completed after the participant requested further work on the relay/gate direction. This is not a production replacement approval or a human-tested release baseline. The running browser game remains J1.
 
 Implementation update: the participant explicitly requested implementation. SF-T1 v2 is now the default local startup profile (`sys-03-sf-t1`); J1 is retained only as a developer comparison profile. [test-evidence.md](test-evidence.md) records production-module and wire checks. Earlier statements about future implementation below describe the pre-coding specification; human/release acceptance remains open.

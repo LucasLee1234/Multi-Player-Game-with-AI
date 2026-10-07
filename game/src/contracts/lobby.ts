@@ -2,11 +2,11 @@ export type Role = 'A' | 'B';
 export type ErrorCode = 'INVALID_INPUT' | 'NOT_AUTHORIZED' | 'STALE_CONTEXT' | 'ROOM_UNAVAILABLE'
   | 'ROOM_FULL' | 'ROOM_CLOSED' | 'PAUSED' | 'RATE_LIMITED' | 'SERVER_BUSY'
   | 'CONTROLLER_ACTIVE' | 'CONTROLLER_REPLACED' | 'OUT_OF_ORDER' | 'REQUEST_TOO_OLD' | 'REQUEST_CONFLICT';
-export type GameError = 'STALE_PLAN' | 'STALE_MISSION' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
+export type GameError = 'STALE_PLAN' | 'STALE_POSITION' | 'STALE_MISSION' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
 export type Knowledge = { safety: 'Safe' | 'Danger'; source: 'start/exit' | 'signal' | 'visit' | 'hazard attempt' | 'deduction' } | null;
 export interface MissionView {
-  id: string; ruleVersion: 'J1-C1' | 'SF-T1-v2'; title: string; turn: number; turnsResolved: number; strikes: number;
-  foundry?: { width: number; height: number; walls: number[];
+  id: string; ruleVersion: 'J1-C1' | 'SF-T1-v2' | 'SF-T1-v3'; title: string; turn: number; turnsResolved: number; strikes: number;
+  foundry?: { width: number; height: number; walls: number[]; movement: 'independent' | 'confirmed';
     gates: { cell: number; relay: number; powered: boolean; latched: boolean; open: boolean }[] };
   positions: Record<Role, number>; exits: Record<Role, number>; proposals: Record<Role, number>;
   planningRevision: number; ready: Record<Role, boolean>;
@@ -34,6 +34,8 @@ export interface LeaveCommand {
 }
 interface Envelope { type: 'command'; requestId: string; sequence: number; roomId: string; controllerEpoch: number }
 export type Command = LeaveCommand
+  | (Envelope & { action: 'move'; missionId: string; from: number; destination: number })
+  | (Envelope & { action: 'ping'; missionId: string; cell: number })
   | (Envelope & { action: 'startAgreement'; lobbyRevision: number })
   | (Envelope & { action: 'propose'; missionId: string; turn: number; planningRevision: number; destination: number })
   | (Envelope & { action: 'signal'; missionId: string; turn: number; planningRevision: number; cell: number })

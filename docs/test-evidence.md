@@ -128,4 +128,29 @@ Client correction: terminal resolution increments planning revision without chan
 
 Screenshots: [powered partner gate](evidence/sf-t1-powered.png), [narrow completion](evidence/sf-t1-narrow.png), [final desktop completion](evidence/sf-t1-result.png). Codes shown belong to closed disposable rooms.
 
-Limits: one public, disjoint teaching room; no second room, private relay information, independent-step control, production load measurements, actual phone/network proof, public Azure deployment or human enjoyment validation. In particular, the original FR-23 information-and-reasoning requirement is still open. Local source control only; GitHub not configured. Next: two human-controlled independent contexts, observe understanding and waiting/confirmation friction, then choose the smallest adjustment.
+Limits at SF-01: one public, disjoint teaching room; no second room, private relay information, independent-step control, production load measurements, actual phone/network proof, public Azure deployment or human enjoyment validation. In particular, the original FR-23 information-and-reasoning requirement is still open. Local source control only; GitHub not configured. Next: two human-controlled independent contexts, observe understanding and waiting/confirmation friction, then choose the smallest adjustment.
+
+## SYS-04 - Independent movement and implicit waiting
+
+Date: October 7, 2026. Release ID: `sys-04-free-move`. Active specification: [SF-T1 v3](independent-movement-spec.md). The participant requested independent movement without Ready or explicit Wait. Earlier SF-01 control evidence is historical.
+
+Final regression: **54 tests passed, zero failed/skipped**. This includes the retained legacy suites, seven new independent rule/store tests and one real two-client HTTP/WebSocket test. Sources: [independent rules/store tests](../game/tests/free-movement.test.ts), [independent wire test](../game/tests/free-wire.test.ts).
+
+| Evidence | Check | Actual result |
+| --- | --- | --- |
+| FM-A01 | Actual TypeScript state exploration | 21 reachable states, 58 directional requests; every state can reach joint success |
+| FM-A02 | Direct movement and current relay power | Six successful individual steps complete; leaving a relay before gate entry closes the unlatched gate; returning restores power |
+| FM-A03 | Idle, blocked actions and pings | Idle advances no robot; blocked requests/current-cell no-ops/pings add no moves; latest pings replace and persist across movement |
+| FM-A04 | Start and independent authority | Both live seats automatically start; a partner's movement does not invalidate an otherwise current move; stale own position rejects |
+| FM-A05 | Replay and recovery | Duplicate/uncertain movement does not execute twice; paused movement rejects; reconnect preserves positions/latches and resumes without Ready |
+| FM-A06 | Real two-client transport | Concurrent moves/pings accepted; shared result after six steps; mutual retry resets attempt ID, positions, move count, pings and latches |
+| FM-U01 | Rebuilt browser with development B helper | No Start, Ready or Wait control; Right button, ArrowRight and D complete the six-step route; A remains on Relay 2 while B moves independently |
+| FM-U02 | Mouse location pings | Click Relay 2 publishes tile 2; click Gate 1 replaces it with tile 1; both preserve zero moves before movement; tile 1 ping survives completion |
+| FM-U03 | Hover correction | Link highlighting now updates text/classes without rebuilding clicked tile contents; actual mouse publishing and replacement verified after rebuild/restart |
+| FM-U04 | Retry and cleanup | Earlier browser mutual retry returned to initial zero-move state; final disposable room closed and scripted partner stopped; local server remains available |
+
+Screenshots: [independent controls](evidence/free-move-controls.png), [six-move result](evidence/free-move-result.png). Screenshots show a closed disposable room with a development-only scripted partner, not a human playtest.
+
+The future expansion research model was also rerun with one actor acting while the other stays still: [independent expansion validation](foundry-independent-expansion-validation.json). SF-M2 has 220 states and a 16-step shortest witness; SF-M3 has 2,496 states and an 18-step shortest witness. All modeled states are recoverable. These are design-model results; neither expansion is implemented in the browser.
+
+Remaining: two-human observation, actual phone/touch and separate-network proof, production latency/load, public Azure deployment and the advanced room/private-information requirements. G2 and G3 remain open. GitHub is not configured; this cycle is saved locally.

@@ -415,6 +415,8 @@ The earlier candidate preparation sequence is historical. Current next step: fir
 
 ## 14. SF-T1 experimental requirement profile
 
+Current override: [SF-T1 v3](independent-movement-spec.md) is explicitly selected by the participant's direct-movement instruction. FR-04 uses automatic start once both authorized seats are connected. FR-09/FR-12 use independent immediate adjacent moves with current relay power. FR-10 public joint proposals and FR-11 mutual per-move confirmation no longer apply to this foundry profile; seat authority, ordered execution, retry identity and current-own-position checks remain. FR-07 uses repeatable public location pings without a turn quota; FR-13 reports successful team steps. Mutual terminal retry still applies to FR-16. The v2 table below records the preceding profile; it cannot justify reintroducing Ready/Wait/start agreement into foundry.
+
 Applies to the participant-authorized single First Connection room. Detailed relay/gate rules are owned by [signal-foundry-spec.md](signal-foundry-spec.md), not duplicated here.
 
 | Area / ID | Current experiment requirement | Evidence / limit |

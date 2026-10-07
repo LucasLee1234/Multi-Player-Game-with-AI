@@ -178,3 +178,14 @@ Date: October 7, 2026. Status: Participant reports the teaching room is enjoyabl
 - Revised research models have completion paths from all 220 SF-M2 and 2,496 SF-M3 reachable states. Thirty explicit checks passed; no new browser or TypeScript gameplay was implemented in this design pass.
 - Owner feedback does not imply an observed friend test or equal participation. Record waiting/handler imbalance and Ready friction in subsequent human inspection. Existing dates, Azure budget verification, and public-device requirements remain.
 - Authority: [foundry-expansion-design.md](foundry-expansion-design.md); evidence: [foundry-expansion-validation.json](foundry-expansion-validation.json).
+
+## DEC-012 - Independent movement and implicit waiting
+
+Date: October 7, 2026. Status: Participant explicitly requested removing Ready and letting each player move independently; implemented locally.
+
+- Default foundry profile now starts automatically when both seats are connected. Direction buttons and arrow keys/WASD move immediately. Remaining still is waiting; no movement confirmation, shared-plan UI or Wait button.
+- Keep relay/gate geometry and latching; evaluate live power in ordered server commands. Count only successful steps, not idle time, pings or blocked requests. Mutual terminal retry still resets shared state.
+- Use new move/ping commands without shared planning revisions. From-position plus seat sequence/request/epoch prevents stale or duplicate movement while allowing concurrent partner activity. Pause/reconnect preserves mission and resumes without Ready.
+- Current teaching room has 21 recoverable states/58 directional requests; the 54-test suite passes. Re-audited future rooms under independent ordering: 220/2,496 recoverable states, shortest 16/18 individual steps. Their earlier simultaneous turn counts are historical.
+- Browser button/ArrowRight/D movement completed in six steps with a scripted partner, not human evidence. Mouse relay/link hover was changed to avoid rebuilding clicked contents; pings rechecked.
+- Authority: [independent-movement-spec.md](independent-movement-spec.md). No new rooms, public deployment, cloud spending or remote push in this change.

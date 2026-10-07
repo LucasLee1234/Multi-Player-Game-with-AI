@@ -5,6 +5,8 @@ Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
 Primary next task: implement the bounded SF-M2 shared-passage/pressure-gate cycle from the checked expansion design; retain actual phone/public and two-human inspection requirements
 
+Current control baseline: SF-T1 v3 direct independent movement, automatic start and idle waiting are implemented. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts for foundry; future SF-02/03 work must preserve this control choice. Fifty-four regression tests pass; expansion models were re-audited under ordered individual actions.
+
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
 Gameplay exploration update (October 6): [cooperative-robot-alternatives.md](cooperative-robot-alternatives.md) compares relay/gate, tether, and parallel-world robot adventures. R1 relay/gate research is recommended for a bounded experiment; participant selection is pending. This research does not replace J1, authorize new mechanics, or establish human enjoyment. Resolve this gameplay choice before expanding J1 content.
@@ -36,6 +38,7 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | SYS-02 | P0 | DONE | J1-C1 authoritative turns/private views implemented; mutual start, signals, proposals, revision-bound Ready, outcomes/retry/recovery; 36 automated tests and scripted-partner browser inspection | SYS-01, J1-C1 | FR-07 to FR-14; NFR-01, NFR-02 |
 | SF-01 | P1 | DONE | Implement the SF-T1 relay/gate teaching room, tile pings, joint exit and mutual retry; actual rules match research state counts and recover from every reachable state | Participant implementation request; SF-T1 spec | SF-01 to SF-07; SR-01 to SR-08 scoped experimental coverage |
 | SF-D02 | P1 | DONE | Define shared-passage and crate rooms, exact gate/transport rules, routes, deadlock repairs and implementation criteria; 30 research checks and exhaustive reachability | Participant complexity-design request | SR-03, SR-04, SR-07 |
+| SF-CTRL | P1 | DONE | Replace foundry start/step confirmations with automatic two-client start and independent direction/key movement; idle is Wait, live power, deduplicated moves and recovery verified | Participant direct-movement request | SR-01, SR-04 to SR-08 |
 | SF-02 | P1 | TODO | Generalize authored geometry; add SF-M2 pressure gate/shared passages and mutually agreed progression; verify both routes under actual rules | SF-D02 | SR-03 to SR-08 |
 | SF-03 | P1 | TODO | Add one crate with explicit Push/Pull and sustained-power completion; implement SF-M3 and verify recovery/reset/transport conflicts | SF-02 | SR-03 to SR-08 |
 | SYS-03 | P1 | TODO | Observe first-time SF-T1 understanding and inspect actual phone controls; adjust onboarding/interaction to concrete confusion | SF-01; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
