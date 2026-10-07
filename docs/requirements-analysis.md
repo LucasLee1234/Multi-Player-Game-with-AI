@@ -401,6 +401,8 @@ Small-sample enjoyment targets and response-time targets are product goals, not 
 
 ## 13. Readiness and next increment
 
+Current candidate override: the participant requested and authorized implementing [SF-T1](signal-foundry-spec.md). First Connection is now the default local profile; the original J1 profile remains a developer comparison. The scoped requirement changes in section 14 supersede hazard-specific expectations for this experiment only. They do not establish release acceptance or declare the original information-cooperation requirement complete.
+
 Implementation update: the participant explicitly resumed coding; SYS-01 and SYS-02 are now locally tested. The implemented subset includes J1-C1 asymmetric gameplay and phase-preserving recovery; [test-evidence.md](test-evidence.md) records actual coverage. Earlier prototype-deferral/open-input statements are historical. Teaching, human acceptance, actual phone compatibility, Azure public proof and release checks remain open; G2/G3 are not closed by automated tests.
 
 Candidate update, October 6: [J1-C1](candidate-gameplay-spec.md) supplies a bounded test specification for O-01 through O-05: joint exit, retained free per-turn signals, provisional eight-turn/three-strike bounds, no numerical points, and two authored mission candidates. It also defines safe-cell deduction from authorized knowledge. These choices supersede unspecified candidate inputs for prototype planning, not the unverified release baseline. [The static layout](mobile-wireframe.html) supplies interface preparation. Prototype, device, and human acceptance remain open; the historical open-decision entries describe earlier inputs.
@@ -409,6 +411,28 @@ The completeness review in [requirements-readiness-review.md](requirements-readi
 
 The product direction and access/cooperation/reliability needs are clear enough for focused implementation when requested. J1-C1 and the static layout now specify the candidate; final balance, release content acceptance, actual device usability, and deployment details are not frozen.
 
-The bounded specification and low-fidelity layout are prepared. Next resume minimal SYS-01 room/connection work when the participant requests coding, then validate J1-C1 in the synchronized-turn slice. Do not repeat a general concept review merely because this SRS has open entries.
+The earlier candidate preparation sequence is historical. Current next step: first-time human inspection of the implemented SF-T1 room, then actual phone/public technical proof and narrowly chosen gameplay adjustments. Do not repeat a general concept review merely because this SRS has open entries.
+
+## 14. SF-T1 experimental requirement profile
+
+Applies to the participant-authorized single First Connection room. Detailed relay/gate rules are owned by [signal-foundry-spec.md](signal-foundry-spec.md), not duplicated here.
+
+| Area / ID | Current experiment requirement | Evidence / limit |
+| --- | --- | --- |
+| FR-01 to FR-05, FR-18 to FR-20, FR-24 | Retain two independent seats, authoritative admission/start/control, pause/recovery/expiry and leave | Local regressions pass; public/device proof pending |
+| FR-06 / SF-01 | Publish the teaching map and gate links to both seats; only the authorized seat can issue its own robot's actions | Public views match in wire test; no hidden layer claimed |
+| FR-07 / SF-02 | Allow one public walkable-tile ping per player per turn under current revision and command authority | Quota/wall/projection checks pass; UI labels it as a location ping |
+| FR-08 | Own hidden-layer knowledge is not applicable to SF-T1; remains part of retained J1 | Empty knowledge arrays in foundry; do not infer satisfaction of future private-information content |
+| FR-09 to FR-12 / SF-03 | Resolve legal tile moves using turn-start relay power and latch gates only after actual entry; both current confirmations required | Rule boundaries, duplicate confirmations and wire checks pass |
+| FR-13 / SF-04 | Show robot positions, relay links, Closed/Powered/Latched open text and actual turn explanations | Browser inspection completed; human comprehension unverified |
+| FR-14 / SF-05 | Succeed on joint own-exit occupancy; no strike, countdown or turn-limit failure in this teaching room | Witness and more-than-eight-turn recovery pass |
+| FR-15 | No numerical score adopted | Turn summary only |
+| FR-16 / SF-06 | Both retry agreements create a new attempt and reset latches, robot positions, pings and turn count | Store/wire/UI retry checked |
+| FR-17 | No Continue option because no second foundry room is implemented | Multi-room progression remains future work |
+| FR-21 / SF-07 | Teach how each robot opens the partner's route and how start-of-turn power differs from latching | English instructions and contextual hints present; first-time human criterion remains open |
+| FR-22 | Provide a verified route and inspect recovery under actual foundry rules | Five-turn route; 21 reachable states/120 transitions; all states can complete |
+| FR-23 | Complementary private information plus coupled reasoning remains unmet by this public, disjoint teaching room | Required gate dependencies are proven; no human/release completion claim |
+
+All original accessibility, synchronization, bounded-resource, deployment/cost and submission requirements remain applicable. Measured 390-pixel browser emulation is partial NFR-04/05 evidence; actual phone/touch, two devices, performance/load and public HTTPS remain pending. The implementation's 46 passing tests do not close G2 or G3.
 
 This task delivers requirements analysis only. It does not implement gameplay, configure Git/GitHub, provision Azure, perform a human test, or close G2-G6.

@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Signal Rescue</title><link rel="stylesheet" href="/styles.css">
+  <title>Signal Foundry</title><link rel="stylesheet" href="/styles.css">
   <script type="module" src="/client.js"></script>
 </head>
 <body>
 <main>
-  <p class="eyebrow">Signal Rescue · Local development slice</p>
-  <h1>Find a way out together.</h1>
-  <p>Two players. Separate screens. Your partner sees the dangers you cannot.</p>
-  <p class="notice"><strong>J1-C1 gameplay prototype.</strong> One asymmetric mission is available. Local testing only.</p>
+  <p id="page-eyebrow" class="eyebrow">Signal Foundry · A cooperative robot adventure</p>
+  <h1 id="page-title">You power my way.<br>I power yours.</h1>
+  <p id="page-subtitle">Two robots. One escape. Open a route for your partner, then find your way out together.</p>
+  <p id="page-notice" class="notice">Invite a friend to try <strong>First Connection</strong>, a short teaching room.</p>
   <div id="status" role="status" aria-live="polite">Connecting to the server…</div>
   <section id="entry" aria-label="Create or join a room">
     <button id="create" disabled>Create room</button>
@@ -28,20 +28,35 @@
     <p id="start-agreements"></p>
     <section id="game" hidden aria-label="Cooperative mission">
       <h2 id="mission-title"></h2>
-      <p><strong>Bring both robots to their own exits together.</strong> You can leave your exit to make room.</p>
+      <p id="objective"><strong>Bring both robots to their own exits together.</strong></p>
       <p id="progress"></p>
-      <details><summary>How to play</summary>
+      <details id="j1-instructions"><summary>How to play</summary>
         <ol><li>Your route shows your own Safe, Danger, and Unknown cells. You can see the partner's full danger layer.</li>
         <li>Select a cell on the partner's map to send one truthful signal per turn. Each robot has exactly two hazards; learning both lets you deduce other cells are safe.</li>
         <li>Propose an adjacent move or Wait. Review both proposals, then both press Ready. Changed plans or signals clear both confirmations.</li>
         <li>Both waiting uses a turn. Overlap and direct swaps block movement; following into a vacated cell is allowed. Hazards add strikes before collisions resolve.</li>
         <li>Finish together within eight turns and fewer than three strikes. Unknown is not Safe; hazards differ between robots.</li></ol>
       </details>
-      <div class="maps">
+      <details id="foundry-instructions" hidden><summary>How to play</summary>
+        <ol><li>You control your own robot. Your partner controls the other one.</li>
+        <li>Stand on a relay to power its linked gate: Relay 8 opens Gate 1; Relay 2 opens Gate 9.</li>
+        <li>Choose an adjacent move or Wait, then both confirm the plan. Relay power is checked at the start of the turn.</li>
+        <li>Entering a powered gate locks it open for this attempt. You can safely go back through it.</li>
+        <li>Bring A to Exit 3 and B to Exit 11 together. Take your time; there is no turn limit.</li>
+        <li>Select a floor tile to point it out to your partner, once per turn. A new ping clears both confirmations.</li></ol>
+      </details>
+      <section id="foundry-map" hidden aria-label="Factory floor">
+        <div class="factory-heading"><h3>Factory floor</h3><span id="foundry-self"></span></div>
+        <p id="foundry-hint"></p>
+        <div id="foundry-board" class="foundry-board" aria-label="Shared factory map"></div>
+        <p id="foundry-link" role="status">Relay 8 → Gate 1 · Relay 2 → Gate 9</p>
+        <p class="legend">Closed = needs power · Powered = enter now · Latched open = stays open. Walls cannot be crossed.</p>
+      </section>
+      <div id="j1-maps" class="maps">
         <section><h3 id="own-label">Your route</h3><div id="own-board" class="board" aria-label="Your route"></div></section>
         <section><h3 id="partner-label">Partner's dangers</h3><div id="partner-board" class="board" aria-label="Partner danger layer"></div></section>
       </div>
-      <p class="legend">? Unknown · ! Danger · Safe = confirmed or deduced. Safety applies only to the labeled robot.</p>
+      <p id="j1-legend" class="legend">? Unknown · ! Danger · Safe = confirmed or deduced. Safety applies only to the labeled robot.</p>
       <p id="signals"></p>
       <h3>Propose your move</h3>
       <div class="moves"><button id="move-up" class="secondary">Up</button><button id="move-left" class="secondary">Left</button><button id="move-wait" class="secondary">Wait</button><button id="move-right" class="secondary">Right</button><button id="move-down" class="secondary">Down</button></div>

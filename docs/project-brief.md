@@ -3,6 +3,8 @@
 Updated: October 6, 2026
 Status: Concept B selected. GP-01 delivered; the design 0.2 recommendation is reopened after the second gameplay review. GP-02 continues on paper; prototype construction is deferred. G2 and human validation remain open.
 
+Current implementation update: coding has resumed and the participant requested the [Signal Foundry teaching experiment](signal-foundry-spec.md). It now runs as the default local profile, with two robots powering partner gates on a public map. The original private-hazard promise below describes B's earlier premise; SF-T1 does not claim to satisfy it. Broader gameplay acceptance, complementary information content, actual phone/public proof, and G2/G3 remain open. J1 is retained as a developer comparison.
+
 ## Objective
 
 Create Signal Rescue, a cooperative browser game in which each player can see dangers that threaten the other player and must help that player navigate safely. Deliver a reliable, distinctive two-player experience and a valid entry for the Handshake multiplayer game challenge. Aim for a competitive entry across execution, creativity, value, and polish; no outcome is guaranteed.

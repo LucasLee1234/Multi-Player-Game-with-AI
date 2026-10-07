@@ -156,3 +156,14 @@ Date: October 6, 2026. Status: Participant requested further work on the relay/g
 - Exhaustive research exposed a reachable deadlock in the original momentary-gate proposal. Recommend latch-on-entry gates for the teaching room; all 21 reachable revised-model states can complete.
 - The five-turn shortest completion still contains four Wait action slots. Required gate dependencies are demonstrated; equal reasoning and enjoyment are unverified.
 - Authoritative experiment specification: [signal-foundry-spec.md](signal-foundry-spec.md); executed model output: [signal-foundry-validation.json](signal-foundry-validation.json). No production SF-T1 engine, human test, cloud expenditure, or full product replacement acceptance is implied.
+
+## DEC-010 - Implement SF-T1 as the default local experiment
+
+Date: October 6, 2026. Status: Participant explicitly requested implementation; local slice completed, human/release acceptance pending.
+
+- Default server startup now selects First Connection. Retain J1 with an explicit developer `GAME_MODE=J1` startup setting; no player-facing mode selection or second foundry room added.
+- Reuse existing authority, command sequencing, confirmations and recovery; add fixed public factory tiles, turn-start relay power and latch-on-entry gates. Teaching room has no hazards/strikes/turn limit. Both retry agreements reset latches under a new mission ID.
+- Reuse the bounded signal envelope as a public floor-tile ping, with the legacy Safe field meaning walkability only. UI explicitly describes a location ping, not private safety or open-gate permission.
+- Actual TypeScript search matches the research audit's 21 reachable states and 120 transitions; every state can complete. Forty-six automated tests passed, including retained J1/room checks and foundry wire completion/reset/recovery.
+- Browser A plus a development-only B helper completed in five turns and checked refresh/retry. A measured 390-pixel browser viewport fit without horizontal overflow. This is not actual phone/touch, human enjoyment, public deployment, or full release acceptance.
+- Updated scoped SRS/architecture/specification/README; preserve original information-cooperation requirement as unresolved rather than calling a public teaching map sufficient. No Azure spending, remote repository creation, or push.

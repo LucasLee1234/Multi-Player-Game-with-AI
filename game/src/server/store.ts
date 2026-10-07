@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
 import type { Admission, Command, ErrorCode, GameError, LobbyView, Role, ServerMessage, SessionContext } from '../contracts/lobby.js';
 import { clearAgreement, newMission, project, propose, ready, RuleFault, signal, type Mission } from '../rules/joint-exit.js';
-import { differentDangers } from '../content/missions.js';
+import { differentDangers, type MissionDefinition } from '../content/missions.js';
 
 export class Fault extends Error {
   constructor(public code: ErrorCode | GameError, public status = 400) { super(code); }
@@ -60,14 +60,14 @@ function command(value: unknown): Command {
 /** All mutations are synchronous on one Node event loop: no await inside this store. */
 export class Store {
   readonly bootId = randomUUID();
-  readonly releaseId = 'sys-02';
+  get releaseId() { return this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
   readonly limits: Limits;
   private sessions = new Map<string, Session>();
   private rooms = new Map<string, Room>();
   private codes = new Map<string, string>();
   private closed = new Map<string, number>();
   private globalAttempts: number[] = [];
-  constructor(private now: () => number = () => performance.now(), limits: Partial<Limits> = {}) {
+  constructor(private now: () => number = () => performance.now(), limits: Partial<Limits> = {}, private definition: MissionDefinition = differentDangers) {
     this.limits = { ...defaults, ...limits };
   }
   bootstrap(token?: string): { token?: string; session: Session } {
@@ -252,7 +252,7 @@ export class Store {
       if (room.phase !== 'waiting' || input.lobbyRevision !== room.lobbyRevision) throw new Fault('STALE_PLAN', 409);
       room.startAgreements[role] = true;
       if (room.startAgreements.A && room.startAgreements.B) {
-        room.mission = newMission(randomUUID(), differentDangers); room.phase = 'planning';
+        room.mission = newMission(randomUUID(), this.definition); room.phase = 'planning';
       }
       return;
     }
@@ -262,7 +262,7 @@ export class Store {
       if (room.phase !== 'terminal') throw new Fault('NOT_PLANNING', 409);
       mission.retryAgreements[role] = true;
       if (mission.retryAgreements.A && mission.retryAgreements.B) {
-        room.mission = newMission(randomUUID(), differentDangers); room.phase = 'planning';
+        room.mission = newMission(randomUUID(), this.definition); room.phase = 'planning';
       }
       return;
     }

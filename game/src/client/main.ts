@@ -1,4 +1,4 @@
-import type { SessionContext, ServerMessage, Command } from '../contracts/lobby.js';
+import type { SessionContext, ServerMessage, Command, MissionView, Role } from '../contracts/lobby.js';
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const messages: Record<string, string> = {
   ROOM_FULL: 'This room already has two players.', ROOM_UNAVAILABLE: 'Room not found or expired. Check the code.',
@@ -35,6 +35,12 @@ function render() {
   el('takeover').hidden = !view || connected || !stopped;
   el('reconnect').hidden = !view || connected || stopped;
   if (view) {
+    const foundry = view.releaseId === 'sys-03-sf-t1';
+    document.title = foundry ? 'Signal Foundry' : 'Signal Rescue';
+    el('page-eyebrow').textContent = foundry ? 'Signal Foundry · A cooperative robot adventure' : 'Signal Rescue · Cooperative navigation';
+    el('page-title').textContent = foundry ? 'You power my way. I power yours.' : 'Find a way out together.';
+    el('page-subtitle').textContent = foundry ? 'Two robots. One escape. Open a route for your partner, then find your way out together.' : 'You see your partner’s dangers. They see yours. Find a safe route together.';
+    el('page-notice').textContent = foundry ? 'Invite a friend to try First Connection, a short teaching room.' : 'Try Different Dangers, a cooperative navigation mission.';
     el('room-code').textContent = view.room.code;
     el('role').textContent = `You are Player ${view.self.role}. Setup owner: ${view.room.owner}.`;
     el('players').textContent = stopped ? 'Room status is not live in this tab.' : (['A', 'B'] as const).map(role => {
@@ -78,8 +84,9 @@ function connect() {
     const message: ServerMessage = JSON.parse(event.data);
     if (message.type === 'snapshot') {
       const previous = context?.view?.mission, next = message.context.view?.mission;
+      if (previous && next && (next.id !== previous.id || next.turn > previous.turn || (!!next.result && !previous.result))) commandFeedback = undefined;
       if (previous && next?.id === previous.id && next.turn === previous.turn
-          && next.planningRevision > previous.planningRevision && (previous.ready.A || previous.ready.B)) commandFeedback = 'Plan changed - check it and confirm again.';
+          && !next.result && next.planningRevision > previous.planningRevision && (previous.ready.A || previous.ready.B)) commandFeedback = 'Plan changed - check it and confirm again.';
       apply(message.context);
       if (pendingAcknowledged) { clearPending(); render(); }
       if (!context?.view) { clearPending(); status(endedText()); closeSocket(); }
@@ -175,12 +182,59 @@ for (let cell = 0; cell < 9; cell++) {
   tile.onclick = () => gameAction('signal', cell); partnerTiles.push(tile); el('partner-board').append(tile);
 }
 const moves = ['up', 'left', 'wait', 'right', 'down'] as const;
-function destination(direction: typeof moves[number], from: number): number | null {
-  if (direction === 'up') return from >= 3 ? from - 3 : null;
-  if (direction === 'down') return from < 6 ? from + 3 : null;
-  if (direction === 'left') return from % 3 ? from - 1 : null;
-  if (direction === 'right') return from % 3 < 2 ? from + 1 : null;
-  return from;
+const foundryTiles: HTMLButtonElement[] = [];
+let inspectedCell: number | undefined;
+for (let cell = 0; cell < 12; cell++) {
+  const tile = document.createElement('button'); tile.type = 'button'; tile.className = 'factory-tile';
+  tile.onclick = () => { inspectedCell = cell; gameAction('signal', cell); };
+  tile.onfocus = tile.onpointerenter = () => {
+    inspectedCell = cell;
+    const view = context?.view;
+    if (view?.mission?.foundry) renderFoundry(view.mission, view.self.role,
+      socket?.readyState === WebSocket.OPEN && view.room.phase === 'planning' && !pending && !stopped);
+  };
+  foundryTiles.push(tile); el('foundry-board').append(tile);
+}
+function destination(direction: typeof moves[number], from: number, m: MissionView): number | null {
+  const width = m.foundry?.width ?? 3, height = m.foundry?.height ?? 3;
+  let target = from;
+  if (direction === 'up') target = from >= width ? from - width : -1;
+  if (direction === 'down') target = from < width * (height - 1) ? from + width : -1;
+  if (direction === 'left') target = from % width ? from - 1 : -1;
+  if (direction === 'right') target = from % width < width - 1 ? from + 1 : -1;
+  return target < 0 || m.foundry?.walls.includes(target) ? null : target;
+}
+function renderFoundry(m: MissionView, role: Role, planning: boolean) {
+  const board = m.foundry!;
+  el('foundry-self').textContent = `You: Robot ${role}`;
+  el('foundry-hint').textContent = m.result ? 'Both robots reached their exits. Restore the room with Practice again.' : role === 'B' && m.positions.B === 8 && !board.gates[0]!.latched
+    ? 'You are powering Gate 1. Let A through; A can then power your gate.'
+    : role === 'A' && m.positions.A === 0 ? 'B powers Gate 1 for you. Cross it and reach Relay 2 to help B.'
+    : 'Help your partner through, then bring both robots to their exits.';
+  const link = board.gates.find(g => g.cell === inspectedCell || g.relay === inspectedCell);
+  el('foundry-link').textContent = link ? `Relay ${link.relay} → Gate ${link.cell} · ${link.latched ? 'Latched open' : link.powered ? 'Powered' : 'Closed'}`
+    : 'Relay 8 → Gate 1 · Relay 2 → Gate 9';
+  for (let cell = 0; cell < 12; cell++) {
+    const tile = foundryTiles[cell]!, wall = board.walls.includes(cell);
+    const gate = board.gates.find(g => g.cell === cell), relay = board.gates.find(g => g.relay === cell);
+    const exit = (['A', 'B'] as const).find(r => m.exits[r] === cell);
+    const robot = (['A', 'B'] as const).find(r => m.positions[r] === cell);
+    const label = wall ? 'Wall' : gate ? `Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
+    const state = gate ? gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
+    tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
+    tile.disabled = wall || !planning || !!m.signals[role];
+    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}. ${wall ? 'Impassable.' : 'Point out this tile.'}`);
+    // Stable tile nodes preserve focus; only their visual contents change.
+    tile.replaceChildren();
+    const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
+    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = label; tile.append(name);
+    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = state; tile.append(description);
+    if (robot) {
+      const bot = document.createElement('span'); bot.className = `robot robot-${robot}`; bot.textContent = robot;
+      bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
+    }
+    tile.classList.toggle('pinged', Object.values(m.signals).some(p => p?.cell === cell));
+  }
 }
 function renderMission() {
   const view = context?.view, m = view?.mission;
@@ -194,11 +248,16 @@ function renderMission() {
   if (!m || !view) return;
   const role = view.self.role, partner = role === 'A' ? 'B' : 'A';
   const planning = active && view.room.phase === 'planning';
+  const foundry = !!m.foundry;
+  el('j1-instructions').hidden = foundry; el('j1-maps').hidden = foundry; el('j1-legend').hidden = foundry;
+  el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
+  el('objective').textContent = foundry ? 'Power your partner’s gate. Bring A to Exit 3 and B to Exit 11 together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
   el('mission-title').textContent = m.title;
-  el('progress').textContent = `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
+  el('progress').textContent = foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
+  if (foundry) renderFoundry(m, role, planning);
   el('own-label').textContent = `Your route · ${role}`;
   el('partner-label').textContent = `Partner's dangers · ${partner} only`;
-  for (let cell = 0; cell < 9; cell++) {
+  for (let cell = 0; !foundry && cell < 9; cell++) {
     const known = m.ownKnownCells[cell]; const danger = m.partnerHazards.includes(cell);
     const markers = (['A', 'B'] as const).filter(r => m.positions[r] === cell).map(r => `Robot ${r}`)
       .concat((['A', 'B'] as const).filter(r => m.exits[r] === cell).map(r => `Exit ${r}`)).join(' · ');
@@ -211,14 +270,15 @@ function renderMission() {
     tile.disabled = !planning || !!m.signals[role];
   }
   el('signals').textContent = (['A', 'B'] as const).map(r => {
-    const clue = m.signals[r]; return `${r} signal: ${clue ? `${clue.cell} ${clue.safety}` : 'not sent'}`;
-  }).join(' · ') + '. Learned cells persist.';
+    const clue = m.signals[r]; return foundry ? `${r}: ${clue ? `points to tile ${clue.cell}` : 'no ping'}` : `${r} signal: ${clue ? `${clue.cell} ${clue.safety}` : 'not sent'}`;
+  }).join(' · ') + (foundry ? '. One tile ping per player per turn.' : '. Learned cells persist.');
   for (const direction of moves) {
-    const target = destination(direction, m.positions[role]);
+    const target = destination(direction, m.positions[role], m);
     const button = el<HTMLButtonElement>(`move-${direction}`);
     const known = target === null ? undefined : m.ownKnownCells[target];
     button.disabled = !planning || target === null;
-    button.textContent = `${direction === 'wait' ? 'Wait' : direction[0]!.toUpperCase() + direction.slice(1)}${target === null ? ' (edge)' : ` ${target}${!known ? ' · Unverified' : known.safety === 'Danger' ? ' · Danger' : ''}`}`;
+    const gate = m.foundry?.gates.find(g => g.cell === target);
+    button.textContent = `${direction === 'wait' ? 'Wait' : direction[0]!.toUpperCase() + direction.slice(1)}${target === null ? ' (blocked)' : ` ${target}${foundry ? gate && !gate.open ? ' · Closed gate' : '' : !known ? ' · Unverified' : known.safety === 'Danger' ? ' · Danger' : ''}`}`;
     button.setAttribute('aria-pressed', String(target !== null && m.proposals[role] === target));
   }
   el('shared-plan').textContent = `Shared plan: A → ${m.proposals.A} · B → ${m.proposals.B}`;
@@ -229,14 +289,14 @@ function renderMission() {
   el('ready').hidden = !!m.result;
   el('resolution').textContent = m.explanations.join(' ');
   el('result').hidden = !m.result;
-  el('result-title').textContent = m.result === 'success' ? 'Rescued together' : m.result === 'strikes' ? 'Mission ended: three strikes' : 'Mission ended: turn limit';
-  el('result-stats').textContent = `Turns used: ${m.turnsResolved} / 8 · Strikes: ${m.strikes} / 3`;
+  el('result-title').textContent = m.result === 'success' ? foundry ? 'Factory restored. You made it together!' : 'Rescued together' : m.result === 'strikes' ? 'Mission ended: three strikes' : 'Mission ended: turn limit';
+  el('result-stats').textContent = foundry ? `Completed in ${m.turnsResolved} turns. Both robots are at their exits.` : `Turns used: ${m.turnsResolved} / 8 · Strikes: ${m.strikes} / 3`;
   el<HTMLButtonElement>('practice').disabled = !active || view.room.phase !== 'terminal' || m.retryAgreements[role];
   el('retry-agreements').textContent = `Practice again: A ${m.retryAgreements.A ? 'agreed' : 'not yet'} · B ${m.retryAgreements.B ? 'agreed' : 'not yet'}`;
 }
 for (const direction of moves) el(`move-${direction}`).onclick = () => {
   const m = context?.view?.mission; if (!m) return;
-  const target = destination(direction, m.positions[context!.view!.self.role]);
+  const target = destination(direction, m.positions[context!.view!.self.role], m);
   if (target !== null) gameAction('propose', target);
 };
 el('start').onclick = () => { if (context?.view) sendAction({ action: 'startAgreement', lobbyRevision: context.view.room.lobbyRevision }); };

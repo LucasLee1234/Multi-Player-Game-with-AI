@@ -5,7 +5,9 @@ export type ErrorCode = 'INVALID_INPUT' | 'NOT_AUTHORIZED' | 'STALE_CONTEXT' | '
 export type GameError = 'STALE_PLAN' | 'STALE_MISSION' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
 export type Knowledge = { safety: 'Safe' | 'Danger'; source: 'start/exit' | 'signal' | 'visit' | 'hazard attempt' | 'deduction' } | null;
 export interface MissionView {
-  id: string; ruleVersion: 'J1-C1'; title: string; turn: number; turnsResolved: number; strikes: number;
+  id: string; ruleVersion: 'J1-C1' | 'SF-T1-v2'; title: string; turn: number; turnsResolved: number; strikes: number;
+  foundry?: { width: number; height: number; walls: number[];
+    gates: { cell: number; relay: number; powered: boolean; latched: boolean; open: boolean }[] };
   positions: Record<Role, number>; exits: Record<Role, number>; proposals: Record<Role, number>;
   planningRevision: number; ready: Record<Role, boolean>;
   signals: Record<Role, { cell: number; safety: 'Safe' | 'Danger' } | null>;

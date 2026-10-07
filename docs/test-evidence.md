@@ -101,3 +101,31 @@ Screenshots: [planning/private labels](evidence/sys-02-planning.jpg), [seven-tur
 Remaining verification: human discoverability/enjoyment/participation, exact phone browser/touch/viewport layout, public TLS and separate networks, measured load/latency, tutorial/onboarding, and Azure cost/access. The earlier 360-pixel viewport override was not effective; no phone-width pass is claimed. G2 and G3 remain open. GitHub is not configured; this cycle is saved only as a local checkpoint, with its actual commit reported in chat.
 
 Next: participant inspection using two independent human-controlled contexts, then the bounded teaching/phone cycle and public technical proof after account/cost checks.
+
+## SF-01 - Signal Foundry First Connection
+
+Date: October 6, 2026. Release ID: `sys-03-sf-t1`. Default startup profile: foundry. Node/dependencies unchanged. Final regression suite: **46 tests passed, zero failed/skipped**. J1 remains a developer comparison with its earlier tests intact.
+
+Sources: [rule module](../game/src/rules/joint-exit.ts), [foundry rules tests](../game/tests/foundry.test.ts), [foundry store tests](../game/tests/foundry-store.test.ts), [two-profile wire tests](../game/tests/game-http.test.ts). Specification: [SF-T1 v2](signal-foundry-spec.md).
+
+| Evidence | Check | Actual result |
+| --- | --- | --- |
+| SF-A01 | Full state search of actual TypeScript transitions | 21 states, 120 transitions, matching independent Python research counts; every reachable state can complete |
+| SF-A02 | Witness and original softlock recovery | Five-turn completion; latching allows return through both gates after relay departure; more-than-eight-turn exploration still completes |
+| SF-A03 | Turn-start power and gate state | Simultaneous first arrival at relay does not enable entry that turn; powered entry with simultaneous relay departure latches correctly |
+| SF-A04 | Geometry and location pings | Walls/wrap/nonadjacent destinations reject; one public walkable-tile ping per seat per turn; ping clears both ready; projections cannot mutate truth |
+| SF-A05 | Authority, duplication and reset | Duplicate second Ready cannot advance again; same public gate state for both seats; mutual retry resets positions/latches/attempt ID while seat sequences remain monotonic |
+| SF-A06 | Recovery | Pause/reconnect retains robot positions and latches, clears agreements and restores planning; existing room/authorization regressions pass |
+| SF-A07 | Real HTTP/WebSocket contexts | Two distinct capability cookies complete First Connection and mutually retry; duplicate confirmation does not resolve twice; private server content remains unserved |
+| SF-U01 | Browser A with development-only B helper | Five-turn route completes; powered and latched gate labels/robot markers update; no hazard/strike-limit UI in foundry |
+| SF-U02 | Tile inspection/ping | Selecting Relay 2 identifies Gate 9 and publishes A's location ping; movement remains controlled separately |
+| SF-U03 | Terminal refresh and retry | Same committed success after refresh; both retry agreements produce turn one, initial positions, no latches, GA powered and GB closed |
+| SF-U04 | Narrow browser viewport | Actual `innerWidth=390`, document `clientWidth=375`, `scrollWidth=375`, board width approximately 313.6 CSS pixels; no horizontal overflow; screenshot inspected; override reset |
+
+Browser helper usage is scripted inspection, not two-human evidence. It is outside the served asset allowlist, not launched by the application, and stopped when the disposable room closed. Narrow inspection is browser emulation, not an actual phone/touch or full accessibility test.
+
+Client correction: terminal resolution increments planning revision without changing the turn counter. The previous generic ready-invalidation message consequently appeared after success. Suppress it on terminal snapshots and clear obsolete feedback on resolved/new attempts; final browser completion checked after rebuild/restart. The terminal hint also now describes completion rather than asking players to keep moving.
+
+Screenshots: [powered partner gate](evidence/sf-t1-powered.png), [narrow completion](evidence/sf-t1-narrow.png), [final desktop completion](evidence/sf-t1-result.png). Codes shown belong to closed disposable rooms.
+
+Limits: one public, disjoint teaching room; no second room, private relay information, independent-step control, production load measurements, actual phone/network proof, public Azure deployment or human enjoyment validation. In particular, the original FR-23 information-and-reasoning requirement is still open. Local source control only; GitHub not configured. Next: two human-controlled independent contexts, observe understanding and waiting/confirmation friction, then choose the smallest adjustment.

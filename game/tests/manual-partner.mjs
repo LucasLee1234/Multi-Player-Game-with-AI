@@ -31,8 +31,10 @@ function drive() {
     return;
   }
   const base = { missionId: m.id, turn: m.turn, planningRevision: m.planningRevision };
-  if (m.turn <= 2 && !m.signals.B) { send({ ...base, action: 'signal', cell: m.turn === 1 ? 1 : 7 }); return; }
-  const a = [3,3,0,0,3,4,5][m.turn - 1], b = [5,5,4,3,6,3,3][m.turn - 1];
+  const foundry = m.ruleVersion === 'SF-T1-v2';
+  if (!foundry && m.turn <= 2 && !m.signals.B) { send({ ...base, action: 'signal', cell: m.turn === 1 ? 1 : 7 }); return; }
+  const a = (foundry ? [1,2,2,2,3] : [3,3,0,0,3,4,5])[m.turn - 1];
+  const b = (foundry ? [8,8,9,10,11] : [5,5,4,3,6,3,3])[m.turn - 1];
   if (b === undefined) return;
   if (m.proposals.B !== b) { send({ ...base, action: 'propose', destination: b }); return; }
   if (m.ready.A && !m.ready.B && m.proposals.A === a) send({ ...base, action: 'ready' });

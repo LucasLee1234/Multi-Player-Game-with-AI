@@ -3,6 +3,8 @@
 Version: 0.1
 Date: October 6, 2026
 Status: SYS-01 lobby and SYS-02 J1-C1 asymmetric gameplay implemented locally. See [test-evidence.md](test-evidence.md) for tested scope and remaining contracts. Public deployment, teaching content, human validation, and release acceptance remain incomplete.
+
+SF-T1 update: the authorized First Connection experiment is now implemented as the default startup profile (`sys-03-sf-t1`). It reuses the room/authority lifecycle and adds public relay/gate views. The profile delta below takes precedence over earlier J1-specific next-step statements. Public hosting, actual phone/human validation, and release acceptance remain open.
 Inputs: [SRS 1.1](requirements-analysis.md), [readiness review](requirements-readiness-review.md), [audited 0.2 rules](game-design.md), [J1 analysis](gameplay-cooperation-analysis.md), and [short development cycle](short-development-cycle.md).
 
 ## 1. Design outcome and boundary
@@ -312,6 +314,20 @@ Pause preserves the prior waiting/planning/terminal phase and mission, clears tu
 | O-11 | Contest/account/tool obligations unchanged; architecture does not determine entrant eligibility |
 
 Architecture responsibilities and first-slice contracts are reviewable. Full gameplay design is not ready to freeze until one selected rule version and asymmetric mission trace are completed. G2 and G3 remain open. No implementation, unit/integration test, device test, cloud deployment, Git commit/push, or human feedback is claimed by this design step.
+
+## 15. Implemented SF-T1 profile delta
+
+The startup entry point selects a fixed mission definition for the process: default `GAME_MODE=foundry`, optional developer comparison `GAME_MODE=J1`. Unsupported values fail startup. `Store` accepts a server-controlled mission definition; clients cannot select or inject one. Room start and mutual retry use the same configured definition. The application factory keeps its former J1 default for existing tests; startup explicitly provides the selected store.
+
+The rule module branches on the server-owned foundry definition. SF-T1 uses a 4-by-3 board, walkable/wall geometry, turn-start relay power, latch-on-entry gates, and joint exits at 3/11 without strikes or a turn limit. Latches belong to the mission and survive pause/reconnect, clear only on a new attempt, and never come from client input.
+
+`MissionView.ruleVersion` includes `SF-T1-v2`; the optional `foundry` field contains width, height, walls, and gates with cell/relay/powered/latched/open state. This teaching map is public; own knowledge and partner hazards are empty arrays. The explicit projection still omits internal mission definitions and authorization state. J1 snapshots do not receive a foundry field.
+
+For SF-T1, the existing `signal` envelope means a bounded public tile ping. Only walkable cell IDs are valid. One accepted ping per player per turn clears both confirmations. The legacy `safety: Safe` field describes walkability only and must not be treated as an open gate. The client shows the location ping and matching relay/gate links; there is no runtime AI or free-text messaging.
+
+All commands retain mission/turn/revision, per-seat sequence and epoch checks. The single-threaded second-Ready transition commits actual movement and latches before broadcasting. Existing pause clears readiness while preserving the mission; retry starts a fresh ID and clears all latches. Results use only success/turn count in the foundry UI. Historical J1 outcomes still use strike/turn failure metadata.
+
+Verification: 46 tests pass, including all J1/room regressions, foundry exhaustive state exploration, actual two-context wire completion/reset, and room recovery retaining latches. Narrow-layout inspection is emulated, not an actual phone proof. See [test-evidence.md](test-evidence.md).
 
 ## Sources
 

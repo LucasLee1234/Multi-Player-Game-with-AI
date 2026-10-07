@@ -4,6 +4,8 @@ Date: October 6, 2026
 Version: SF-T1 v2
 Status: Bounded design and executable research completed after the participant requested further work on the relay/gate direction. This is not a production replacement approval or a human-tested release baseline. The running browser game remains J1.
 
+Implementation update: the participant explicitly requested implementation. SF-T1 v2 is now the default local startup profile (`sys-03-sf-t1`); J1 is retained only as a developer comparison profile. [test-evidence.md](test-evidence.md) records production-module and wire checks. Earlier statements about future implementation below describe the pre-coding specification; human/release acceptance remains open.
+
 ## 1. Player experience
 
 Two maintenance robots restore passage through a small facility. B provides power so A can cross the first gate. A then reaches the relay that allows B through. Both reach separate exit pads together.
@@ -110,6 +112,8 @@ UI requirements:
 - Show the public proposed moves and whether the partner is ready. Use a brief English outcome sentence after each resolved turn.
 - Preserve keyboard focus, accessible names, and existing connection feedback. Confirm actual phone fit rather than inferring it from CSS.
 - A small contextual ping/request-to-wait interaction is useful for a no-voice experiment; its command, revision, and rate-limit semantics must be specified before implementation. It must not become a backdoor to controlling the partner.
+
+Implemented ping contract: reuse `signal` with one walkable tile cell and current mission/turn/planning revision. It publishes the selected cell as a location ping, once per seat per turn; the retained `safety: Safe` wire field denotes walkable floor, not safe gate entry. Walls reject. New pings increment planning revision and clear both Ready states; resolved nonterminal turns reset the allowance. The client displays `points to tile`, never interprets the wire field as gate power, and highlights relay/gate links. Existing command authentication, quota, retries, and rate limits apply. No separate text/chat or request-to-wait command was added.
 
 Implementation verification must cover the research witness, delayed relay activation, latch persistence, blocked entry without a strike, mutual retry clearing latches, terminal immutability, duplicate Ready handling, and pause/reconnect state. Repeat relevant room/protocol checks when integration changes them. Validate shared-space collision rules separately if the reused engine claims them.
 

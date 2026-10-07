@@ -1,18 +1,18 @@
 # Signal Rescue
 
-A two-player cooperative browser game in development: you can see your partner's hazards, and they can see yours. Share information, coordinate movement, and find a way out together.
+A two-player cooperative browser game in development. The current **Signal Foundry** experiment lets two robots power each other's gates and reach their exits together.
 
-**Status:** SYS-02 gameplay prototype implemented locally: two-player start, private hazard views, truthful signals, public proposals, synchronized confirmation, J1 joint-exit outcomes, and mutual retry. One asymmetric mission is available. There is no public deployment or completed human playtest.
+**Status:** SF-T1 First Connection is implemented locally and is the default startup mission. It includes relay power, latch-on-entry gates, public tile pings, synchronized movement, joint exit, and mutual retry. The earlier J1 private-hazard mission remains available as a developer comparison. There is no public deployment or completed human playtest.
 
 ## Planned experience
 
 - Exactly two human players on separate phones or computers.
 - Join the same session through a public URL and room code, without a player account or installation.
-- Different hazard information on each screen makes communication useful.
+- Your robot's relay can open a gate for your partner; cooperation changes the available route.
 - Visible movement proposals help players coordinate before a turn resolves.
 - Small authored missions with clear outcomes and retry.
 
-The specified candidate, [J1-C1](docs/candidate-gameplay-spec.md), uses **joint exit**: both robots remain movable until they occupy their respective exits together. Sometimes one robot leaves an exit temporarily to make room for the other; other routes coordinate earlier. Its asymmetric mission is implemented with outcome/turn/strike summaries and no numerical points. The teaching mission remains planned. A [static low-fidelity layout](docs/mobile-wireframe.html) records the earlier interface study.
+The current [SF-T1 specification](docs/signal-foundry-spec.md) defines one public-map teaching room, not a full campaign. Gates stay open after first entry; exploration has no turn limit or numerical score. Private-information content remains a future design question. The earlier [J1-C1 candidate](docs/candidate-gameplay-spec.md) is preserved for comparison and has different hazard, strike, and turn-limit rules. Do not combine the rule versions.
 
 The project uses AI assistance during design and development. Runtime AI calls are outside the initial game scope. Azure is the planned hosting provider; deployment configuration and costs remain unverified.
 
@@ -20,7 +20,7 @@ The project uses AI assistance during design and development. Runtime AI calls a
 
 ```text
 game/
-  src/        TypeScript server, J1 rules, server-only content, client, contracts
+  src/        TypeScript server, versioned gameplay rules, content, client, contracts
   public/     Allowlisted browser assets
   tests/      Local authority, lifecycle, and HTTP/WebSocket checks
   scripts/    Reproducible build/test entry point
@@ -41,9 +41,11 @@ pnpm --ignore-workspace test
 pnpm --ignore-workspace start
 ```
 
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Use a normal and private browser window, or two different profiles, for two independent sessions. Create a room, then join its code. Two tabs in the same profile share a seat: the second must explicitly take control. Both players select **Ready to start**. Read **How to play**, then select a cell on the partner's map to send a truthful signal, propose an adjacent move or Wait, and both select **Ready - confirm this plan**. Any accepted plan edit or signal clears both confirmations. Unknown is not Safe; each robot has its own danger layer. Bring A to 5 and B to 3 simultaneously within eight turns and fewer than three strikes. Both must agree to Practice again. This is one authored asymmetric mission, not the planned tutorial sequence.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Use a normal and private browser window, or two different profiles, for two independent sessions. Create a room, then join its code. Two tabs in the same profile share a seat: the second must explicitly take control. Both players select **Ready to start**. B starts on Relay 8, powering A's Gate 1. A crosses to Relay 2 to power B's Gate 9. Propose an adjacent move or Wait, then both select **Ready - confirm this plan**. Entering a powered gate latches it open. Relay power is checked at turn start; moving onto a relay powers its gate for the next turn. Optional tile pings point out a location once per player per turn and clear both confirmations. Bring A to Exit 3 and B to Exit 11 together. Both must agree to **Practice again**.
 
-Thirty-six automated tests passed. Real HTTP/WebSocket tests inspected recipient-specific payloads and simultaneous confirmation. A browser-A/development-client-B check finished in seven turns with zero strikes and verified terminal refresh/retry. That scripted check is not two-human enjoyment evidence. `tests/manual-partner.mjs` is a development-only wire helper, not served, not automatically started, and not part of the public game. Actual phone, public networking, and first-time human observations remain pending.
+Forty-six automated tests passed, including all earlier J1/room checks, foundry state exploration, reconnect/reset, and two-context HTTP/WebSocket gameplay. The actual foundry rule module reaches the same 21 states and 120 transitions as the research audit; every reachable state can complete. A browser-A/development-client-B check finished the teaching route in five turns and checked terminal refresh/retry. A measured 390-pixel viewport had no horizontal overflow; this is browser emulation, not an actual phone or touch test. Scripted checks do not establish human enjoyment. `tests/manual-partner.mjs` is a development-only wire helper, not served, not automatically started, and not part of the public game.
+
+Default startup uses `GAME_MODE=foundry`. To compare the earlier hazard mission, set `GAME_MODE=J1` before starting the server, then create a new room. For example in PowerShell: `$env:GAME_MODE = 'J1'`; remove the variable to return to the default. Changing mode requires a restart and ends existing in-memory rooms. The server factory's default remains J1 for existing regression tests; the actual startup entry point explicitly selects the mode. No player-facing mode selector or level progression is included.
 
 The default server binds only to `127.0.0.1`; a phone cannot use the computer's loopback URL. Public/LAN play needs the planned HTTPS deployment, which has not been provisioned. `HOST`, `PORT`, and exact `APP_ORIGIN` are server settings; a non-loopback host requires an HTTPS origin and an actual HTTPS reverse proxy. Do not publish this plain HTTP development listener.
 
@@ -88,7 +90,7 @@ Recorded 0.2 evidence includes 15 passing boundary tests and an exhaustive check
 - [Joint-exit analysis](docs/gameplay-cooperation-analysis.md): proposed change and a manually checked example.
 - [Recorded validation results](docs/gameplay-validation-results.json): bounded 0.2 spatial evidence.
 
-Next inspect the experience with two independent human-controlled browser contexts, then refine onboarding/tutorial and phone layout using observations. Verify Azure account/cost before provisioning the public two-device proof. G2/G3 remain open.
+Next inspect First Connection with two independent human-controlled browser contexts, especially whether partner support and waiting feel useful. Verify actual phone controls and Azure account/cost before public two-device proof. G2/G3 remain open.
 
 ## Project context
 

@@ -3,13 +3,15 @@
 Updated: October 6, 2026
 Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
-Primary next task: participant two-context gameplay inspection, then SYS-03 onboarding/tutorial and phone layout; SYS-02 complete locally, human/public proof pending
+Primary next task: participant two-context inspection of SF-T1 First Connection, then actual phone/public proof and adjustments based on observations; SF-01 implemented, human/public proof pending
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
 Gameplay exploration update (October 6): [cooperative-robot-alternatives.md](cooperative-robot-alternatives.md) compares relay/gate, tether, and parallel-world robot adventures. R1 relay/gate research is recommended for a bounded experiment; participant selection is pending. This research does not replace J1, authorize new mechanics, or establish human enjoyment. Resolve this gameplay choice before expanding J1 content.
 
 R1 follow-up: requested design/validation completed in [signal-foundry-spec.md](signal-foundry-spec.md). The momentary-gate proposal exposed a reachable softlock; latch-on-entry SF-T1 v2 has completion paths from all 21 reachable research states. This is a bounded prototype recommendation, not a browser implementation or full product replacement. Next gameplay increment: the single SF-T1 room; detailed requirement/contract updates precede its integration.
+
+Implementation follow-up: the participant requested implementation. SF-01 is complete locally; First Connection is now the default startup profile. Previous research-only notes above are historical. J1 remains a developer comparison; full product/human acceptance is still open.
 
 ## Completed setup
 
@@ -30,7 +32,8 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | GP-02 | P1 | IN PROGRESS | Bounded J1-C1 specification, asymmetric routes, recovery examples, and wireframe prepared; obtain prototype/participant evidence of meaningful participation before G2 acceptance | GP-01 | SR-02 to SR-08 |
 | SYS-01 | P0 | DONE | Local create/join, exactly two sessions, authorized live lobby, recovery/expiry, takeover, and Leave; 14 automated tests plus browser inspection | Candidate preparation; coding explicitly resumed | FR-01 to FR-06, FR-18 to FR-20, FR-24; NFR-01 to NFR-03, NFR-15, NFR-16 |
 | SYS-02 | P0 | DONE | J1-C1 authoritative turns/private views implemented; mutual start, signals, proposals, revision-bound Ready, outcomes/retry/recovery; 36 automated tests and scripted-partner browser inspection | SYS-01, J1-C1 | FR-07 to FR-14; NFR-01, NFR-02 |
-| SYS-03 | P1 | TODO | Add teaching/onboarding and inspect actual phone layout; adapt to concrete participant confusion | SYS-02; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
+| SF-01 | P1 | DONE | Implement the SF-T1 relay/gate teaching room, tile pings, joint exit and mutual retry; actual rules match research state counts and recover from every reachable state | Participant implementation request; SF-T1 spec | SF-01 to SF-07; SR-01 to SR-08 scoped experimental coverage |
+| SYS-03 | P1 | TODO | Observe first-time SF-T1 understanding and inspect actual phone controls; adjust onboarding/interaction to concrete confusion | SF-01; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
 | TECH-01 | P0 | TODO | Confirm Azure balance/expiry/access; select and cost a small deployment route, including review-window operation | Participant account access | SR-09 |
 | TECH-02 | P0 | TODO | Establish source control/runtime and deploy one playable interaction on two devices with correct private views | GP-01, TECH-01; provisional rules clearly labeled | SR-01, SR-02, SR-05, SR-09 |
 | BUILD-01 | P0 | TODO | Implement approved complete session, terminal results, selected scoring policy if adopted, and replay with rule tests | GP-02, TECH-02 | SR-01, SR-04, SR-05 |
