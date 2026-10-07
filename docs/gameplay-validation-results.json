@@ -1,0 +1,120 @@
+{
+  "design": "0.2",
+  "date": "2026-10-06",
+  "cell_numbering": "row * 3 + column; 9 means extracted",
+  "layouts": 441,
+  "safe_route_counts": {
+    "4": 422,
+    "None": 18,
+    "5": 1
+  },
+  "original_probe_agreements": 441,
+  "signal_capacity_witnesses": 423,
+  "spatial_transition_invariant_checks": 209034,
+  "candidate_levels": [
+    {
+      "name": "Tutorial - Opposite Routes",
+      "hazards": [
+        [
+          4,
+          6
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "safe_turns": 4,
+      "route": [
+        [
+          0,
+          8
+        ],
+        [
+          1,
+          7
+        ],
+        [
+          2,
+          6
+        ],
+        [
+          5,
+          3
+        ]
+      ]
+    },
+    {
+      "name": "Coordination - Shared Corridor",
+      "hazards": [
+        [
+          1,
+          7
+        ],
+        [
+          1,
+          7
+        ]
+      ],
+      "safe_turns": 5,
+      "route": [
+        [
+          3,
+          4
+        ],
+        [
+          6,
+          3
+        ],
+        [
+          3,
+          9
+        ],
+        [
+          4,
+          9
+        ],
+        [
+          5,
+          9
+        ]
+      ]
+    },
+    {
+      "name": "Navigation - Early Arrival",
+      "hazards": [
+        [
+          0,
+          1
+        ],
+        [
+          4,
+          8
+        ]
+      ],
+      "safe_turns": 4,
+      "route": [
+        [
+          4,
+          2
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          9,
+          0
+        ],
+        [
+          9,
+          3
+        ]
+      ]
+    }
+  ],
+  "limitations": [
+    "Not a decentralized partial-information strategy proof",
+    "No production, network, mobile, or human testing"
+  ]
+}

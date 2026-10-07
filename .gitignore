@@ -1,0 +1,36 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+!.env.sample
+.azure/
+*.pem
+*.key
+
+# JavaScript dependencies and generated output
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.vite/
+
+# Python environments and caches
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Local logs and operating-system files
+*.log
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local editor state
+.idea/
+.vscode/
+
+# Supplied contest references are local materials, not authored repository assets
+info/

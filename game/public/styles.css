@@ -1,0 +1,22 @@
+* { box-sizing: border-box; }
+:root { font: 16px/1.55 system-ui, sans-serif; color: #17302b; background: #edf2ee; }
+body { margin: 0; padding: 24px 16px; }
+main { width: min(100%, 560px); margin: 24px auto; background: #fff; padding: 28px; border-radius: 18px; border: 1px solid #c8d5ce; }
+h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.15; margin: 12px 0; }
+h2 { font-size: 24px; }
+.eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.notice, #status { background: #eaf1ec; border-left: 4px solid #346b50; padding: 12px; margin: 18px 0; }
+#status.error { border-color: #a84328; background: #fff0e9; }
+button, input { font: inherit; min-height: 48px; border-radius: 8px; }
+button { width: 100%; padding: 10px 12px; background: #245b40; color: #fff; border: 2px solid #245b40; cursor: pointer; margin: 8px 0; }
+button.secondary { color: #234b36; background: #fff; }
+button:disabled { color: #535c56; background: #e2e8e3; border-color: #aab8af; cursor: default; }
+button:focus-visible, input:focus-visible { outline: 3px solid #bb6518; outline-offset: 3px; }
+label { display: block; margin-top: 16px; font-weight: 600; }
+.join-row { display: flex; gap: 8px; align-items: center; }
+input { min-width: 0; width: 100%; border: 1px solid #788d80; padding: 10px; text-transform: uppercase; letter-spacing: .1em; }
+.join-row button { width: auto; flex-shrink: 0; }
+#room-code { font-family: ui-monospace, monospace; letter-spacing: .1em; }
+.footnote { font-size: 13px; color: #4f6357; border-top: 1px solid #ccd7cf; margin-top: 24px; padding-top: 16px; }
+[hidden] { display: none !important; }
+@media (max-width: 400px) { body { padding: 12px; } main { padding: 18px; margin: 12px auto; } }

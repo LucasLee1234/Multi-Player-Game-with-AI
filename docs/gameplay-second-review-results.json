@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-06",
+  "reviewed_design": "0.2",
+  "method": "Adversarial complete-disclosure check using existing research functions, without modifying the executable model",
+  "strategy": "Both humans disclose one of the partner's two hazards and both robots wait on each of the first two turns; then follow an existing full-information zero-strike route",
+  "layout_family": "3x3; starts 3 and 5; exchanged exits; exactly two hazards per robot excluding start and exit",
+  "layouts_in_family": 441,
+  "safe_solvable_layouts_checked": 423,
+  "wins_with_zero_strikes": 423,
+  "score_per_win": 100,
+  "completion_turn_counts": {
+    "6": 422,
+    "7": 1
+  },
+  "excluded_layouts_without_safe_route": 18,
+  "not_verified": [
+    "Novice discovery of either the disclosure strategy or the revealed route",
+    "Enjoyment, replay interest, or prize competitiveness",
+    "Production implementation, networking, private view filtering, or persistent knowledge controller"
+  ]
+}

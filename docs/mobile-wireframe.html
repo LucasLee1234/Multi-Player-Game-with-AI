@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Signal Rescue - Low-Fidelity Layout</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e8e8e8; color: #171717; font: 16px/1.45 system-ui, sans-serif; }
+    header, main { max-width: 1100px; margin: auto; padding: 20px; }
+    h1 { font-size: 26px; margin: 0 0 8px; } h2 { font-size: 20px; margin: 0 0 8px; } h3 { font-size: 15px; margin: 0 0 6px; }
+    p { margin: 8px 0; } .note { font-size: 14px; }
+    main { display: grid; grid-template-columns: minmax(320px, 390px) minmax(280px, 1fr); gap: 24px; align-items: start; }
+    .screen, .state { background: white; border: 2px solid #333; padding: 14px; }
+    .status, .panel { border: 1px solid #666; padding: 10px; margin: 12px 0; }
+    .status { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .maps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .map-label { min-height: 67px; font-size: 13px; }
+    .board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+    .cell { min-height: 52px; border: 1px solid #333; text-align: center; font-size: 12px; padding: 3px 1px; }
+    .cell span { display: block; font-size: 11px; min-height: 16px; }
+    .danger { background: #bbb; border: 2px solid #111; } .unknown { background: #eee; }
+    .legend { font-size: 12px; margin-top: 8px; }
+    .mock-control { border: 2px solid #333; min-height: 44px; padding: 10px; margin: 6px 0; text-align: center; }
+    .moves { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; max-width: 230px; margin: 10px auto; }
+    .moves .mock-control { margin: 0; } .empty { border: none; }
+    .primary { background: #252525; color: white; font-weight: 700; }
+    .secondary { font-size: 13px; }
+    .states { display: grid; gap: 16px; } .label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
+    @media (max-width: 740px) { header, main { padding: 12px; } main { grid-template-columns: minmax(0, 1fr); } .screen { max-width: 390px; width: 100%; margin: auto; } }
+    @media (max-width: 370px) { .screen { padding: 10px; } .maps { gap: 6px; } .map-label { min-height: 74px; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Signal Rescue - Layout Study</h1>
+  <p>J1-C1 · October 6, 2026 · Static wireframe, not a playable game.</p>
+  <p class="note">All boxes are illustrations. No room, signal, move, or confirmation is sent. Layout targets 360 CSS pixels and a wider desktop; actual device usability is not verified.</p>
+</header>
+<main>
+  <section class="screen" aria-label="Player A planning screen illustration">
+    <div class="label">Planning · Player A · Turn 1</div>
+    <h2>Different Dangers</h2>
+    <div class="status"><strong>Room: K7MPQ2</strong><span>Partner connected</span><span>Turn 1 / 8</span><span>Strikes 0 / 3</span></div>
+    <p class="note"><strong>Bring both robots to their own exits together.</strong> You can leave your exit to make room.</p>
+    <div class="maps">
+      <section>
+        <div class="map-label"><h3>Your route · A</h3>Your dangers are unknown until learned.</div>
+        <div class="board" aria-label="Own route, unknown cells except own start and exit">
+          <div class="cell unknown">0<span>? Unknown</span></div><div class="cell unknown">1<span>? Unknown</span></div><div class="cell unknown">2<span>? Unknown</span></div>
+          <div class="cell">3<span>A · Exit B</span><span>Safe</span></div><div class="cell unknown">4<span>? Unknown</span></div><div class="cell">5<span>B · Exit A</span><span>Safe</span></div>
+          <div class="cell unknown">6<span>? Unknown</span></div><div class="cell unknown">7<span>? Unknown</span></div><div class="cell unknown">8<span>? Unknown</span></div>
+        </div>
+      </section>
+      <section>
+        <div class="map-label"><h3>Partner's dangers · B</h3>This safety applies to B only. Select a cell to signal.</div>
+        <div class="board" aria-label="Partner hazard layer, danger at zero and seven">
+          <div class="cell danger">0<span>! Danger</span></div><div class="cell">1<span>Safe</span></div><div class="cell">2<span>Safe</span></div>
+          <div class="cell">3<span>A · Exit B</span><span>Safe</span></div><div class="cell">4<span>Safe</span></div><div class="cell">5<span>B · Exit A</span><span>Safe</span></div>
+          <div class="cell">6<span>Safe</span></div><div class="cell danger">7<span>! Danger</span></div><div class="cell">8<span>Safe</span></div>
+        </div>
+      </section>
+    </div>
+    <p class="legend">Safe = confirmed or deduced · ! Danger = hazardous to the labeled robot · ? Unknown = unverified. Safety is not shared between robots.</p>
+    <div class="panel"><strong>Help your partner</strong><p class="note">Selected: cell 0 · Danger for B</p><div class="mock-control">Send “0 Danger” · 1 signal available</div><p class="secondary">Received this turn: none. Signals persist for this mission.</p></div>
+    <h3>Propose your move</h3>
+    <div class="moves" aria-label="Direction control illustration">
+      <div class="empty"></div><div class="mock-control">↑ 0<br><small>Unverified</small></div><div class="empty"></div>
+      <div class="mock-control">←<br><small>Unavailable</small></div><div class="mock-control">Wait<br><small>at 3</small></div><div class="mock-control">→ 4<br><small>Unverified</small></div>
+      <div class="empty"></div><div class="mock-control">↓ 6<br><small>Unverified</small></div><div class="empty"></div>
+    </div>
+    <div class="panel"><strong>Shared plan</strong><p>A: Wait at 3 · B: Wait at 5</p><p class="secondary">You: not ready · Partner: not ready</p><p class="secondary">Both waiting uses a turn. A changed plan clears both confirmations.</p></div>
+    <div class="mock-control primary">Ready - confirm this plan</div>
+    <div class="mock-control secondary">Leave room</div>
+  </section>
+  <aside class="states" aria-label="Other screen states and layout notes">
+    <section class="state"><div class="label">Entry and lobby</div><h2>Play with a friend</h2><div class="mock-control">Create room</div><div class="mock-control">Room code: ______ · Join room</div><p>Room K7MPQ2 · You are A · Waiting for B</p><p class="note">Share the URL and code. Two connected players each choose Start. In SYS-01, show “Gameplay not implemented yet” and disable Start.</p></section>
+    <section class="state"><div class="label">After a plan changes</div><h2>Plan changed - confirm again</h2><p>A proposes 3 · B proposes 6</p><p class="note">Both Ready indicators clear. Display public overlap/swap warnings before confirmation. Show “Unverified” for unknown own destinations; do not reveal an undisclosed hazard through a warning.</p></section>
+    <section class="state"><div class="label">Paused</div><h2>Partner disconnected</h2><p>Waiting for reconnection · 45 seconds remaining</p><p class="note">Keep the last committed board visible. Disable signals, moves, and Ready. Resume with fresh confirmation after both return; expiry ends the room.</p></section>
+    <section class="state"><div class="label">Final mission result</div><h2>Rescued together</h2><p>Turns used: 7 / 8 · Strikes: 0 / 3</p><div class="mock-control">Practice again</div><p class="note">You chose Practice again · Waiting for partner. Retry resets mission knowledge. No points are assigned in C1.</p><div class="mock-control">Leave room</div><p class="note">On failure, name the strike or turn limit. On lost server state, say “Session ended - create a new room” instead of displaying a mission failure.</p></section>
+    <section class="state"><h2>Layout decisions and checks</h2><p class="note">Own route always left; partner hazard layer always right. B's screen reverses the role labels and uses A's layer, not this same data. Keep both boards, room status, signals, public proposals, and Ready visible in one scrolling column on phones.</p><p class="note">Desktop keeps this player layout compact with explanatory space beside it; it must never show the other player's undisclosed layer. Use text/symbols as well as shading. Implemented controls must support keyboard focus, labeled buttons, and touch targets; these illustration boxes are not accessibility verification.</p><p class="note">Questions for device inspection: Can the player distinguish layers, reach Ready, read both proposals, and understand why arriving alone does not finish? No polished art is needed before these answers.</p><p><a href="candidate-gameplay-spec.md">Candidate rules and checked routes</a> · <a href="architecture.md">System design</a></p></section>
+  </aside>
+</main>
+</body>
+</html>
