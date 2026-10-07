@@ -1,0 +1,134 @@
+{
+  "candidate": "SF-T1 research model v2: latch-on-entry gates",
+  "scope": "Full-information, two-corridor teaching room; no network or human validation",
+  "checks": {
+    "closed gate blocks initial B advance": "PASS",
+    "first gate entry latches gate": "PASS",
+    "new relay occupancy takes effect next turn": "PASS",
+    "relay departure and gate entry can coincide": "PASS",
+    "latched gate remains traversable": "PASS",
+    "one exit alone is not terminal": "PASS",
+    "joint arrival succeeds": "PASS",
+    "wall move rejected": "PASS",
+    "nonadjacent move rejected": "PASS",
+    "terminal move rejected": "PASS",
+    "every reachable state can complete": "PASS",
+    "shortest completion uses five turns": "PASS",
+    "permanently disabling gate 1 prevents completion": "PASS",
+    "permanently disabling gate 9 prevents completion": "PASS",
+    "witness (0, 8, 0) to (1, 8, 1)": "PASS",
+    "witness (1, 8, 1) to (2, 8, 1)": "PASS",
+    "witness (2, 8, 1) to (2, 9, 3)": "PASS",
+    "witness (2, 9, 3) to (2, 10, 3)": "PASS",
+    "witness (2, 10, 3) to (3, 11, 3)": "PASS",
+    "unlatched counterexample (0, 8, 0) to (1, 8, 0)": "PASS",
+    "unlatched counterexample (1, 8, 0) to (2, 8, 0)": "PASS",
+    "unlatched counterexample (2, 8, 0) to (1, 9, 0)": "PASS",
+    "unlatched counterexample (1, 9, 0) to (0, 10, 0)": "PASS",
+    "unlatched counterexample cannot recover": "PASS"
+  },
+  "reachable_states_including_terminal": 21,
+  "enumerated_transitions_excluding_terminal": 120,
+  "reachable_states_with_completion_route": 21,
+  "maximum_shortest_recovery_turns": 5,
+  "shortest_completion_turns": 5,
+  "shortest_route": [
+    [
+      0,
+      8,
+      0
+    ],
+    [
+      1,
+      8,
+      1
+    ],
+    [
+      2,
+      8,
+      1
+    ],
+    [
+      2,
+      9,
+      3
+    ],
+    [
+      2,
+      10,
+      3
+    ],
+    [
+      3,
+      11,
+      3
+    ]
+  ],
+  "rejected_unlatched_softlock_witness": [
+    [
+      0,
+      8,
+      0
+    ],
+    [
+      1,
+      8,
+      0
+    ],
+    [
+      2,
+      8,
+      0
+    ],
+    [
+      1,
+      9,
+      0
+    ],
+    [
+      0,
+      10,
+      0
+    ]
+  ],
+  "teaching_witness": [
+    [
+      0,
+      8,
+      0
+    ],
+    [
+      1,
+      8,
+      1
+    ],
+    [
+      2,
+      8,
+      1
+    ],
+    [
+      2,
+      9,
+      3
+    ],
+    [
+      2,
+      10,
+      3
+    ],
+    [
+      3,
+      11,
+      3
+    ]
+  ],
+  "minimum_individual_moves_on_shortest_completion": 6,
+  "wait_slots_on_shortest_completion": 4,
+  "limitations": [
+    "Not the TypeScript production engine",
+    "Disjoint corridors do not exercise robot collisions or swaps",
+    "Recovery assumes unlimited turns and reversible tile movement",
+    "Solvability and required actions do not establish enjoyment or equal reasoning"
+  ]
+}

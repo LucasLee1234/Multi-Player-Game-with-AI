@@ -3,6 +3,8 @@
 Date: October 6, 2026
 Status: Research proposal in response to the participant's request. No replacement gameplay has been selected or implemented. Signal Rescue B and the running J1 prototype remain the current baseline.
 
+Follow-up: the participant requested further work on R1. [signal-foundry-spec.md](signal-foundry-spec.md) now defines the bounded SF-T1 v2 experiment and executed research evidence. Its latch-on-entry rule supersedes the momentary-gate hypothesis below for that experiment; the original proposal remains here as research history.
+
 ## Player outcome
 
 Two people control separate robots and overcome obstacles by changing what their partner can do. The desired moment is: "You opened my route; now I can help you through." Cooperation should remain meaningful after the players understand the map.

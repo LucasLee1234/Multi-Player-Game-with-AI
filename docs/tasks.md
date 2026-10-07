@@ -9,6 +9,8 @@ Status meanings and completion standards: [development-workflow.md](development-
 
 Gameplay exploration update (October 6): [cooperative-robot-alternatives.md](cooperative-robot-alternatives.md) compares relay/gate, tether, and parallel-world robot adventures. R1 relay/gate research is recommended for a bounded experiment; participant selection is pending. This research does not replace J1, authorize new mechanics, or establish human enjoyment. Resolve this gameplay choice before expanding J1 content.
 
+R1 follow-up: requested design/validation completed in [signal-foundry-spec.md](signal-foundry-spec.md). The momentary-gate proposal exposed a reachable softlock; latch-on-entry SF-T1 v2 has completion paths from all 21 reachable research states. This is a bounded prototype recommendation, not a browser implementation or full product replacement. Next gameplay increment: the single SF-T1 room; detailed requirement/contract updates precede its integration.
+
 ## Completed setup
 
 | ID | Priority | Status | Deliverable | Evidence |

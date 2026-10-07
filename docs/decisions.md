@@ -147,3 +147,12 @@ Date: October 6, 2026. Status: Explicit coding request fulfilled; tested local c
 - Retry identity keeps request ID, sequence, and semantic payload across authorized reconnect. Controller epoch is validated separately and can rebind without creating a new action. Pause clears agreements and preserves phase/mission; terminal closure retains only allowed outcome metadata.
 - Test the browser using A plus a development-only B wire helper because the enabled UI browser has one cookie profile. This does not establish human participation/enjoyment. The helper is not public, not automatically launched, and was stopped by closing disposable rooms.
 - Evidence: 36 automated tests passed; browser seven-turn zero-strike witness, terminal refresh, retry reset and final signal-to-confirm flow checked. Screenshots and limitations in [test-evidence.md](test-evidence.md). Local source control only; no GitHub remote, Azure resource or cloud spending.
+
+## DEC-009 - Develop the Signal Foundry teaching experiment
+
+Date: October 6, 2026. Status: Participant requested further work on the relay/gate direction; bounded design and research validation completed.
+
+- Prepare one concrete tile layout and explicit SF-T1 rules, without replacing the running J1 browser game or committing to a campaign.
+- Exhaustive research exposed a reachable deadlock in the original momentary-gate proposal. Recommend latch-on-entry gates for the teaching room; all 21 reachable revised-model states can complete.
+- The five-turn shortest completion still contains four Wait action slots. Required gate dependencies are demonstrated; equal reasoning and enjoyment are unverified.
+- Authoritative experiment specification: [signal-foundry-spec.md](signal-foundry-spec.md); executed model output: [signal-foundry-validation.json](signal-foundry-validation.json). No production SF-T1 engine, human test, cloud expenditure, or full product replacement acceptance is implied.
