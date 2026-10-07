@@ -1,22 +1,25 @@
 import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
-import type { Admission, ErrorCode, LeaveCommand, LobbyView, Role, ServerMessage, SessionContext } from '../contracts/lobby.js';
+import type { Admission, Command, ErrorCode, GameError, LobbyView, Role, ServerMessage, SessionContext } from '../contracts/lobby.js';
+import { clearAgreement, newMission, project, propose, ready, RuleFault, signal, type Mission } from '../rules/joint-exit.js';
+import { differentDangers } from '../content/missions.js';
 
 export class Fault extends Error {
-  constructor(public code: ErrorCode, public status = 400) { super(code); }
+  constructor(public code: ErrorCode | GameError, public status = 400) { super(code); }
 }
 export interface Channel { send(message: ServerMessage): void; close(code: number, reason: string): void }
-interface CachedAdmission { hash: string; error?: ErrorCode; status?: number }
+interface CachedAdmission { hash: string; error?: ErrorCode | GameError; status?: number }
 interface Session {
   key: string; expires: number; version: number; roomId?: string; role?: Role;
   ended: SessionContext['ended']; admissions: Map<string, CachedAdmission>; attempts: number[];
 }
 interface Seat {
   session: Session; epoch: number; nextSequence: number; channel?: Channel;
-  acknowledgements: Map<number, { requestId: string; hash: string; error?: ErrorCode }>;
+  acknowledgements: Map<number, { requestId: string; hash: string; error?: ErrorCode | GameError }>;
 }
 interface Room {
   id: string; code: string; created: number; lastAction: number; version: number; lobbyRevision: number;
-  owner: Role; phase: 'waiting' | 'paused'; pauseDeadline?: number; seats: Partial<Record<Role, Seat>>;
+  owner: Role; phase: 'waiting' | 'planning' | 'terminal' | 'paused'; pauseDeadline?: number; seats: Partial<Record<Role, Seat>>;
+  resumePhase?: 'waiting' | 'planning' | 'terminal'; mission?: Mission; startAgreements: Record<Role, boolean>;
 }
 export interface Limits { rooms: number; sessions: number; recoveryMs: number; idleMs: number; lifetimeMs: number }
 const defaults: Limits = { rooms: 20, sessions: 500, recoveryMs: 60_000, idleMs: 600_000, lifetimeMs: 7_200_000 };
@@ -34,19 +37,30 @@ export function admission(value: unknown, join = false): Admission {
       || (join && (typeof value.code !== 'string' || !/^[A-Z2-9]{6}$/.test(value.code)))) throw new Fault('INVALID_INPUT');
   return value as unknown as Admission;
 }
-function command(value: unknown): LeaveCommand {
-  fields(value, ['type', 'requestId', 'sequence', 'roomId', 'controllerEpoch', 'action']);
-  if (value.type !== 'command' || value.action !== 'leave' || typeof value.requestId !== 'string'
+function command(value: unknown): Command {
+  if (!value || typeof value !== 'object') throw new Fault('INVALID_INPUT');
+  const action = (value as Record<string, unknown>).action;
+  const extras: Record<string, string[]> = { leave: [], startAgreement: ['lobbyRevision'],
+    propose: ['missionId', 'turn', 'planningRevision', 'destination'], signal: ['missionId', 'turn', 'planningRevision', 'cell'],
+    ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'] };
+  if (typeof action !== 'string' || !Object.hasOwn(extras, action)) throw new Fault('INVALID_INPUT');
+  fields(value, ['type', 'requestId', 'sequence', 'roomId', 'controllerEpoch', 'action', ...extras[action]!]);
+  if (value.type !== 'command' || typeof value.requestId !== 'string'
     || !/^[a-zA-Z0-9_-]{8,80}$/.test(value.requestId) || typeof value.roomId !== 'string'
     || value.roomId.length > 80 || !Number.isSafeInteger(value.sequence) || (value.sequence as number) < 1
     || !Number.isSafeInteger(value.controllerEpoch) || (value.controllerEpoch as number) < 1) throw new Fault('INVALID_INPUT');
-  return value as unknown as LeaveCommand;
+  for (const key of extras[action]!) {
+    if (key === 'missionId') {
+      if (typeof value[key] !== 'string' || value[key].length > 80) throw new Fault('INVALID_INPUT');
+    } else if (!Number.isSafeInteger(value[key]) || (value[key] as number) < 0) throw new Fault('INVALID_INPUT');
+  }
+  return value as unknown as Command;
 }
 
 /** All mutations are synchronous on one Node event loop: no await inside this store. */
 export class Store {
   readonly bootId = randomUUID();
-  readonly releaseId = 'sys-01';
+  readonly releaseId = 'sys-02';
   readonly limits: Limits;
   private sessions = new Map<string, Session>();
   private rooms = new Map<string, Room>();
@@ -88,11 +102,11 @@ export class Store {
       protocolVersion: 1, releaseId: this.releaseId, bootId: this.bootId,
       room: { id: room.id, code: room.code, phase: room.phase, roomVersion: room.version,
         lobbyRevision: room.lobbyRevision, owner: room.owner,
-        players: (['A', 'B'] as const).filter(role => room.seats[role]).map(role => ({ role, connected: !!room.seats[role]?.channel })) },
+        players: (['A', 'B'] as const).filter(role => room.seats[role]).map(role => ({ role, connected: !!room.seats[role]?.channel })), startAgreements: { ...room.startAgreements } },
       self: { role: session.role, controllerEpoch: seat.epoch, nextCommandSequence: seat.nextSequence },
       timers: { recoveryRemainingMs: room.pauseDeadline === undefined ? null : Math.max(0, room.pauseDeadline - this.now()),
         lifetimeRemainingMs: Math.max(0, room.created + this.limits.lifetimeMs - this.now()) },
-      gameplayImplemented: false
+      gameplayImplemented: true, mission: room.mission ? project(room.mission, session.role) : null
     };
     return { bootId: this.bootId, contextVersion: session.version, view, ended: session.ended };
   }
@@ -119,13 +133,14 @@ export class Store {
           do { code = Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join(''); }
           while (this.codes.has(code) || this.closed.has(code));
           room = { id: randomUUID(), code, created: this.now(), lastAction: this.now(), version: 0,
-            lobbyRevision: 0, owner: 'A', phase: 'waiting', seats: {} };
+            lobbyRevision: 0, owner: 'A', phase: 'waiting', seats: {}, startAgreements: { A: false, B: false } };
           this.rooms.set(room.id, room); this.codes.set(code, room.id); role = 'A';
         } else {
           const id = this.codes.get(input.code!);
           const found = id ? this.rooms.get(id) : undefined;
           if (!found) throw new Fault('ROOM_UNAVAILABLE', 404);
           if (found.phase === 'paused') throw new Fault('PAUSED', 409);
+          if (found.phase !== 'waiting') throw new Fault('ROOM_FULL', 409);
           room = found;
           if (room.seats.A && room.seats.B) throw new Fault('ROOM_FULL', 409);
           role = room.seats.A ? 'B' : 'A';
@@ -167,7 +182,7 @@ export class Store {
     const { room, seat } = this.roomFor(session);
     seat.epoch++; seat.channel = channel;
     if (room.phase === 'paused' && Object.values(room.seats).every(s => s.channel)) {
-      room.phase = 'waiting'; room.pauseDeadline = undefined;
+      room.phase = room.resumePhase ?? 'waiting'; room.resumePhase = undefined; room.pauseDeadline = undefined;
     }
     this.changed(room, true, false);
     return seat.epoch;
@@ -178,16 +193,14 @@ export class Store {
     const { room, seat } = this.roomFor(session);
     if (seat.channel !== channel) return;
     seat.channel = undefined;
-    if (room.phase !== 'paused') {
-      room.phase = 'paused'; room.pauseDeadline = this.now() + this.limits.recoveryMs;
-    }
+    this.pause(room);
     this.changed(room, true, false);
   }
   private takeover(session: Session): void {
     const { room, seat } = this.roomFor(session);
     const previous = seat.channel;
     seat.channel = undefined; seat.epoch++; session.version++;
-    if (room.phase !== 'paused') { room.phase = 'paused'; room.pauseDeadline = this.now() + this.limits.recoveryMs; }
+    this.pause(room);
     this.changed(room, true);
     previous?.send({ type: 'error', error: 'CONTROLLER_REPLACED' });
     previous?.close(4002, 'Controller replaced');
@@ -198,7 +211,9 @@ export class Store {
     const { room, seat, role } = this.roomFor(session);
     if (seat.channel !== channel || input.controllerEpoch !== seat.epoch) throw new Fault('CONTROLLER_REPLACED', 409);
     if (input.roomId !== room.id) throw new Fault('NOT_AUTHORIZED', 403);
-    const hash = digest(JSON.stringify([input.action, input.roomId, input.controllerEpoch]));
+    // Epoch authenticates this transport; semantic retry identity survives an authorized reconnect.
+    const hash = digest(JSON.stringify(Object.keys(input).sort().filter(key => key !== 'controllerEpoch')
+      .map(key => [key, (input as unknown as Record<string, unknown>)[key]])));
     const cached = seat.acknowledgements.get(input.sequence);
     if (cached) {
       if (cached.hash !== hash || cached.requestId !== input.requestId) throw new Fault('REQUEST_CONFLICT', 409);
@@ -208,12 +223,18 @@ export class Store {
     if (Array.from(seat.acknowledgements.values()).some(a => a.requestId === input.requestId)) throw new Fault('REQUEST_CONFLICT', 409);
     if (input.sequence < seat.nextSequence) throw new Fault('REQUEST_TOO_OLD', 409);
     if (input.sequence > seat.nextSequence) throw new Fault('OUT_OF_ORDER', 409);
+    let error: ErrorCode | GameError | undefined;
+    try { if (input.action !== 'leave') this.applyAction(room, role, input); }
+    catch (caught) {
+      if (caught instanceof Fault || caught instanceof RuleFault) error = caught.code;
+      else throw caught;
+    }
     seat.nextSequence++;
-    seat.acknowledgements.set(input.sequence, { requestId: input.requestId, hash });
+    seat.acknowledgements.set(input.sequence, { requestId: input.requestId, hash, error });
     if (seat.acknowledgements.size > 128) seat.acknowledgements.delete(seat.acknowledgements.keys().next().value!);
-    channel.send({ type: 'ack', requestId: input.requestId, sequence: input.sequence, ok: true });
-    if (room.phase === 'paused') { this.closeRoom(room, 'A player left the paused room. Create a new room.'); return; }
-    // SYS-01 has only waiting/paused waiting rooms. Explicit leave allows waiting-seat replacement.
+    channel.send({ type: 'ack', requestId: input.requestId, sequence: input.sequence, ok: !error, error });
+    if (input.action !== 'leave') { this.changed(room, false, !error); return; }
+    if (room.phase !== 'waiting') { this.closeRoom(room, 'A player left the room. Create a new room.'); return; }
     seat.channel = undefined; delete room.seats[role];
     this.detach(session, room, 'You left the room.');
     channel.send({ type: 'snapshot', context: this.context(session) }); channel.close(4001, 'Left room');
@@ -224,12 +245,46 @@ export class Store {
       this.changed(room, true);
     }
   }
+  private applyAction(room: Room, role: Role, input: Exclude<Command, { action: 'leave' }>): void {
+    if (room.phase === 'paused') throw new Fault('PAUSED', 409);
+    if (!room.seats.A?.channel || !room.seats.B?.channel) throw new Fault('NOT_AUTHORIZED', 409);
+    if (input.action === 'startAgreement') {
+      if (room.phase !== 'waiting' || input.lobbyRevision !== room.lobbyRevision) throw new Fault('STALE_PLAN', 409);
+      room.startAgreements[role] = true;
+      if (room.startAgreements.A && room.startAgreements.B) {
+        room.mission = newMission(randomUUID(), differentDangers); room.phase = 'planning';
+      }
+      return;
+    }
+    const mission = room.mission;
+    if (!mission || input.missionId !== mission.id) throw new Fault('STALE_MISSION', 409);
+    if (input.action === 'retryAgreement') {
+      if (room.phase !== 'terminal') throw new Fault('NOT_PLANNING', 409);
+      mission.retryAgreements[role] = true;
+      if (mission.retryAgreements.A && mission.retryAgreements.B) {
+        room.mission = newMission(randomUUID(), differentDangers); room.phase = 'planning';
+      }
+      return;
+    }
+    if (room.phase !== 'planning') throw new Fault('NOT_PLANNING', 409);
+    if (input.turn !== mission.turn || input.planningRevision !== mission.planningRevision) throw new Fault('STALE_PLAN', 409);
+    room.mission = input.action === 'propose' ? propose(mission, role, input.destination)
+      : input.action === 'signal' ? signal(mission, role, input.cell) : ready(mission, role);
+    if (room.mission.result) room.phase = 'terminal';
+  }
+  private pause(room: Room): void {
+    if (room.phase !== 'paused') {
+      room.resumePhase = room.phase; room.phase = 'paused'; room.pauseDeadline = this.now() + this.limits.recoveryMs;
+    }
+    if (room.mission) room.mission = clearAgreement(room.mission);
+  }
   private detach(session: Session, room: Room, reason: string): void {
     session.roomId = undefined; session.role = undefined; session.version++;
     session.ended = { code: room.code, reason }; session.expires = this.now() + 7_200_000;
+    if (room.mission?.result) session.ended.outcome = { result: room.mission.result, turnsResolved: room.mission.turnsResolved, strikes: room.mission.strikes };
   }
   private changed(room: Room, lobby: boolean, interaction = true): void {
-    room.version++; if (lobby) room.lobbyRevision++;
+    room.version++; if (lobby) { room.lobbyRevision++; room.startAgreements = { A: false, B: false }; }
     if (interaction) room.lastAction = this.now();
     for (const seat of Object.values(room.seats)) seat.channel?.send({ type: 'snapshot', context: this.context(seat.session) });
   }
@@ -245,7 +300,7 @@ export class Store {
     const now = this.now();
     for (const room of this.rooms.values()) {
       if (room.pauseDeadline !== undefined && now >= room.pauseDeadline) this.closeRoom(room, 'Reconnection time expired. Create a new room.');
-      else if (now >= room.created + this.limits.lifetimeMs || now >= room.lastAction + this.limits.idleMs) this.closeRoom(room, 'Room expired. Create a new room.');
+      else if (now >= room.created + this.limits.lifetimeMs || now >= room.lastAction + this.limits.idleMs * (room.mission ? 3 : 1)) this.closeRoom(room, 'Room expired. Create a new room.');
     }
     for (const [key, session] of this.sessions) if (!session.roomId && now >= session.expires) this.sessions.delete(key);
     for (const [code, expiry] of this.closed) if (now >= expiry) this.closed.delete(code);

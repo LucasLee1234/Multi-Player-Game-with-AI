@@ -6,6 +6,8 @@ Status: Selected for the next bounded prototype specification, not a release bas
 
 This document owns the candidate rules for the next implementation. [game-design.md](game-design.md) remains the historical 0.2 extraction design; do not combine its extraction behavior or route counts with this candidate. The participant requested the recommended J1 specification, asymmetric mission, and low-fidelity layout. This authorizes this preparation pass, without implying acceptance of untested enjoyment or resuming the previously deferred prototype.
 
+Implementation update: SYS-02 now implements J1-M1, its full turn loop, joint exit, failure and retry. The witnesses are executed in new J1 tests independently of historical 0.2 results. J1-T1 and first-time onboarding remain future work. [Current evidence](test-evidence.md) separates automated/scripted inspection from pending two-human, phone, and public validation; this is not a release acceptance claim.
+
 ## 1. Player outcome and scope
 
 Two people join a browser room from separate devices. Each sees the partner's hazard layer, shares truthful warnings, proposes a move for their own robot, and confirms the shared plan. Win by placing both robots on their respective exits at the same time. A robot stays movable after arriving and can leave its exit to help the partner.
@@ -152,7 +154,7 @@ For the first-time playtest, record whether players can distinguish layers and U
 
 ## 9. Readiness and next short cycle
 
-Subsequent implementation update: the participant explicitly resumed coding. SYS-01 room/connection work is now complete locally; [test-evidence.md](test-evidence.md) records coverage. Next is SYS-02 using this candidate for a synchronized turn. Earlier deferral statements describe this specification's preparation pass, not the current coding authorization.
+Subsequent implementation update: the participant explicitly resumed coding. SYS-01 and SYS-02 are now complete locally; [test-evidence.md](test-evidence.md) records coverage. Next inspect human-controlled contexts and add teaching/phone evidence. Earlier deferral statements describe this specification's preparation pass, not the current coding authorization.
 
 The candidate is specific enough to implement and compare when prototype work resumes. Its examples and low-fidelity layout are bounded preparation evidence; G2 acceptance, G3 public proof, mobile touch fit, discoverability, and balance remain unverified.
 

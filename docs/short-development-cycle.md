@@ -2,7 +2,7 @@
 
 Updated: October 6, 2026
 Purpose: Turn the current gameplay research into small, testable increments with useful Git checkpoints.
-Status: Coding explicitly resumed; SYS-01 local room/connection cycle completed. Git synchronization occurs through local checkpoints; GitHub remote remains unavailable.
+Status: Coding explicitly resumed; SYS-01 room/connection and SYS-02 local J1 gameplay cycles completed. Git synchronization occurs through local checkpoints; GitHub remote remains unavailable. Current evidence is in `test-evidence.md`.
 
 ## Working agreement
 

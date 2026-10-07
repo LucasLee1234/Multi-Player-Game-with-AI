@@ -2,7 +2,7 @@
 
 Version: 0.1
 Date: October 6, 2026
-Status: High-level design with SYS-01 lobby implemented locally. See [test-evidence.md](test-evidence.md) for tested scope and remaining contracts. Gameplay, deployment, and release baseline remain incomplete.
+Status: SYS-01 lobby and SYS-02 J1-C1 asymmetric gameplay implemented locally. See [test-evidence.md](test-evidence.md) for tested scope and remaining contracts. Public deployment, teaching content, human validation, and release acceptance remain incomplete.
 Inputs: [SRS 1.1](requirements-analysis.md), [readiness review](requirements-readiness-review.md), [audited 0.2 rules](game-design.md), [J1 analysis](gameplay-cooperation-analysis.md), and [short development cycle](short-development-cycle.md).
 
 ## 1. Design outcome and boundary
@@ -53,7 +53,7 @@ Environment inspection found a functioning Node executable but a broken default 
 
 ## 4. Modules and requirement ownership
 
-Module layout: SYS-01 now implements `server/`, `contracts/`, `client/`, `public/`, and `tests/`; rules/content/deploy remain future modules:
+Module layout: server/contracts/client/public/tests and J1 rules/server-only content now exist; deploy remains future work:
 
 ```text
 game/
@@ -295,6 +295,11 @@ Use automated tests for authority, projection, sequencing, and lifecycle; browse
 The next slice adds one synchronized turn after a candidate rule contract is selected. Do not build a generic application shell and postpone all privacy/authority checks until the end.
 
 ## 14. Decisions, unresolved dependencies, and readiness
+
+SYS-02 contract update: actual messages use startAgreement with lobbyRevision, propose/signal/ready with missionId/turn/planningRevision, and retryAgreement with terminal missionId. There is one implemented mission and no Continue action yet. Valid next-sequence domain errors are acknowledged/cached and consume sequence; malformed/authorization/sequence failures do not. Controller epoch fences the channel, while the cached semantic hash excludes epoch so authorized reconnect can retry the same request ID/sequence/intent. It never reinterprets that retry as a new action. The browser keeps one command in flight until acknowledgement and subsequent authoritative snapshot, retaining failed/stale-plan feedback. Source contracts and executed tests are authoritative for this implemented subset.
+
+Pause preserves the prior waiting/planning/terminal phase and mission, clears turn/start/retry agreements, and does not extend the first recovery deadline. Retry creates a new mission ID and resets game knowledge/state while preserving seat sequence. Ended-session metadata retains a committed terminal outcome without private maps. Existing room/input/heartbeat limits apply; active/terminal idle expiry is 30 minutes, waiting is 10, with the same two-hour hard lifetime. Numeric limits still do not establish tested production capacity.
+
 
 | SRS open item | Design disposition |
 | --- | --- |

@@ -26,7 +26,7 @@ test('actual HTTP and WebSocket flow: two cookie contexts, third rejection, isol
   assert.equal((await fetch(app.origin + '/api/session', { headers: { Cookie: `sr_dev_session=${code}` } })).status, 401);
   for (const path of ['/src/server/store.ts', '/research/signal_rescue_rules.py', '/content/mission.json', '/../docs/decisions.md']) assert.equal((await fetch(app.origin + path)).status, 404);
   assert.equal((await fetch(app.origin + '/')).status, 200);
-  const js = await fetch(app.origin + '/client.js'); assert.equal(js.status, 200); assert.match(await js.text(), /gameplay increment/);
+  const js = await fetch(app.origin + '/client.js'); assert.equal(js.status, 200); assert.match(await js.text(), /STALE_PLAN/);
   assert.equal((await post('/api/rooms', { requestId: 'oversize1', expectedContextVersion: 0, pad: 'x'.repeat(9000) }, unseated.cookie)).response.status, 413);
 
   function connect(cookie: string, origin = app.origin) {

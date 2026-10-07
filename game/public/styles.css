@@ -1,7 +1,7 @@
 * { box-sizing: border-box; }
 :root { font: 16px/1.55 system-ui, sans-serif; color: #17302b; background: #edf2ee; }
 body { margin: 0; padding: 24px 16px; }
-main { width: min(100%, 560px); margin: 24px auto; background: #fff; padding: 28px; border-radius: 18px; border: 1px solid #c8d5ce; }
+main { width: min(100%, 720px); margin: 24px auto; background: #fff; padding: 28px; border-radius: 18px; border: 1px solid #c8d5ce; }
 h1 { font-size: clamp(28px, 6vw, 38px); line-height: 1.15; margin: 12px 0; }
 h2 { font-size: 24px; }
 .eyebrow { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
@@ -20,3 +20,19 @@ input { min-width: 0; width: 100%; border: 1px solid #788d80; padding: 10px; tex
 .footnote { font-size: 13px; color: #4f6357; border-top: 1px solid #ccd7cf; margin-top: 24px; padding-top: 16px; }
 [hidden] { display: none !important; }
 @media (max-width: 400px) { body { padding: 12px; } main { padding: 18px; margin: 12px auto; } }
+.maps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.cell { display: flex; flex-direction: column; justify-content: center; gap: 3px; min-height: 90px; border: 1px solid #7b9185; border-radius: 6px; padding: 5px; text-align: center; font-size: 13px; overflow-wrap: anywhere; }
+button.cell { margin: 0; width: 100%; background: #edf6ed; color: #17302b; cursor: pointer; }
+.cell.unknown { background: #f0f0f0; }
+.cell.danger, button.cell.danger:disabled { background: #ffede5; border: 2px solid #8d3218; color: #72240e; }
+.cell small { font-size: 11px; }
+button.cell:disabled { color: #17302b; opacity: .75; }
+.moves { display: flex; flex-wrap: wrap; gap: 6px; }
+.moves button { flex: 1 1 95px; width: auto; font-size: 14px; }
+.legend, details { font-size: 14px; }
+details { border: 1px solid #ccd7cf; padding: 10px; margin: 12px 0; }
+summary { cursor: pointer; min-height: 32px; font-weight: 600; }
+.warning { color: #8d3218; font-weight: 600; }
+#resolution, #result { border-left: 3px solid #346b50; padding-left: 12px; margin: 16px 0; }
+@media (max-width: 540px) { .maps { grid-template-columns: 1fr; gap: 8px; } .cell { min-height: 72px; } }

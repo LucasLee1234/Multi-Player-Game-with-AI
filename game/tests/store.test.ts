@@ -30,11 +30,11 @@ test('create/join deduplication, conflicts and occupied seats', () => {
 test('lobby projections contain no credentials or internal state and lookup needs a capability', () => {
   const f = fixture(); f.store.admit(f.b.session, f.join, 'join');
   const view = f.store.context(f.a.session).view!;
-  assert.deepEqual(Object.keys(view).sort(), ['bootId','gameplayImplemented','protocolVersion','releaseId','room','self','timers'].sort());
-  assert.equal(view.gameplayImplemented, false);
+  assert.deepEqual(Object.keys(view).sort(), ['bootId','gameplayImplemented','mission','protocolVersion','releaseId','room','self','timers'].sort());
+  assert.equal(view.gameplayImplemented, true); assert.equal(view.mission, null);
   const text = JSON.stringify(view);
   assert.ok(!text.includes(f.a.token!) && !text.includes(f.b.token!));
-  assert.ok(!text.includes('admissions') && !text.includes('hazards') && !text.includes('mission'));
+  assert.ok(!text.includes('admissions') && !text.includes('hazards'));
   throws(() => f.store.require(f.room.room.code), 'NOT_AUTHORIZED');
 });
 test('duplicate controller rejection, explicit takeover and old channel fencing', () => {

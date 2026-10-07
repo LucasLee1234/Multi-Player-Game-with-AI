@@ -401,6 +401,8 @@ Small-sample enjoyment targets and response-time targets are product goals, not 
 
 ## 13. Readiness and next increment
 
+Implementation update: the participant explicitly resumed coding; SYS-01 and SYS-02 are now locally tested. The implemented subset includes J1-C1 asymmetric gameplay and phase-preserving recovery; [test-evidence.md](test-evidence.md) records actual coverage. Earlier prototype-deferral/open-input statements are historical. Teaching, human acceptance, actual phone compatibility, Azure public proof and release checks remain open; G2/G3 are not closed by automated tests.
+
 Candidate update, October 6: [J1-C1](candidate-gameplay-spec.md) supplies a bounded test specification for O-01 through O-05: joint exit, retained free per-turn signals, provisional eight-turn/three-strike bounds, no numerical points, and two authored mission candidates. It also defines safe-cell deduction from authorized knowledge. These choices supersede unspecified candidate inputs for prototype planning, not the unverified release baseline. [The static layout](mobile-wireframe.html) supplies interface preparation. Prototype, device, and human acceptance remain open; the historical open-decision entries describe earlier inputs.
 
 The completeness review in [requirements-readiness-review.md](requirements-readiness-review.md) finds sufficient scope for high-level system design, with explicit conditions before detailed gameplay/interface freeze. Version 1.1 adds derived public-service resource and transport requirements plus lifecycle/measurement decision entries. Their policies and numeric values remain unselected. This does not close G2 or resume deferred prototype construction.

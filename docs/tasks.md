@@ -3,7 +3,7 @@
 Updated: October 6, 2026
 Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
-Primary next task: SYS-02 one authoritative synchronized J1-C1 turn with real filtered hazard information; SYS-01 local room/connection slice complete, public proof pending
+Primary next task: participant two-context gameplay inspection, then SYS-03 onboarding/tutorial and phone layout; SYS-02 complete locally, human/public proof pending
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
@@ -25,7 +25,8 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | GP-01 | P1 | DONE | Three variants, three scenarios, counterexamples, recommended rules and bounded checks recorded in `gameplay-research.md` | SET-01 to SET-04 | SR-03, SR-04, SR-07 |
 | GP-02 | P1 | IN PROGRESS | Bounded J1-C1 specification, asymmetric routes, recovery examples, and wireframe prepared; obtain prototype/participant evidence of meaningful participation before G2 acceptance | GP-01 | SR-02 to SR-08 |
 | SYS-01 | P0 | DONE | Local create/join, exactly two sessions, authorized live lobby, recovery/expiry, takeover, and Leave; 14 automated tests plus browser inspection | Candidate preparation; coding explicitly resumed | FR-01 to FR-06, FR-18 to FR-20, FR-24; NFR-01 to NFR-03, NFR-15, NFR-16 |
-| SYS-02 | P0 | TODO | One synchronized J1-C1 turn with real authorized hazard views; proposals, signals, revision-bound confirmation, resolution-once and retry/stale checks | SYS-01, J1-C1 | FR-07 to FR-14; NFR-01, NFR-02 |
+| SYS-02 | P0 | DONE | J1-C1 authoritative turns/private views implemented; mutual start, signals, proposals, revision-bound Ready, outcomes/retry/recovery; 36 automated tests and scripted-partner browser inspection | SYS-01, J1-C1 | FR-07 to FR-14; NFR-01, NFR-02 |
+| SYS-03 | P1 | TODO | Add teaching/onboarding and inspect actual phone layout; adapt to concrete participant confusion | SYS-02; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
 | TECH-01 | P0 | TODO | Confirm Azure balance/expiry/access; select and cost a small deployment route, including review-window operation | Participant account access | SR-09 |
 | TECH-02 | P0 | TODO | Establish source control/runtime and deploy one playable interaction on two devices with correct private views | GP-01, TECH-01; provisional rules clearly labeled | SR-01, SR-02, SR-05, SR-09 |
 | BUILD-01 | P0 | TODO | Implement approved complete session, terminal results, selected scoring policy if adopted, and replay with rule tests | GP-02, TECH-02 | SR-01, SR-04, SR-05 |
@@ -78,3 +79,5 @@ P0 denotes importance, not a requirement to finish every P0 before any independe
 | Oct 6, 2026 | System design | Created `architecture.md` with modules, filtered views, anonymous seat control, serialized commands, lifecycle, bounds, hosting candidate, and SYS-01 | Official technical sources checked; local Node available, default npm broken; design consistency/link checks; no implementation evidence | Bounded candidate gameplay specification and low-fidelity layout; repair/select package-manager path at coding start; Azure account check before provisioning |
 | Oct 6, 2026 | GP-02 bounded preparation | Selected J1-C1 for prototype specification; two mission candidates, exact rules, asymmetric informed routes, recoverable mistakes, and static layout | `candidate-gameplay-spec.md` paper checks P-01 to P-06; document/HTML structural checks; no J1 engine, visual device test, or human evidence | SYS-01 when coding resumes; verify candidate rules in actual engine; G2/G3 remain open |
 | Oct 6, 2026 | SYS-01 short coding cycle | Coding explicitly resumed; project-local Git, pinned dependencies, room server and browser interface implemented | `test-evidence.md`: 14 automated checks passed; browser creation, refresh, takeover, leave, invalid-code and restart feedback checked; mobile/public/human proof pending | SYS-02 synchronized J1 turn/private layers; Azure account check before public provisioning; no remote configured |
+
+| Oct 6, 2026 | SYS-02 coding cycle | Implemented J1-C1 asymmetric mission and synchronized turns, filtered views, mutual start/retry, outcomes and phase-preserving recovery | `test-evidence.md` SYS-02: 36 tests passed; browser A plus scripted B completed seven-turn/zero-strike witness; final signal-to-confirm flow checked; no human/mobile/public claim | Human two-context inspection, SYS-03 teaching/phone work; TECH-01 Azure account/cost; no GitHub remote |

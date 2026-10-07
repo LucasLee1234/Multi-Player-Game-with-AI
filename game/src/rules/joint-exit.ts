@@ -1,0 +1,92 @@
+import type { GameError, Knowledge, MissionView, Role } from '../contracts/lobby.js';
+import type { MissionDefinition } from '../content/missions.js';
+export class RuleFault extends Error { constructor(public code: GameError | 'INVALID_INPUT') { super(code); } }
+export interface Mission {
+  id: string; definition: MissionDefinition; turn: number; turnsResolved: number; strikes: number;
+  positions: Record<Role, number>; proposals: Record<Role, number>; planningRevision: number;
+  ready: Record<Role, boolean>; signals: MissionView['signals']; knowledge: Record<Role, Knowledge[]>;
+  result: MissionView['result']; explanations: string[]; retryAgreements: Record<Role, boolean>;
+}
+const roles = ['A', 'B'] as const;
+const exits = { A: 5, B: 3 };
+export const partner = (role: Role): Role => role === 'A' ? 'B' : 'A';
+export function newMission(id: string, definition: MissionDefinition): Mission {
+  for (const role of roles) {
+    const hazards = definition.hazards[role];
+    if (hazards.length !== 2 || new Set(hazards).size !== 2 || hazards.some(c => !Number.isInteger(c) || c < 0 || c > 8 || c === 3 || c === 5)) throw new Error('Invalid authored mission');
+  }
+  const known = (): Knowledge[] => Array.from({ length: 9 }, (_, c) => c === 3 || c === 5 ? { safety: 'Safe', source: 'start/exit' } : null);
+  return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
+    positions: { A: 3, B: 5 }, proposals: { A: 3, B: 5 }, planningRevision: 0,
+    ready: { A: false, B: false }, signals: { A: null, B: null }, knowledge: { A: known(), B: known() },
+    result: null, explanations: [], retryAgreements: { A: false, B: false } };
+}
+function learn(m: Mission, role: Role, cell: number, safety: 'Safe' | 'Danger', source: NonNullable<Knowledge>['source']) {
+  if (!m.knowledge[role][cell]) m.knowledge[role][cell] = { safety, source };
+  if (m.knowledge[role].filter(k => k?.safety === 'Danger').length === 2) {
+    m.knowledge[role] = m.knowledge[role].map(k => k ?? { safety: 'Safe', source: 'deduction' });
+  }
+}
+function revision(m: Mission) { m.planningRevision++; m.ready = { A: false, B: false }; }
+export function propose(m: Mission, role: Role, destination: number): Mission {
+  if (m.result) throw new RuleFault('NOT_PLANNING');
+  const current = m.positions[role];
+  const distance = Math.abs(Math.floor(current / 3) - Math.floor(destination / 3)) + Math.abs(current % 3 - destination % 3);
+  if (!Number.isInteger(destination) || destination < 0 || destination > 8 || distance > 1) throw new RuleFault('INVALID_INPUT');
+  if (m.proposals[role] === destination) return m;
+  const next = structuredClone(m); next.proposals[role] = destination; revision(next); return next;
+}
+export function signal(m: Mission, role: Role, cell: number): Mission {
+  if (m.result) throw new RuleFault('NOT_PLANNING');
+  if (!Number.isInteger(cell) || cell < 0 || cell > 8) throw new RuleFault('INVALID_INPUT');
+  if (m.signals[role]) throw new RuleFault('SIGNAL_UNAVAILABLE');
+  const next = structuredClone(m), receiver = partner(role);
+  const safety = m.definition.hazards[receiver].includes(cell) ? 'Danger' : 'Safe';
+  next.signals[role] = { cell, safety }; learn(next, receiver, cell, safety, 'signal'); revision(next); return next;
+}
+export function ready(m: Mission, role: Role): Mission {
+  if (m.result) throw new RuleFault('NOT_PLANNING');
+  if (m.ready[role]) return m;
+  const next = structuredClone(m); next.ready[role] = true;
+  return next.ready.A && next.ready.B ? resolve(next) : next;
+}
+/** Pure transition: hazards, then overlap/swap, then failure/joint exit/turn limit. */
+export function resolve(m: Mission): Mission {
+  if (m.result) throw new RuleFault('NOT_PLANNING');
+  const next = structuredClone(m), tentative = { ...m.proposals };
+  next.explanations = [];
+  for (const role of roles) {
+    if (m.definition.hazards[role].includes(m.proposals[role])) {
+      next.strikes++; tentative[role] = m.positions[role];
+      learn(next, role, m.proposals[role], 'Danger', 'hazard attempt');
+      next.explanations.push(`${role}: hazard at ${m.proposals[role]} stopped movement and added one strike.`);
+    }
+  }
+  const overlap = tentative.A === tentative.B;
+  const swap = tentative.A === m.positions.B && tentative.B === m.positions.A;
+  if (overlap || swap) {
+    next.positions = { ...m.positions };
+    next.explanations.push(overlap ? 'Both robots stayed: their resolved destinations overlapped.' : 'Both robots stayed: direct swaps are blocked.');
+  } else next.positions = tentative;
+  for (const role of roles) {
+    learn(next, role, next.positions[role], 'Safe', 'visit');
+    if (next.positions[role] !== m.positions[role]) next.explanations.push(`${role}: moved to ${next.positions[role]}.`);
+  }
+  if (!next.explanations.length) next.explanations.push('Both robots waited. One turn was used.');
+  next.turnsResolved++;
+  next.result = next.strikes >= 3 ? 'strikes' : next.positions.A === exits.A && next.positions.B === exits.B ? 'success' : m.turn >= 8 ? 'turns' : null;
+  next.ready = { A: false, B: false };
+  if (!next.result) { next.turn++; next.proposals = { ...next.positions }; next.signals = { A: null, B: null }; }
+  revision(next); return next;
+}
+export function clearAgreement(m: Mission): Mission {
+  const next = structuredClone(m); revision(next); next.retryAgreements = { A: false, B: false }; return next;
+}
+export function project(m: Mission, role: Role): MissionView {
+  // Explicit allowlist: never serialize Mission/definition and delete fields afterward.
+  return { id: m.id, ruleVersion: 'J1-C1', title: m.definition.title, turn: m.turn, turnsResolved: m.turnsResolved,
+    strikes: m.strikes, positions: { ...m.positions }, exits: { ...exits }, proposals: { ...m.proposals },
+    planningRevision: m.planningRevision, ready: { ...m.ready }, signals: structuredClone(m.signals),
+    ownKnownCells: structuredClone(m.knowledge[role]), partnerHazards: [...m.definition.hazards[partner(role)]],
+    result: m.result, explanations: [...m.explanations], retryAgreements: { ...m.retryAgreements } };
+}

@@ -137,3 +137,13 @@ Date: October 6, 2026. Status: Explicitly authorized by the participant's reques
 - Use explicit `--ignore-workspace` for the inherited parent-workspace environment. Keep the default npm issue separate; it was not repaired. Only command-scoped Git trust was used for the exact project during outside-sandbox Git, with no global setting change.
 - Verification: 14 automatic boundary/integration tests passed; browser create/reload/takeover/leave/invalid-code/restart checked. Mobile override did not produce the requested measured width, so mobile compatibility remains unverified. No public deployment, phone session, gameplay, or human enjoyment claim.
 - Evidence: [test-evidence.md](test-evidence.md). Next: SYS-02 authoritative turn and actual private hazard projections; retain G2/G3 open and Oct 25/28 milestones.
+
+## DEC-008 - Implement the bounded J1-C1 gameplay slice
+
+Date: October 6, 2026. Status: Explicit coding request fulfilled; tested local candidate, not human-approved release baseline.
+
+- Implement server-only Different Dangers content and pure J1 transitions with per-seat allowlisted views. Mutual start, truthful signals, persistent/deduced own knowledge, public proposals, revision-bound confirmation, one-time resolution, outcomes and mutual retry now run locally.
+- Keep this cycle to one asymmetric mission plus in-page instructions. Teaching mission/Continue and phone/public/human validation remain pending; no numerical points added.
+- Retry identity keeps request ID, sequence, and semantic payload across authorized reconnect. Controller epoch is validated separately and can rebind without creating a new action. Pause clears agreements and preserves phase/mission; terminal closure retains only allowed outcome metadata.
+- Test the browser using A plus a development-only B wire helper because the enabled UI browser has one cookie profile. This does not establish human participation/enjoyment. The helper is not public, not automatically launched, and was stopped by closing disposable rooms.
+- Evidence: 36 automated tests passed; browser seven-turn zero-strike witness, terminal refresh, retry reset and final signal-to-confirm flow checked. Screenshots and limitations in [test-evidence.md](test-evidence.md). Local source control only; no GitHub remote, Azure resource or cloud spending.

@@ -1,5 +1,7 @@
 # Signal Rescue - Verification Evidence
 
+Latest slice: **SYS-02**. The SYS-01 record below is historical; current gameplay evidence follows it in the SYS-02 section.
+
 Date: October 6, 2026
 Build slice: SYS-01 / room and authorized connection
 Rules: no mission engine; J1-C1 remains the next gameplay candidate
@@ -68,3 +70,34 @@ Project-local repository created on `codex/sys-01`, with participant-specified l
 The intended initial checkpoint records this document and the slice. Its actual identifier is reported after commit; it can also be read with `git log -1 --oneline` from the project root. GitHub has not been created/configured, so no push or remote synchronization is claimed. No global Git trust setting was changed; outside-sandbox Git uses a command-scoped exception for this exact workspace due to the sandbox owner's .git directory.
 
 Next smallest cycle: one authoritative synchronized J1-C1 turn, tested actual per-seat hazard projections and stale/duplicate confirmation, before full mission content or art.
+
+## SYS-02 - Authoritative J1-C1 gameplay
+
+Date: October 6, 2026. Release ID: `sys-02`. Runtime/dependency versions unchanged from SYS-01. Final compile and Node test run: **36 tests passed, zero failed/skipped**. Sources include [J1 rules](../game/src/rules/joint-exit.ts), [rule tests](../game/tests/joint-exit.test.ts), [game store tests](../game/tests/game-store.test.ts), and [actual gameplay wire test](../game/tests/game-http.test.ts). The historical 0.2 Python model/results are not used to validate these semantics.
+
+Implemented: one server-only asymmetric mission J1-M1; two-player current-lobby start; own learned information/partner full hazard layer; one truthful per-turn signal; persistent own knowledge and two-hazard deduction; cardinal/Wait proposals; plan-edit confirmation reset; second-current-Ready one-time resolution; J1 joint exit/strikes/turn limit; unscored result summaries; mutual retry/new mission ID; phase-preserving pause, fresh agreement, terminal outcome retention. No runtime AI, extra players, procedural generation, tutorial progression, public host, or numerical points.
+
+| Evidence | Requirement / boundary | Observed |
+| --- | --- | --- |
+| J1-01 | FR-09, FR-12 to FR-14, FR-22 | Six/seven-turn routes executed; collision or hazard-plus-collision recovery wins on turn eight; same-cell/swap/following, two hazard attempts, failure/arrival/turn-limit precedence pass |
+| J1-02 | FR-07, FR-08, FR-23; NFR-02 | Actual WebSocket recipients receive only their own learned cells and the partner's hazards; initial own hazard remains Unknown; mission definition/other knowledge absent; private content/rule asset URLs unavailable |
+| J1-03 | FR-10 to FR-12; NFR-01 | Changed proposals/signals clear both Ready; stale plans reject; simultaneous two-Ready messages resolve once; replayed committed acknowledgement cannot resolve again |
+| J1-04 | NFR-01, NFR-03 | Valid domain failures consume/cache sequence; request/payload conflicts and old evicted requests reject; authorized reconnect retries the same intent with a new controller epoch |
+| J1-05 | FR-18 to FR-20 | Pause restores same mission/positions/knowledge and prior phase with readiness cleared; terminal retry agreement clears on interruption; expiry retains a committed outcome without hazards |
+| J1-06 | FR-16, FR-19, FR-24 | Both retry agreements required; new ID and clean positions/knowledge/signals; sequences remain monotonic; active Leave closes both; no anonymous active replacement |
+
+Browser inspection used the Codex in-app browser for A and [a development-only wire client](../game/tests/manual-partner.mjs) for B. Both tabs of the enabled UI browser share cookies; no second independently controlled UI profile was available. The helper is outside the served asset allowlist and never launched by the application. It proposes the documented B route and waits for A's compatible confirmation. It is test infrastructure, not a product bot or human evidence.
+
+Observed browser results:
+
+- Both connected and agreed to Start; correct robot/layer labels and Unknown versus learned/deduced safety displayed.
+- Sent A's signals at 0 and 7; two disclosure Wait turns consumed, followed by the five-step yielding route. Both reached exits on turn seven with zero strikes; movement/signal controls disabled at terminal.
+- Refreshed terminal page: same committed result restored. Practice again required the partner's agreement and reset to turn one/start positions/Unknown knowledge, with the helper's new legitimate signal then visible.
+- After the final acknowledgement/snapshot UI guard change, rebuilt/restarted and rechecked Start -> Signal -> Ready -> turn two -> Leave. Controls reopen after the authoritative snapshot; fixed nodes preserve control focus across state changes.
+- Closed both disposable rooms; development B clients exited. Local server remains available for participant-created sessions.
+
+Screenshots: [planning/private labels](evidence/sys-02-planning.jpg), [seven-turn result](evidence/sys-02-result.jpg). They demonstrate the implemented local flow, not two-human collaboration, phone usability, or an active invitation.
+
+Remaining verification: human discoverability/enjoyment/participation, exact phone browser/touch/viewport layout, public TLS and separate networks, measured load/latency, tutorial/onboarding, and Azure cost/access. The earlier 360-pixel viewport override was not effective; no phone-width pass is claimed. G2 and G3 remain open. GitHub is not configured; this cycle is saved only as a local checkpoint, with its actual commit reported in chat.
+
+Next: participant inspection using two independent human-controlled contexts, then the bounded teaching/phone cycle and public technical proof after account/cost checks.
