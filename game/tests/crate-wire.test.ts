@@ -42,6 +42,18 @@ test('two wire seats share atomic crate moves and complete sustained extraction'
     await seats[r].send({action:'crateMove',from:m.positions[r],crateFrom:m.foundry!.crate!.cell,destination:c,kind});await sync();
     assert.deepEqual(seats.A.view().mission,seats.B.view().mission);
   }
+  const original=seats.A.view().mission!.id;
+  await move('A',1);
+  await seats.A.send({action:'restartAgreement',restartRevision:seats.A.view().restart.revision});await sync();
+  assert.equal(seats.B.view().restart.requestedBy,'A');assert.equal(seats.B.view().mission!.id,original);
+  await seats.B.send({action:'cancelRestart',restartRevision:seats.B.view().restart.revision});await sync();
+  assert.equal(seats.A.view().restart.requestedBy,null);
+  await seats.B.send({action:'restartAgreement',restartRevision:seats.B.view().restart.revision});await sync();
+  const restarted=await seats.A.send({action:'restartAgreement',restartRevision:seats.A.view().restart.revision});await sync();
+  const newId=seats.A.view().mission!.id;assert.notEqual(newId,original);
+  assert.equal(seats.B.view().mission!.turnsResolved,0);assert.equal(seats.B.view().mission!.foundry!.crate!.cell,12);
+  seats.A.ws.send(JSON.stringify(restarted));await seats.B.send({action:'ping',cell:8});await sync();
+  assert.equal(seats.A.view().mission!.id,newId);
   const route:[Role,number,'move'|'pull'][]=[['A',1,'move'],['A',6,'move'],['B',13,'move'],['B',14,'pull'],['B',9,'move'],['B',8,'move'],['B',3,'pull'],['B',2,'move'],['A',1,'move'],['A',0,'move'],['B',1,'move'],['B',6,'move'],['A',1,'move'],['A',2,'move'],['A',3,'move'],['A',4,'move'],['B',11,'move'],['B',10,'move']];
   for(const [r,c,k] of route)await move(r,c,k);
   assert.equal(seats.A.view().mission!.turnsResolved,18);

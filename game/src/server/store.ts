@@ -20,6 +20,7 @@ interface Room {
   id: string; code: string; created: number; lastAction: number; version: number; lobbyRevision: number;
   owner: Role; phase: 'waiting' | 'planning' | 'terminal' | 'paused'; pauseDeadline?: number; seats: Partial<Record<Role, Seat>>;
   resumePhase?: 'waiting' | 'planning' | 'terminal'; mission?: Mission; startAgreements: Record<Role, boolean>;
+  restart: { revision: number; requestedBy: Role | null };
 }
 export interface Limits { rooms: number; sessions: number; recoveryMs: number; idleMs: number; lifetimeMs: number }
 const defaults: Limits = { rooms: 20, sessions: 500, recoveryMs: 60_000, idleMs: 600_000, lifetimeMs: 7_200_000 };
@@ -44,7 +45,8 @@ function command(value: unknown): Command {
     move: ['missionId', 'from', 'destination'], ping: ['missionId', 'cell'],
     crateMove: ['missionId', 'from', 'crateFrom', 'destination', 'kind'],
     propose: ['missionId', 'turn', 'planningRevision', 'destination'], signal: ['missionId', 'turn', 'planningRevision', 'cell'],
-    ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'], nextAgreement: ['missionId'] };
+    ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'], nextAgreement: ['missionId'],
+    restartAgreement: ['missionId', 'restartRevision'], cancelRestart: ['missionId', 'restartRevision'] };
   if (typeof action !== 'string' || !Object.hasOwn(extras, action)) throw new Fault('INVALID_INPUT');
   fields(value, ['type', 'requestId', 'sequence', 'roomId', 'controllerEpoch', 'action', ...extras[action]!]);
   if (value.type !== 'command' || typeof value.requestId !== 'string'
@@ -108,6 +110,7 @@ export class Store {
         lobbyRevision: room.lobbyRevision, owner: room.owner,
         players: (['A', 'B'] as const).filter(role => room.seats[role]).map(role => ({ role, connected: !!room.seats[role]?.channel })), startAgreements: { ...room.startAgreements } },
       self: { role: session.role, controllerEpoch: seat.epoch, nextCommandSequence: seat.nextSequence },
+      restart: { ...room.restart },
       timers: { recoveryRemainingMs: room.pauseDeadline === undefined ? null : Math.max(0, room.pauseDeadline - this.now()),
         lifetimeRemainingMs: Math.max(0, room.created + this.limits.lifetimeMs - this.now()) },
       gameplayImplemented: true, mission: room.mission ? project(room.mission, session.role) : null
@@ -137,7 +140,7 @@ export class Store {
           do { code = Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join(''); }
           while (this.codes.has(code) || this.closed.has(code));
           room = { id: randomUUID(), code, created: this.now(), lastAction: this.now(), version: 0,
-            lobbyRevision: 0, owner: 'A', phase: 'waiting', seats: {}, startAgreements: { A: false, B: false } };
+            lobbyRevision: 0, owner: 'A', phase: 'waiting', seats: {}, startAgreements: { A: false, B: false }, restart: { revision: 0, requestedBy: null } };
           this.rooms.set(room.id, room); this.codes.set(code, room.id); role = 'A';
         } else {
           const id = this.codes.get(input.code!);
@@ -273,10 +276,25 @@ export class Store {
       mission.choices[role] = choice; mission.retryAgreements[role] = choice === 'retry';
       if (mission.choices.A === choice && mission.choices.B === choice) {
         room.mission = newMission(randomUUID(), choice === 'next' ? mission.definition.nextMission! : mission.definition); room.phase = 'planning';
+        this.clearRestart(room);
       }
       return;
     }
     if (room.phase !== 'planning') throw new Fault('NOT_PLANNING', 409);
+    if (input.action === 'restartAgreement' || input.action === 'cancelRestart') {
+      if (!mission.definition.independent) throw new Fault('INVALID_INPUT');
+      if (input.restartRevision !== room.restart.revision) throw new Fault('STALE_RESTART', 409);
+      if (input.action === 'cancelRestart') {
+        if (room.restart.requestedBy === null) throw new Fault('INVALID_INPUT');
+        this.clearRestart(room);
+      } else if (room.restart.requestedBy === null) {
+        room.restart.requestedBy = role; room.restart.revision++;
+      } else if (room.restart.requestedBy !== role) {
+        room.mission = newMission(randomUUID(), mission.definition);
+        this.clearRestart(room);
+      }
+      return;
+    }
     if (input.action === 'move' || input.action === 'ping' || input.action === 'crateMove') {
       if (!mission.definition.independent) throw new Fault('INVALID_INPUT');
       if (input.action === 'move' && input.from !== mission.positions[role]) throw new Fault('STALE_POSITION', 409);
@@ -287,16 +305,20 @@ export class Store {
       }
       room.mission = input.action === 'crateMove' ? moveFoundry(mission,role,input.destination,input.kind)
         : input.action === 'move' ? moveFoundry(mission, role, input.destination) : signal(mission, role, input.cell);
-      if (room.mission.result) room.phase = 'terminal';
+      if (room.mission.result) { room.phase = 'terminal'; this.clearRestart(room); }
       return;
     }
     if (mission.definition.independent) throw new Fault('INVALID_INPUT');
     if (input.turn !== mission.turn || input.planningRevision !== mission.planningRevision) throw new Fault('STALE_PLAN', 409);
     room.mission = input.action === 'propose' ? propose(mission, role, input.destination)
       : input.action === 'signal' ? signal(mission, role, input.cell) : ready(mission, role);
-    if (room.mission.result) room.phase = 'terminal';
+    if (room.mission.result) { room.phase = 'terminal'; this.clearRestart(room); }
+  }
+  private clearRestart(room: Room): void {
+    room.restart = { revision: room.restart.revision + 1, requestedBy: null };
   }
   private pause(room: Room): void {
+    this.clearRestart(room);
     if (room.phase !== 'paused') {
       room.resumePhase = room.phase; room.phase = 'paused'; room.pauseDeadline = this.now() + this.limits.recoveryMs;
     }

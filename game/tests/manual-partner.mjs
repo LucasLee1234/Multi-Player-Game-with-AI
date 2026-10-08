@@ -14,6 +14,8 @@ const session = await post('/api/session', {});
 await post('/api/rooms/join', { requestId: randomUUID(), expectedContextVersion: 0, code }, session.cookie);
 const ws = new WebSocket(origin.replace('http', 'ws') + '/ws', { headers: { Origin: origin, Cookie: session.cookie } });
 let view, pending, missionId, step = 0;
+// Optional scripted UI inspection: B requests, A declines, A cancels, then B agrees.
+let restartReview = process.argv[3] === 'restart-review' ? 0 : 5;
 function send(action) {
   pending = randomUUID();
   ws.send(JSON.stringify({ type: 'command', requestId: pending, sequence: view.self.nextCommandSequence,
@@ -27,6 +29,18 @@ function drive() {
   }
   const m = view.mission;
   if (missionId !== m.id) { missionId = m.id; step = 0; }
+  if (view.room.phase === 'planning' && m.foundry?.movement === 'independent' && restartReview < 5) {
+    const requested = view.restart.requestedBy;
+    if (restartReview === 0 && m.positions.A === 1) {
+      restartReview = 1; send({action:'restartAgreement',missionId:m.id,restartRevision:view.restart.revision});return;
+    }
+    if (restartReview === 1 && requested === null) restartReview = 2;
+    if (restartReview === 2 && requested === 'A') restartReview = 3;
+    if (restartReview === 3 && requested === null) restartReview = 4;
+    if (restartReview === 4 && requested === 'A') {
+      restartReview = 5; send({action:'restartAgreement',missionId:m.id,restartRevision:view.restart.revision});return;
+    }
+  }
   if (view.room.phase === 'terminal') {
     if (m.foundry?.choices.A === 'next' && m.foundry.choices.B !== 'next') send({ action: 'nextAgreement', missionId: m.id });
     else if (m.retryAgreements.A && !m.retryAgreements.B) send({ action: 'retryAgreement', missionId: m.id });

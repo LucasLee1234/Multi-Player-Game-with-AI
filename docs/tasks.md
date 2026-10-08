@@ -5,7 +5,7 @@ Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
 Primary next task: SF-04 first-time partner inspection of the three-room campaign, including crate Push/Pull clarity; retain actual phone/public requirements
 
-Current control baseline: direct independent movement, automatic start and idle waiting. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts. SF-02 is implemented in [shared-passage-implementation.md](shared-passage-implementation.md): First Connection leads to Trade Places through matching next-room choices; pressure gates and authored geometry are verified. Sixty-seven regression tests pass. SF-03 adds Keep the Power On after Trade Places: [crate-implementation.md](crate-implementation.md).
+Current control baseline: direct independent movement, automatic start and idle waiting. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts. SF-02 is implemented in [shared-passage-implementation.md](shared-passage-implementation.md): First Connection leads to Trade Places through matching next-room choices; pressure gates and authored geometry are verified. Seventy-one regression tests pass. Current-room restart requires fresh consent from both players: [restart implementation](current-room-restart.md). SF-03 adds Keep the Power On after Trade Places: [crate-implementation.md](crate-implementation.md).
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
@@ -104,3 +104,5 @@ P0 denotes importance, not a requirement to finish every P0 before any independe
 | Oct 8, 2026 | SF-03 short cycle | Implemented third room, atomic Push/Pull, crate relay power and three-part extraction objective | 67 passing tests; 2,496 actual states all recoverable; 18-step minimum; three-room browser progression, 22-step crate completion, replay and narrow layout with scripted B | SF-04 first-time partner/phone inspection; public deployment prerequisites |
 
 SF-03 local completion authority: [crate-implementation.md](crate-implementation.md). Scripted browser evidence does not close G2/G3. The next cycle should test whether first-time players understand Pull and sustained power before expanding mechanics.
+
+| Oct 8, 2026 | SF-RESTART short cycle | Added current-room request, cancel/decline and distinct-player restart consent with revision fencing | 71 passing tests; all three authority resets; real crate wire reset/deduplication; narrow browser request/accept/cancel/reset and continued movement | SF-04 first-time human inspection; actual phone/public prerequisites remain open |

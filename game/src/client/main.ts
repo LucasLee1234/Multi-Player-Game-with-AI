@@ -9,6 +9,7 @@ const messages: Record<string, string> = {
   ROOM_CLOSED: 'This room ended. Create a new room.',
   STALE_PLAN: 'Plan changed - check it and confirm again.', STALE_MISSION: 'The mission changed. Check the current board.',
   STALE_POSITION: 'The robot or crate moved already. Check the board and choose your next direction.',
+  STALE_RESTART: 'Restart request changed. Check the current request before agreeing.',
   SIGNAL_UNAVAILABLE: 'You already sent a signal this turn.', NOT_PLANNING: 'This mission is not accepting moves.'
 };
 let context: SessionContext | undefined;
@@ -352,6 +353,17 @@ function renderMission() {
   if (!m || !view) return;
   const role = view.self.role, partner = role === 'A' ? 'B' : 'A';
   const planning = active && view.room.phase === 'planning';
+  const restart = view.restart, requester = restart.requestedBy;
+  el('restart-panel').hidden = !independent || view.room.phase !== 'planning';
+  el('restart-status').textContent = requester === null ? 'Restart only this room. Both players must agree.'
+    : requester === role ? 'Restart requested. Your partner must agree. You can keep playing or cancel.'
+    : `Player ${requester} wants to restart this room. Agree to reset the robots, crate and progress, or decline.`;
+  el('restart-panel').classList.toggle('restart-pending', requester !== null);
+  el<HTMLButtonElement>('restart-room').disabled = !planning || requester === role;
+  el('restart-room').textContent = requester === null ? 'Request restart' : requester === role ? 'Waiting for partner' : 'Agree & restart';
+  el('cancel-restart').hidden = requester === null;
+  el<HTMLButtonElement>('cancel-restart').disabled = !planning;
+  el('cancel-restart').textContent = requester === role ? 'Cancel request' : 'Keep playing';
   const foundry = !!m.foundry;
   el('j1-instructions').hidden = foundry; el('j1-maps').hidden = foundry; el('j1-legend').hidden = foundry;
   el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
@@ -436,6 +448,12 @@ window.addEventListener('keydown', event => {
 });
 el('start').onclick = () => { if (context?.view) sendAction({ action: 'startAgreement', lobbyRevision: context.view.room.lobbyRevision }); };
 el('ready').onclick = () => gameAction('ready');
+for (const [id, action] of [['restart-room','restartAgreement'],['cancel-restart','cancelRestart']] as const) {
+  el(id).onclick = () => {
+    const view = context?.view;
+    if (view?.mission) sendAction({action,missionId:view.mission.id,restartRevision:view.restart.revision});
+  };
+}
 el('practice').onclick = () => { if (context?.view?.mission) sendAction({ action: 'retryAgreement', missionId: context.view.mission.id }); };
 el('next-room').onclick = () => { if (context?.view?.mission) sendAction({ action: 'nextAgreement', missionId: context.view.mission.id }); };
 el('pull-mode').onclick = () => { pullMode=!pullMode; render(); };

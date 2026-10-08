@@ -2,7 +2,7 @@ export type Role = 'A' | 'B';
 export type ErrorCode = 'INVALID_INPUT' | 'NOT_AUTHORIZED' | 'STALE_CONTEXT' | 'ROOM_UNAVAILABLE'
   | 'ROOM_FULL' | 'ROOM_CLOSED' | 'PAUSED' | 'RATE_LIMITED' | 'SERVER_BUSY'
   | 'CONTROLLER_ACTIVE' | 'CONTROLLER_REPLACED' | 'OUT_OF_ORDER' | 'REQUEST_TOO_OLD' | 'REQUEST_CONFLICT';
-export type GameError = 'STALE_PLAN' | 'STALE_POSITION' | 'STALE_MISSION' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
+export type GameError = 'STALE_PLAN' | 'STALE_POSITION' | 'STALE_MISSION' | 'STALE_RESTART' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
 export type Knowledge = { safety: 'Safe' | 'Danger'; source: 'start/exit' | 'signal' | 'visit' | 'hazard attempt' | 'deduction' } | null;
 export interface MissionView {
   id: string; ruleVersion: 'J1-C1' | 'SF-T1-v2' | 'SF-T1-v3' | 'SF-M2-v1' | 'SF-M3-v1'; title: string; turn: number; turnsResolved: number; strikes: number;
@@ -22,6 +22,7 @@ export interface LobbyView {
   room: { id: string; code: string; phase: 'waiting' | 'planning' | 'terminal' | 'paused'; roomVersion: number;
     lobbyRevision: number; owner: Role; players: { role: Role; connected: boolean }[]; startAgreements: Record<Role, boolean> };
   self: { role: Role; controllerEpoch: number; nextCommandSequence: number };
+  restart: { revision: number; requestedBy: Role | null };
   timers: { recoveryRemainingMs: number | null; lifetimeRemainingMs: number };
   gameplayImplemented: boolean; mission: MissionView | null;
 }
@@ -36,6 +37,8 @@ export interface LeaveCommand {
 }
 interface Envelope { type: 'command'; requestId: string; sequence: number; roomId: string; controllerEpoch: number }
 export type Command = LeaveCommand
+  | (Envelope & { action: 'restartAgreement'; missionId: string; restartRevision: number })
+  | (Envelope & { action: 'cancelRestart'; missionId: string; restartRevision: number })
   | (Envelope & { action: 'crateMove'; missionId: string; from: number; crateFrom: number; destination: number; kind: 'move' | 'pull' })
   | (Envelope & { action: 'move'; missionId: string; from: number; destination: number })
   | (Envelope & { action: 'ping'; missionId: string; cell: number })
