@@ -203,3 +203,7 @@ The player's own browser tab could not be inspected, so the reported-session cau
 ## Crate destination marker clarification
 
 October 8, 2026: successful pinned TypeScript build after adding explicit empty/parked crate destination labels and accessibility text. No gameplay rules changed; no new automated gameplay test was required for this display-only change. Browser inspection could not run because its helper process failed during setup, including after a reset; visual verification of this label remains open. Prior 67-test gameplay evidence still describes the unchanged rules.
+
+## In-game visual refresh - verified after resume
+
+October 8, 2026: pinned TypeScript build passed; browser tooling recovered. Desktop visuals and three-room button progression checked with browser A/scripted B. Closed-gate and wrong-direction Pull explanations remained actionable; crate delivery and 22-step third-room success verified. At 390-by-844, document width measured 375; no tile content overflow before/after delivery; visible direction buttons 52 pixels high. [Full-page narrow screenshot](workshop-game-narrow.jpg). Viewport restored, disposable room closed, server left running. [Scope/evidence](game-visual-refresh.md). No gameplay rules changed or fresh 67-test run claimed; human/actual phone/public networking remain open.

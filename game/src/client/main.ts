@@ -257,9 +257,10 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
   prepareFoundryBoard(m);
   const previous = lastVisual?.id === m.id ? lastVisual : undefined;
   if (!previous) motionUntil.clear();
+  if (previous?.foundry?.crate && board.crate && previous.foundry.crate.cell !== board.crate.cell) motionUntil.set('crate', performance.now() + 260);
   for (const r of ['A', 'B'] as const) if (previous && previous.positions[r] !== m.positions[r]) motionUntil.set(`robot-${r}`, performance.now() + 260);
   for (const g of board.gates) if (previous && previous.foundry!.gates.find(old => old.cell === g.cell)?.open !== g.open) motionUntil.set(`gate-${g.cell}`, performance.now() + 400);
-  if (previous && previous.planningRevision !== m.planningRevision && previous.turnsResolved === m.turnsResolved && m.explanations.some(t => /closed|overlap|blocked/.test(t))) motionUntil.set('blocked', performance.now() + 300);
+  if (previous && previous.planningRevision !== m.planningRevision && previous.turnsResolved === m.turnsResolved && m.explanations.some(t => /closed|overlap|block|cannot|Pull needs/.test(t))) motionUntil.set('blocked', performance.now() + 300);
   el('foundry-self').textContent = `You · ${role}`;
   el('foundry-self').className = `role-badge role-${role}`;
   el('foundry-hint').textContent = m.result ? board.nextTitle ? `Both robots reached their exits. Choose ${board.nextTitle} together, or practice this room again.` : 'Both robots reached their exits. Practice this room again, or leave to start a new adventure.' : board.stage > 1 ? board.hint : role === 'B' && m.positions.B === 8 && !board.gates[0]!.latched
@@ -280,6 +281,9 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
     tile.classList.toggle('has-robot', !!robot);
     tile.classList.toggle('gate-tile', !!gate);
+    tile.classList.toggle('relay-powered', !!relay?.powered);
+    tile.classList.toggle('exit-A', exit === 'A');
+    tile.classList.toggle('exit-B', exit === 'B');
     tile.classList.toggle('crate-target', crateTarget);
     tile.classList.toggle('crate-parked', crateTarget && cargo);
     tile.classList.toggle('has-crate', cargo);
@@ -292,6 +296,28 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     tile.replaceChildren();
     const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
     const icon = document.createElement('span'); icon.className = 'tile-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = crateTarget ? 'C' : wall ? '' : gate ? gate.kind === 'pressure' ? '▤' : '▥' : relay ? '◇' : exit ? '↗' : ''; tile.append(icon);
+    if (!crateTarget && (gate || relay || exit)) {
+      icon.textContent = '';
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 28 28'); svg.setAttribute('focusable', 'false');
+      const shape = (tag: string, attributes: Record<string,string>) => {
+        const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        for (const [key,value] of Object.entries(attributes)) node.setAttribute(key,value);
+        svg.append(node);
+      };
+      if (gate) {
+        shape('rect',{x:'4',y:'5',width:'20',height:'19',rx:'3',fill:'none',stroke:'currentColor','stroke-width':'2'});
+        shape('path',{d:gate.open?'M8 9v11m12-11v11':'M9 9v11m5-11v11m5-11v11',fill:'none',stroke:'currentColor','stroke-width':'2','stroke-linecap':'round'});
+        shape('circle',{cx:'14',cy:'2',r:'2',fill:'currentColor'});
+      } else if (relay) {
+        shape('path',{d:'M14 3 25 14 14 25 3 14Z',fill:'none',stroke:'currentColor','stroke-width':'2'});
+        shape('circle',{cx:'14',cy:'14',r:'4',fill:'currentColor'});
+      } else {
+        shape('rect',{x:'3',y:'3',width:'22',height:'22',rx:'6',fill:'none',stroke:'currentColor','stroke-width':'1.5'});
+        shape('path',{d:'M9 19 19 9m-8 0h8v8',fill:'none',stroke:'currentColor','stroke-width':'2','stroke-linecap':'round','stroke-linejoin':'round'});
+      }
+      icon.append(svg);
+    }
     const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = crateTarget ? 'Crate dock' : wall || label === 'Floor' ? '' : gate ? `Gate ${cell}` : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
     if (crateTarget) {
       const marker = document.createElement('span'); marker.className = 'crate-target-label';
@@ -307,7 +333,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
       if ((motionUntil.get(`robot-${robot}`) ?? 0) > performance.now()) bot.classList.add('bot-step');
     }
-    if(cargo){const crate=document.createElement('span');crate.className='crate';crate.textContent='C';crate.setAttribute('aria-hidden','true');tile.append(crate);}
+    if(cargo){const crate=document.createElement('span');crate.className='crate';crate.textContent='C';crate.setAttribute('aria-hidden','true');tile.append(crate);if((motionUntil.get('crate')??0)>performance.now())crate.classList.add('bot-step');}
     tile.classList.toggle('pinged', Object.values(m.signals).some(p => p?.cell === cell));
   }
   lastVisual = structuredClone(m);
@@ -379,6 +405,7 @@ function renderMission() {
   el<HTMLButtonElement>('ready').disabled = !planning || m.ready[role];
   el('ready').hidden = !!m.result || independent;
   el('resolution').textContent = m.explanations.join(' ');
+  el('resolution').classList.toggle('feedback-blocked', !!m.foundry && m.explanations.some(t => /closed|overlap|block|cannot|Pull needs/.test(t)));
   el('result').hidden = !m.result;
   el('result-title').textContent = m.result === 'success' ? foundry ? 'Factory restored. You made it together!' : 'Rescued together' : m.result === 'strikes' ? 'Mission ended: three strikes' : 'Mission ended: turn limit';
   el('result-stats').textContent = independent ? `Completed in ${m.turnsResolved} team moves. Both robots are at their exits.` : foundry ? `Completed in ${m.turnsResolved} turns. Both robots are at their exits.` : `Turns used: ${m.turnsResolved} / 8 · Strikes: ${m.strikes} / 3`;
