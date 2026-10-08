@@ -21,7 +21,7 @@ function fixture(){
 }
 test('level selection requires distinct matching consent, resets chosen room and fences replay',()=>{
   const f=fixture(),code=f.view().room.code,id=f.view().mission!.id;
-  assert.deepEqual(f.view().campaign.levels.map(l=>l.stage),[1,2,3,4]);
+  assert.deepEqual(f.view().campaign.levels.map(l=>l.stage),[1,2,3,4,5]);
   f.send('A',{action:'selectLevel',stage:3});f.send('A',{action:'selectLevel',stage:3});assert.equal(f.view().mission!.id,id);
   const accepted=f.send('B',{action:'selectLevel',stage:3});assert.equal(f.ack('B').ok,true);
   const newId=f.view().mission!.id;assert.notEqual(newId,id);assert.equal(f.view().room.code,code);
@@ -40,6 +40,10 @@ test('level selection requires distinct matching consent, resets chosen room and
   f.send('B',{action:'restartAgreement',restartRevision:f.view().restart.revision});
   assert.notEqual(f.view().mission!.id,oldMission);assert.deepEqual(f.view().mission!.positions,{A:0,B:14});
   assert.equal(f.view().mission!.foundry!.crate!.cell,12);assert.equal(f.view().mission!.turnsResolved,0);
+  f.send('A',{action:'selectLevel',stage:5});assert.equal(f.view().mission!.foundry!.stage,4);
+  f.send('B',{action:'selectLevel',stage:5});assert.equal(f.view().mission!.foundry!.stage,5);
+  assert.equal(f.view().mission!.foundry!.crate!.cell,18);assert.equal(f.view().mission!.foundry!.crate!.target,6);
+  assert.equal(f.view().mission!.foundry!.nextTitle,null);
 });
 test('decline, replacement, pause and restart invalidate previous level consent',()=>{
   const f=fixture(),id=f.view().mission!.id;

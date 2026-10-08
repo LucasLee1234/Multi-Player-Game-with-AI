@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { keepPowerOn, handoffWorkshop } from '../src/content/missions.js';
+import { keepPowerOn, handoffWorkshop, freightExchange } from '../src/content/missions.js';
 import { newMission, moveFoundry, project, type Mission } from '../src/rules/joint-exit.js';
 import { crateAction, crateFailure, pullDirection } from '../src/client/crate-help.js';
 
-for (const definition of [keepPowerOn, handoffWorkshop]) test(`crate direction previews match the server in every reachable state: ${definition.title}`, () => {
+for (const definition of [keepPowerOn, handoffWorkshop, freightExchange]) test(`crate direction previews match the server in every reachable state: ${definition.title}`, () => {
   const first = newMission('preview', definition), queue = [first];
   const key = (m: Mission) => `${m.positions.A},${m.positions.B},${m.crate},${m.latchedGates.join(',')}`;
   const seen = new Set([key(first)]);

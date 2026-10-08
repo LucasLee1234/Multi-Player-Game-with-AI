@@ -2,7 +2,7 @@
 
 A cooperative browser puzzle game for two players. Guide two robots through a small factory, power your partner's gates, move a crate and escape together.
 
-Current source version: **1.1.0**, with four playable rooms and improved crate guidance, relay labels and safe gate-departure feedback. Player-reported playtesting informed these changes. No 1.1.0 Docker image has been built or published; the existing 1.0.0 image remains separate from current source. See the [changelog](CHANGELOG.md).
+Current source version: **1.1.0**, now with five playable rooms and improved crate guidance, relay labels and safe gate-departure feedback. Player-reported playtesting informed the earlier usability changes; the new fifth room still needs human playtesting. No 1.1.0 Docker image has been built or published; the existing 1.0.0 image remains separate from current source. See the [changelog](CHANGELOG.md).
 
 ![Handoff Workshop](docs/handoff-workshop-landscape.jpg)
 
@@ -22,6 +22,7 @@ Create a room and share its six-character code. Your partner joins from another 
 | Trade Places | Share passages and hold a pressure relay |
 | Keep the Power On | Park a crate on Relay 8 to maintain power |
 | Handoff Workshop | Exchange support roles, turn the crate onto Dock 18 and rescue the support robot |
+| Freight Exchange | Retrieve the crate from bay 18, hand it between both robots and park it on Relay 6 |
 
 Two tabs in one browser profile share a session. For two independent players on one computer, use normal/private windows or separate profiles.
 
@@ -66,15 +67,15 @@ Defaults: 20 rooms, 500 sessions, a 60-second disconnect recovery window and a t
 
 ## Verification
 
-The application passed **79 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, restart, consent-bound levels, crate previews and safe gate departure. Actual-engine searches found all reachable spatial states recoverable in all four rooms; Handoff Workshop has 2,000 configurations and a shortest 26-step completion.
+The application passed **82 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, restart, consent-bound levels, five-room progression, crate previews and safe gate departure. Actual-engine searches found all reachable spatial states recoverable in all five rooms; Freight Exchange has 2,000 configurations and a shortest 30-step completion.
 
 Browser A with a developer scripted partner completed room four and checked F/Pull, parking, replay, green marks and exit. Responsive inspection covered 390x844 and 844x390 without page overflow. These checks do not establish independent two-human enjoyment, actual-phone behavior or public deployment readiness. [Fourth-room evidence](docs/handoff-workshop-implementation.md), [earlier test evidence](docs/test-evidence.md).
 
 `game/tests/manual-partner.mjs` is a development-only helper, not served, automatically started or offered as a public game mode. Historical J1 and Python research variants have different rules and are not the default game.
 
-## Next room design
+## Fifth room
 
-[Freight Exchange](docs/freight-exchange-design.md) proposes recovering the crate from a lower bay to Dock 6. An actual-engine audit found a 30-step solution, all 2,000 reachable configurations recoverable, and both robots necessarily transporting the crate. This is a validated design proposal; it is not installed in the four-room campaign.
+[Freight Exchange](docs/freight-exchange-design.md) is playable as room five. Recover the crate from the lower bay to the Relay 6 dock. The actual-engine audit verifies a 30-step solution, all 2,000 reachable configurations recoverable, and both robots necessarily transporting the crate. [Implementation and browser evidence](docs/freight-exchange-implementation.md).
 
 ## Repository
 

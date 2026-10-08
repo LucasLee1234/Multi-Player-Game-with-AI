@@ -1,14 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as pace } from 'node:timers/promises';
 import { WebSocket } from 'ws';
 import { createApplication } from '../src/server/app.js';
 import { Store } from '../src/server/store.js';
-import { keepPowerOn } from '../src/content/missions.js';
+import { keepPowerOn, freightExchange } from '../src/content/missions.js';
+import { freightRoute } from './freight-route.js';
 import type { LobbyView, ServerMessage, Role } from '../src/contracts/lobby.js';
 
-test('two wire seats share atomic crate moves and complete sustained extraction', async t => {
-  const app=await createApplication({store:new Store(undefined,{},keepPowerOn)});t.after(()=>app.close());
+for (const definition of [keepPowerOn,freightExchange]) test(`two wire seats synchronize crate transport and final replay: ${definition.title}`, async t => {
+  const initialCrate=definition.factory!.crate!.start, target=definition.factory!.crate!.target;
+  const app=await createApplication({store:new Store(undefined,{},definition)});t.after(()=>app.close());
   async function post(path:string,body:unknown,cookie?:string) {
     const r=await fetch(app.origin+path,{method:'POST',headers:{Origin:app.origin,'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(body)});
     assert.equal(r.status,200);return {data:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};
@@ -27,6 +30,8 @@ test('two wire seats share atomic crate moves and complete sustained extraction'
       listeners.add(check);check();
     });}
     async function send(action:Record<string,unknown>) {
+      // Respect the production WebSocket token refill; long witnesses must not be bursts.
+      await pace(110);
       const requestId=randomUUID(),version=view!.room.roomVersion;
       const cmd={type:'command',requestId,sequence:view!.self.nextCommandSequence,roomId:view!.room.id,controllerEpoch:view!.self.controllerEpoch,missionId:view!.mission!.id,...action};
       ws.send(JSON.stringify(cmd));await until(()=>acks.has(requestId)&&view!.room.roomVersion>version);
@@ -51,22 +56,23 @@ test('two wire seats share atomic crate moves and complete sustained extraction'
   await seats.B.send({action:'restartAgreement',restartRevision:seats.B.view().restart.revision});await sync();
   const restarted=await seats.A.send({action:'restartAgreement',restartRevision:seats.A.view().restart.revision});await sync();
   const newId=seats.A.view().mission!.id;assert.notEqual(newId,original);
-  assert.equal(seats.B.view().mission!.turnsResolved,0);assert.equal(seats.B.view().mission!.foundry!.crate!.cell,12);
+  assert.equal(seats.B.view().mission!.turnsResolved,0);assert.equal(seats.B.view().mission!.foundry!.crate!.cell,initialCrate);
   seats.A.ws.send(JSON.stringify(restarted));await seats.B.send({action:'ping',cell:8});await sync();
   assert.equal(seats.A.view().mission!.id,newId);
-  await seats.A.send({action:'selectLevel',stage:3,levelRevision:seats.A.view().campaign.revision});await sync();
-  await seats.B.send({action:'selectLevel',stage:3,levelRevision:seats.B.view().campaign.revision});await sync();
-  assert.equal(seats.A.view().mission!.foundry!.stage,3);assert.deepEqual(seats.A.view().campaign,seats.B.view().campaign);
+  await seats.A.send({action:'selectLevel',stage:definition.stage!,levelRevision:seats.A.view().campaign.revision});await sync();
+  await seats.B.send({action:'selectLevel',stage:definition.stage!,levelRevision:seats.B.view().campaign.revision});await sync();
+  assert.equal(seats.A.view().mission!.foundry!.stage,definition.stage);assert.deepEqual(seats.A.view().campaign,seats.B.view().campaign);
   const route:[Role,number,'move'|'pull'][]=[['A',1,'move'],['A',6,'move'],['B',13,'move'],['B',14,'pull'],['B',9,'move'],['B',8,'move'],['B',3,'pull'],['B',2,'move'],['A',1,'move'],['A',0,'move'],['B',1,'move'],['B',6,'move'],['A',1,'move'],['A',2,'move'],['A',3,'move'],['A',4,'move'],['B',11,'move'],['B',10,'move']];
-  for(const [r,c,k] of route)await move(r,c,k);
-  assert.equal(seats.A.view().mission!.turnsResolved,18);
+  const witness=definition===freightExchange?freightRoute:route;
+  for(const [r,c,k] of witness)await move(r,c,k);
+  assert.equal(seats.A.view().mission!.turnsResolved,witness.length);
   assert.equal(seats.A.view().mission!.result,'success');
-  assert.equal(seats.A.view().mission!.foundry!.crate!.cell,8);
-  assert.equal(seats.B.view().mission!.foundry!.gates[1]!.powered,true);
+  assert.equal(seats.A.view().mission!.foundry!.crate!.cell,target);
+  assert.equal(seats.B.view().mission!.foundry!.gates.find(g=>g.relay===target)!.powered,true);
   assert.equal(seats.A.view().mission!.foundry!.nextTitle,null);
   await seats.A.send({action:'retryAgreement'});await sync();await seats.B.send({action:'retryAgreement'});await sync();
-  assert.equal(seats.A.view().mission!.title,'Keep the Power On');
+  assert.equal(seats.A.view().mission!.title,definition.title);
   assert.equal(seats.B.view().mission!.turnsResolved,0);
   assert.deepEqual(seats.A.view().mission!.positions,{A:0,B:14});
-  assert.equal(seats.A.view().mission!.foundry!.crate!.cell,12);
+  assert.equal(seats.A.view().mission!.foundry!.crate!.cell,initialCrate);
 });

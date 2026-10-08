@@ -5,9 +5,10 @@ import { newMission, moveFoundry, project, type Mission } from '../src/rules/joi
 import { Store, type Channel } from '../src/server/store.js';
 import type { Command, Role, ServerMessage } from '../src/contracts/lobby.js';
 import { handoffRoute } from './handoff-route.js';
+import { freightRoute } from './freight-route.js';
 const fresh=()=>newMission('crate_mission',keepPowerOn);
 const route:[Role,number,'move'|'pull'][]=[['A',1,'move'],['A',6,'move'],['B',13,'move'],['B',14,'pull'],['B',9,'move'],['B',8,'move'],['B',3,'pull'],['B',2,'move'],['A',1,'move'],['A',0,'move'],['B',1,'move'],['B',6,'move'],['A',1,'move'],['A',2,'move'],['A',3,'move'],['A',4,'move'],['B',11,'move'],['B',10,'move']];
-test('production adventure advances through four rooms and resets the final handoff room',()=>{
+test('production adventure advances through five rooms and resets the final freight room',()=>{
   const store=new Store(undefined,{},foundryAdventure),sessions={A:store.bootstrap().session,B:store.bootstrap().session};
   const room=store.admit(sessions.A,{requestId:'campaign_create',expectedContextVersion:0},'create');
   store.admit(sessions.B,{requestId:'campaign_join',expectedContextVersion:0,code:room.view!.room.code},'join');
@@ -33,10 +34,15 @@ test('production adventure advances through four rooms and resets the final hand
   send('A',{action:'nextAgreement'});send('B',{action:'nextAgreement'});
   assert.equal(mission().title,'Handoff Workshop');assert.equal(mission().foundry!.stage,4);
   for(const [r,c,k] of handoffRoute)move(r,c,k);
+  assert.equal(mission().result,'success');assert.equal(mission().foundry!.nextTitle,'Freight Exchange');
+  send('A',{action:'nextAgreement'});assert.equal(mission().title,'Handoff Workshop');
+  send('B',{action:'nextAgreement'});
+  assert.equal(mission().title,'Freight Exchange');assert.equal(mission().foundry!.stage,5);
+  for(const [r,c,k] of freightRoute)move(r,c,k);
   assert.equal(mission().result,'success');assert.equal(mission().foundry!.nextTitle,null);
-  assert.deepEqual(store.context(sessions.A).view!.campaign.completed,[1,2,3,4]);
+  assert.deepEqual(store.context(sessions.A).view!.campaign.completed,[1,2,3,4,5]);
   send('A',{action:'retryAgreement'});send('B',{action:'retryAgreement'});
-  assert.equal(mission().title,'Handoff Workshop');assert.equal(mission().foundry!.crate!.cell,12);assert.equal(mission().turnsResolved,0);
+  assert.equal(mission().title,'Freight Exchange');assert.equal(mission().foundry!.crate!.cell,18);assert.equal(mission().turnsResolved,0);
 });
 test('crate witness establishes sustained power and completes in 18 steps',()=>{
   let m=fresh();for(const [r,c,k] of route){m=moveFoundry(m,r,c,k);assert.equal(m.positions[r],c);}

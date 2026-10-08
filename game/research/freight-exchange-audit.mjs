@@ -1,10 +1,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import assert from 'node:assert/strict';
+import { freightExchange } from '../dist/src/content/missions.js';
 import { newMission, moveFoundry } from '../dist/src/rules/joint-exit.js';
 
 // Design-only search against production rules; never registers a campaign room.
 const definition = JSON.parse(readFileSync(new URL('./freight-exchange.json', import.meta.url), 'utf8').replace(/^\uFEFF/, ''));
+assert.deepEqual(freightExchange,definition,'Production room must match the audited design.');
 const initial = newMission('design-audit', definition);
 const key = m => `${m.positions.A},${m.positions.B},${m.crate},${m.latchedGates.slice().sort((a,b)=>a-b).join('.')}`;
 const states = [initial], ids = new Map([[key(initial), 0]]), edges = [], parents = [null], goals = [];

@@ -36,6 +36,11 @@ export const handoffWorkshop: MissionDefinition = {
     crate: { start: 12, target: 18 },
     hint: 'Trade support roles: Relay 8 opens Gate 11; Relay 16 opens Gate 13. Park the crate on 18, then reach both exits.' }
 };
-export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: { ...keepPowerOn, nextMission: handoffWorkshop } } };
+export const freightExchange: MissionDefinition = {
+  title: 'Freight Exchange', mode: 'foundry', independent: true, stage: 5, hazards: { A: [], B: [] },
+  factory: { ...handoffWorkshop.factory!, crate: { start: 18, target: 6 },
+    hint: 'Recover the crate from the lower bay. Trade relay support, park it on the Relay 6 dock, then reach both exits.' }
+};
+export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: { ...keepPowerOn, nextMission: { ...handoffWorkshop, nextMission: freightExchange } } } };
 // Frozen two-room profile for the earlier SF-02 regression contracts.
 export const twoRoomAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: tradePlaces };

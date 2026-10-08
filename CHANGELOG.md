@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Fifth-room design follows the 1.1.0 source checkpoint; the playable campaign still has four rooms.
+- Added Freight Exchange as room five: recover the crate through a physical handoff between both robots.
+- Five-room progression, consent-bound level selection, green completion history and final-room replay/exit.
+- 82 tests pass, including exhaustive fifth-room previews and synchronized two-seat network completion/replay. [Implementation evidence](docs/freight-exchange-implementation.md).
 
 ## 1.1.0 - October 8, 2026
 

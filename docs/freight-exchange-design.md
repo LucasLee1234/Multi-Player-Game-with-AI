@@ -1,8 +1,8 @@
 # Freight Exchange: Fifth-Room Design
 
 Date: October 8, 2026
-Status: Engine-validated proposal. Not installed in the playable campaign.
-Baseline: Signal Foundry 1.1.0 source; four existing rooms remain playable.
+Status: Implemented as room five after the 1.1.0 source checkpoint.
+Baseline: Four existing rooms retained. [Implementation and current evidence](freight-exchange-implementation.md).
 
 ## Experience and novelty
 
@@ -86,14 +86,14 @@ Reproduce after compiling: `node game/research/freight-exchange-audit.mjs` from 
 
 - [x] Specify the map, completion condition and intended handoff.
 - [x] Verify a shortest witness, all-state recovery and both-role cargo involvement.
-- [ ] Add the authored mission after Handoff Workshop; keep earlier regression profiles intact.
-- [ ] Expand campaign, level-choice and final-room replay tests from four to five rooms.
-- [ ] Check that room four offers Next room and room five offers replay and exit.
-- [ ] Extend crate preview audits to the new map; add a wire witness for the cargo handoff and closed-doorway crate removal.
-- [ ] Inspect dock/relay label coexistence, mode switching and gate occupancy on desktop, 390x844 and 844x390.
+- [x] Add the authored mission after Handoff Workshop; keep earlier regression profiles intact.
+- [x] Expand campaign, level-choice and final-room replay tests from four to five rooms.
+- [x] Check that room four offers Next room and room five offers replay and exit.
+- [x] Extend crate preview audits to the new map; add a wire witness for the cargo handoff and closed-doorway crate removal.
+- [x] Inspect dock/relay label coexistence, mode switching and gate occupancy on desktop, 390x844 and 844x390.
 - [ ] Play the new room with two people and record where the handoff becomes unclear.
-- [ ] Update playable-room counts only after implementation and acceptance. Keep Docker publication outside this design task.
+- [x] Update playable-room counts after implementation and technical verification; keep human acceptance explicitly pending. No Docker publication.
 
 ## Scope boundary
 
-The current commit does not add a fifth playable room. No database, new persistence scheme, new controls or server scaling change is required for this proposal. Shipping it is the next coding loop; speculative new mechanics should not delay the validated cargo-handoff implementation.
+The fifth room is now playable using the existing authoritative rules and controls. No database, new persistence scheme or server scaling change was needed. Human enjoyment and comprehension remain to be assessed for this new room; earlier playtest feedback does not establish acceptance of a level that did not yet exist.

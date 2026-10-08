@@ -202,7 +202,7 @@ function render() {
     el('page-eyebrow').textContent = foundry ? 'Signal Foundry · A cooperative robot adventure' : 'Signal Rescue · Cooperative navigation';
     el('page-title').textContent = foundry ? 'Signal Foundry' : 'Find a way out together.';
     el('page-subtitle').textContent = foundry ? 'Two robots. One escape. Open a route for your partner, then find your way out together.' : 'You see your partner’s dangers. They see yours. Find a safe route together.';
-    el('page-notice').textContent = foundry ? 'Four rooms. Power gates, share passages, and trade support roles.' : 'Try Different Dangers, a cooperative navigation mission.';
+    el('page-notice').textContent = foundry ? 'Five rooms. Power gates, share passages, and hand off the freight.' : 'Try Different Dangers, a cooperative navigation mission.';
     el('room-code').textContent = view.room.code;
     el('role').textContent = `You are Player ${view.self.role}. Setup owner: ${view.room.owner}.`;
     el('players').textContent = stopped ? 'Room status is not live in this tab.' : (['A', 'B'] as const).map(role => {
