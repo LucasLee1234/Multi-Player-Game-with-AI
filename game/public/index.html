@@ -136,5 +136,19 @@
   <button id="retry" class="secondary" hidden>Retry connection</button>
   <details class="footnote"><summary>Playing with a friend</summary><p>Share this page's URL and room code. On one computer, use separate browser profiles or a private window. Tabs in the same profile share a seat.</p></details>
 </main>
+<button id="game-menu-open" class="secondary" hidden aria-label="Open game menu" aria-haspopup="dialog">☰</button>
+<button id="restart-alert" hidden>Restart request</button>
+<button id="mode-indicator" class="secondary" hidden>Pull active · switch to Move</button>
+<dialog id="game-menu" aria-labelledby="menu-title">
+  <div class="overlay-heading"><h2 id="menu-title">Menu</h2><button id="game-menu-close" class="secondary" aria-label="Close menu">×</button></div>
+  <div id="menu-restart"></div><div id="menu-cargo"></div>
+  <details><summary>Movement controls</summary><p>Arrow keys / WASD, or tap an adjacent tile. Stay still to wait.</p><div id="menu-moves"></div><button id="hide-controls" class="secondary">Hide teaching arrows</button></details>
+  <button id="replay-tutorial" class="secondary">Review controls</button>
+  <div id="menu-help"></div><p id="menu-feedback"></p><div id="menu-room"></div>
+</dialog>
+<dialog id="tutorial" aria-labelledby="tutorial-title">
+  <h2 id="tutorial-title">Move together</h2><p id="tutorial-text"></p>
+  <button id="tutorial-dismiss">Got it</button>
+</dialog>
 </body>
 </html>

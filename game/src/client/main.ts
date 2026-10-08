@@ -22,6 +22,60 @@ let pendingAcknowledged = false;
 let commandFeedback: string | undefined;
 let retryCommandTimer: number | undefined;
 let receivedAt = performance.now();
+const homeSlots = new Map<HTMLElement, Comment>();
+for (const id of ['room-details','foundry-instructions','restart-panel','cargo-controls']) {
+  const node = el(id), slot = document.createComment(`home:${id}`); node.before(slot); homeSlots.set(node, slot);
+}
+const mapHelp = document.querySelector<HTMLElement>('.map-help')!, moveButtons = document.querySelector<HTMLElement>('.moves')!;
+for (const node of [mapHelp, moveButtons, el('foundry-link')]) { const slot = document.createComment('home'); node.before(slot); homeSlots.set(node, slot); }
+let arrowsHidden = false;
+try { arrowsHidden = localStorage.getItem('foundry.controls.v1.hidden') === 'yes'; } catch { /* Session-only fallback. */ }
+function hideTeachingArrows() {
+  arrowsHidden = true;
+  try { localStorage.setItem('foundry.controls.v1.hidden','yes'); } catch { /* Session-only fallback. */ }
+}
+let compactMissionId: string | undefined;
+let tutorialKind: 'movement' | 'crate' = 'movement';
+const seenLessons = new Set<string>();
+try { for (const kind of ['movement','crate']) if (localStorage.getItem(`foundry.lesson.v1.${kind}`)==='seen') seenLessons.add(kind); } catch { /* Session-only fallback when storage is unavailable. */ }
+function showLesson(kind: 'movement' | 'crate') {
+  tutorialKind = kind;
+  el('tutorial-title').textContent = kind === 'crate' ? 'Move the crate' : 'Move together';
+  el('tutorial-text').textContent = kind === 'crate'
+    ? 'Walk into the crate to push it. To pull, open Menu and select Pull, then step away with the crate behind you. Leave the crate on its marked dock and bring both robots to their exits.'
+    : 'Use arrow keys / WASD, or tap a tile next to your robot to move. Tap a distant tile to point it out. Stand on relays to power your partner’s gates. Staying still is waiting. Movement buttons are always available in Menu.';
+  const dialog = el<HTMLDialogElement>('tutorial'); if (!dialog.open) dialog.showModal();
+}
+function compactLayout(enabled: boolean, m?: MissionView) {
+  document.body.classList.toggle('single-screen', enabled);
+  el('game-menu-open').hidden = !enabled;
+  if (!enabled) {
+    compactMissionId = undefined;
+    for (const [node, slot] of homeSlots) slot.after(node);
+    for (const id of ['game-menu','tutorial']) el<HTMLDialogElement>(id).close();
+    el('restart-alert').hidden = el('mode-indicator').hidden = true;
+    return;
+  }
+  if (compactMissionId !== m?.id || m?.result) {
+    el<HTMLDialogElement>('game-menu').close();
+    if (m?.result) el<HTMLDialogElement>('tutorial').close();
+  }
+  compactMissionId = m?.id;
+  if ((m?.foundry?.stage ?? 0) > 1) hideTeachingArrows();
+  for (const [id, host] of [['room-details','menu-room'],['foundry-instructions','menu-help'],['restart-panel','menu-restart'],['cargo-controls','menu-cargo']] as const) if (el(id).parentElement !== el(host)) el(host).append(el(id));
+  for (const node of [mapHelp,el('foundry-link')]) if (node.parentElement !== el('menu-help')) el('menu-help').append(node);
+  const teachingArrows = m?.foundry?.stage === 1 && !arrowsHidden;
+  if (teachingArrows) { if (moveButtons.parentElement !== homeSlots.get(moveButtons)!.parentElement) homeSlots.get(moveButtons)!.after(moveButtons); }
+  else if (moveButtons.parentElement !== el('menu-moves')) el('menu-moves').append(moveButtons);
+  document.body.classList.toggle('teaching-arrows', teachingArrows);
+  el('hide-controls').hidden = !teachingArrows;
+  el('restart-alert').hidden = !context?.view?.restart.requestedBy || context.view.room.phase !== 'planning';
+  el('mode-indicator').hidden = !m?.foundry?.crate || !pullMode;
+  if (m && context?.view?.room.phase === 'planning' && !el<HTMLDialogElement>('game-menu').open) {
+    const kind = m.foundry?.crate ? 'crate' : 'movement';
+    if (!seenLessons.has(kind)) showLesson(kind);
+  }
+}
 const status = (text: string, error = false) => { el('status').textContent = text; el('status').classList.toggle('error', error); el('status').hidden = text === 'Room connected.' && !!context?.view?.mission && context.view.room.phase !== 'paused' && !error; };
 function endedText() {
   const ended = context?.ended, outcome = ended?.outcome;
@@ -79,6 +133,7 @@ function render() {
     } else el('timer').textContent = view.room.phase === 'waiting' ? view.releaseId !== 'sys-02' && view.releaseId !== 'sys-03-sf-t1' ? 'The mission begins when both players are connected.' : 'Both players must confirm before the mission starts.' : 'Move at your own pace; inactive rooms still expire.';
   }
   renderMission();
+  compactLayout(view?.mission?.foundry?.movement === 'independent', view?.mission ?? undefined);
 }
 function apply(next: SessionContext) {
   if (context?.bootId === next.bootId && context.contextVersion > next.contextVersion) return;
@@ -226,7 +281,12 @@ function prepareFoundryBoard(m: MissionView) {
   el('foundry-board').style.gridTemplateColumns = `repeat(${m.foundry!.width}, minmax(0, 1fr))`;
   for (let cell = 0; cell < m.foundry!.width * m.foundry!.height; cell++) {
   const tile = document.createElement('button'); tile.type = 'button'; tile.className = 'factory-tile';
-  tile.onclick = () => { inspectedCell = cell; gameAction('signal', cell); };
+  tile.onclick = () => {
+    inspectedCell = cell;
+    const view = context?.view, mission = view?.mission;
+    const adjacent = mission && view && ['up','left','right','down'].some(d => destination(d as typeof moves[number],mission.positions[view.self.role],mission) === cell);
+    gameAction(mission?.foundry?.movement === 'independent' && adjacent ? 'propose' : 'signal', cell);
+  };
   tile.onfocus = tile.onpointerenter = () => {
     inspectedCell = cell;
     const view = context?.view;
@@ -292,7 +352,8 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     if (cell === m.positions[role] && (motionUntil.get('blocked') ?? 0) > performance.now()) tile.classList.add('blocked-flash');
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
     const gateRule = gate ? ` Relay ${gate.relay}. ${gate.kind === 'pressure' ? 'Requires continuous relay power.' : 'Stays open after first entry.'}` : '';
-    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${crateTarget ? ` Crate parking target. ${cargo ? 'Crate parked; keep it here.' : 'Leave the crate here to complete the room.'}` : ''}${gateRule} ${wall ? 'Impassable.' : 'Point out this tile.'}`);
+    const adjacentMove = m.foundry!.movement === 'independent' && ['up','left','right','down'].some(d => destination(d as typeof moves[number],m.positions[role],m) === cell);
+    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${crateTarget ? ` Crate parking target. ${cargo ? 'Crate parked; keep it here.' : 'Leave the crate here to complete the room.'}` : ''}${gateRule} ${wall ? 'Impassable.' : adjacentMove ? pullMode ? 'Pull toward this tile.' : 'Move toward this tile.' : 'Point out this tile.'}`);
     // Stable tile nodes preserve focus; only their visual contents change.
     tile.replaceChildren();
     const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
@@ -417,6 +478,7 @@ function renderMission() {
   el<HTMLButtonElement>('ready').disabled = !planning || m.ready[role];
   el('ready').hidden = !!m.result || independent;
   el('resolution').textContent = m.explanations.join(' ');
+  el('menu-feedback').textContent = m.explanations.join(' ');
   el('resolution').classList.toggle('feedback-blocked', !!m.foundry && m.explanations.some(t => /closed|overlap|block|cannot|Pull needs/.test(t)));
   el('result').hidden = !m.result;
   el('result-title').textContent = m.result === 'success' ? foundry ? 'Factory restored. You made it together!' : 'Rescued together' : m.result === 'strikes' ? 'Mission ended: three strikes' : 'Mission ended: turn limit';
@@ -437,6 +499,7 @@ let lastKeyboardMove = -Infinity;
 window.addEventListener('keydown', event => {
   const m = context?.view?.mission;
   if (m?.foundry?.movement !== 'independent' || event.altKey || event.ctrlKey || event.metaKey
+    || el<HTMLDialogElement>('tutorial').open || el<HTMLDialogElement>('game-menu').open
     || (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) return;
   const keys: Record<string, typeof moves[number]> = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
   const direction = keys[event.key.toLowerCase()];
@@ -457,6 +520,16 @@ for (const [id, action] of [['restart-room','restartAgreement'],['cancel-restart
 el('practice').onclick = () => { if (context?.view?.mission) sendAction({ action: 'retryAgreement', missionId: context.view.mission.id }); };
 el('next-room').onclick = () => { if (context?.view?.mission) sendAction({ action: 'nextAgreement', missionId: context.view.mission.id }); };
 el('pull-mode').onclick = () => { pullMode=!pullMode; render(); };
+el('mode-indicator').onclick = () => { pullMode=false; render(); };
+el('game-menu-open').onclick = el('restart-alert').onclick = () => el<HTMLDialogElement>('game-menu').showModal();
+el('game-menu-close').onclick = () => el<HTMLDialogElement>('game-menu').close();
+el('hide-controls').onclick = () => { hideTeachingArrows(); render(); };
+el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'crate' : 'movement'); };
+el('tutorial-dismiss').onclick = () => {
+  seenLessons.add(tutorialKind); try { localStorage.setItem(`foundry.lesson.v1.${tutorialKind}`,'seen'); } catch { /* Continue without persistent storage. */ }
+  el<HTMLDialogElement>('tutorial').close();
+};
+el<HTMLDialogElement>('tutorial').addEventListener('cancel', event => { event.preventDefault(); el('tutorial-dismiss').click(); });
 el('create').onclick = () => { void admit('/api/rooms'); };
 el<HTMLFormElement>('join-form').onsubmit = event => { event.preventDefault(); void admit('/api/rooms/join', el<HTMLInputElement>('code').value.trim().toUpperCase()); };
 el('takeover').onclick = () => { void admit('/api/controller/takeover'); };
