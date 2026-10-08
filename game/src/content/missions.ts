@@ -29,6 +29,13 @@ export const keepPowerOn: MissionDefinition = {
   factory: { ...tradePlaces.factory!, walls: [5,7], crate: { start: 12, target: 8 },
     hint: 'Push by walking into the crate. Select Pull, then step away with the crate behind you. Leave it on Relay 8 and reach both exits.' }
 };
-export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: keepPowerOn } };
+export const handoffWorkshop: MissionDefinition = {
+  title: 'Handoff Workshop', mode: 'foundry', independent: true, stage: 4, hazards: { A: [], B: [] },
+  factory: { width: 5, height: 4, walls: [5,7,15,17,19], starts: { A: 0, B: 14 }, exits: { A: 4, B: 10 },
+    gates: [{ cell: 2, relay: 6, kind: 'latching' }, { cell: 11, relay: 8, kind: 'pressure' }, { cell: 13, relay: 16, kind: 'pressure' }],
+    crate: { start: 12, target: 18 },
+    hint: 'Trade support roles: Relay 8 opens Gate 11; Relay 16 opens Gate 13. Park the crate on 18, then reach both exits.' }
+};
+export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: { ...keepPowerOn, nextMission: handoffWorkshop } } };
 // Frozen two-room profile for the earlier SF-02 regression contracts.
 export const twoRoomAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: tradePlaces };

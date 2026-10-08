@@ -3,6 +3,8 @@
 Date: October 8, 2026
 Status: Validated design proposal; not installed in the live three-room campaign.
 
+Implementation update, October 8: this proposal has now been installed as stage 4. The proposal status and checklist below describe the original design checkpoint. [Implementation and current evidence](handoff-workshop-implementation.md) supersede the earlier not-installed status.
+
 ## Purpose and scope
 
 Create a new cooperation puzzle using the existing movement, Push, Pull, relays, pressure gates and latching gates. The handoff is a change of support responsibility: A helps B cross, B powers the delivery route, then A returns to release B. Either robot may transport the crate. Do not add a compulsory "both players touched the crate" objective, a countdown, another control panel or a new tutorial overlay.

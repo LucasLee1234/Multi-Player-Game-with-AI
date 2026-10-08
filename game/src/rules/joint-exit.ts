@@ -126,7 +126,9 @@ function moveCargo(m: Mission, role: Role, destination: number, kind: 'move' | '
   next.turnsResolved++;next.turn++;
   next.result=roles.every(r=>next.positions[r]===f.exits[r]) && cargo===f.crate!.target?'success':null;
   next.explanations=[`${role}: ${cargo===crate?`moved to ${destination}`:`${kind==='pull'?'pulled':'pushed'} the crate to ${cargo}`}.`];
-  if(cargo===f.crate!.target)next.explanations.push(`Crate powers Relay ${cargo}. Keep it there for extraction.`);
+  if(cargo===f.crate!.target)next.explanations.push(f.gates.some(g=>g.relay===cargo)
+    ? `Crate powers Relay ${cargo}. Keep it there for extraction.`
+    : `Crate parked on Dock ${cargo}. Keep it there and reach both exits.`);
   revision(next);return next;
 }
 /** Pure transition: hazards, then overlap/swap, then failure/joint exit/turn limit. */

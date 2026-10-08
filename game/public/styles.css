@@ -370,6 +370,13 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
   .single-screen .factory-tile.crate-target .tile-name { display: none; }
   .single-screen .crate { height: 22px; width: 24px; margin-top: 0; }
   .single-screen .crate-target-label { font-size: 8px; }
+  .single-screen #foundry-board[data-rows="4"] .factory-tile { flex-direction: row; gap: 4px; padding: 2px 4px 2px 14px; }
+  .single-screen #foundry-board[data-rows="4"] .tile-number { top: 2px; left: 3px; font-size: 8px; }
+  .single-screen #foundry-board[data-rows="4"] .tile-name { font-size: 9px; }
+  .single-screen #foundry-board[data-rows="4"] .tile-source { display: inline; font-size: 8px; }
+  .single-screen #foundry-board[data-rows="4"] .tile-icon svg { margin: 0; width: 16px; height: 16px; }
+  .single-screen #foundry-board[data-rows="4"] .robot { flex-shrink: 0; margin: 0 -2px; }
+  .single-screen #foundry-board[data-rows="4"] .crate { flex-shrink: 0; }
 }
 .single-screen .mission-heading { padding-left: 60px; }
 #menu-exit #leave { background: #fff3ed; color: #8b4d38; border: 1px solid #e4c7b9; min-height: 44px; margin: 14px 0; }

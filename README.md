@@ -2,7 +2,7 @@
 
 A two-player cooperative browser game in development. The current **Signal Foundry** experiment lets two robots power each other's gates and reach their exits together.
 
-**Status:** Three local Signal Foundry rooms are implemented: First Connection, Trade Places and Keep the Power On. Both connected players start automatically and move independently with direction buttons or arrow keys / WASD. No Ready or Wait button. Shared passages, latching gates, hold-open pressure gates, crate Push/Pull, public location pings, joint exit, mutual retry and next-room choices are implemented. J1 remains a developer comparison. There is no public deployment or completed independent human playtest.
+**Status:** Four local Signal Foundry rooms are implemented: First Connection, Trade Places, Keep the Power On and Handoff Workshop. Both connected players start automatically and move independently with direction buttons or arrow keys / WASD. No Ready or Wait button. Shared passages, latching gates, hold-open pressure gates, crate Push/Pull, public location pings, joint exit, mutual retry and next-room choices are implemented. J1 remains a developer comparison. There is no public deployment or completed independent human playtest.
 
 The current UI uses a consistent cream workshop theme, blue/pink robots and exits, illustrated machinery, a clearly labeled crate dock and a compact direction pad. [In-game visual evidence](docs/game-visual-refresh.md). Active play now fits a single viewport. Open the upper-left Menu for restart, Pull, room tools, movement buttons and help. Tap adjacent tiles to move; distant tiles publish pings. First-encounter lessons can be reviewed from Menu. Menu uses Play, Controls and Room sections, with Back to game and Leave in a fixed footer; Levels requests any authored room with partner consent and marks completed rooms green. In the crate room, F or the play-surface mode button toggles Pull. [Level selection and quick controls](docs/level-selection-and-crate-controls.md). [Menu organization](docs/menu-cleanup.md). [Single-screen requirements and evidence](docs/single-screen-experience.md). [Compact UI design and evidence](docs/compact-ui-design.md).
 
@@ -106,6 +106,6 @@ Signal Rescue is being developed toward the Handshake AI Skills Studio x OpenAI 
 ## License
 
 No project license has been selected yet. Supplied reference materials retain their respective ownership and terms.
-## Fourth-room design proposal
+## Fourth room: Handoff Workshop
 
-[Handoff Workshop design](docs/handoff-workshop-design.md) specifies a proposed fourth room using existing gates and crate controls. A production-engine audit found 2,000 reachable configurations, all recoverable, and a shortest 26-step solution. The live campaign still has three rooms; this proposal is not yet registered or playtested by two humans.
+[Handoff Workshop](docs/handoff-workshop-implementation.md) is now the fourth playable room, using support-role exchange, a crate turn and partner rescue. Its production-engine audit found 2,000 reachable configurations, all recoverable, and a shortest 26-step solution. The four-room progression and final replay passed automated integration checks; browser A with a scripted partner completed room four and verified F/Pull, parking feedback and completion marks. Two-human and actual-phone testing remain pending. [Original design](docs/handoff-workshop-design.md).

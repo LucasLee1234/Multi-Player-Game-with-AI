@@ -38,7 +38,7 @@ function hideTeachingArrows() {
 let compactMissionId: string | undefined;
 let exitRequested = false;
 const completedStages = new Set<number>();
-try { const saved:unknown=JSON.parse(localStorage.getItem('foundry.completed.v1') ?? '[]'); if(Array.isArray(saved)) for(const stage of saved) if([1,2,3].includes(stage)) completedStages.add(stage); } catch { /* Session-only progress. */ }
+try { const saved:unknown=JSON.parse(localStorage.getItem('foundry.completed.v1') ?? '[]'); if(Array.isArray(saved)) for(const stage of saved) if(Number.isSafeInteger(stage) && stage>0) completedStages.add(stage); } catch { /* Session-only progress. */ }
 let levelCatalog = '';
 function renderLevels() {
   const view=context?.view; if (!view) return;
@@ -168,7 +168,7 @@ function render() {
     el('page-eyebrow').textContent = foundry ? 'Signal Foundry · A cooperative robot adventure' : 'Signal Rescue · Cooperative navigation';
     el('page-title').textContent = foundry ? 'Signal Foundry' : 'Find a way out together.';
     el('page-subtitle').textContent = foundry ? 'Two robots. One escape. Open a route for your partner, then find your way out together.' : 'You see your partner’s dangers. They see yours. Find a safe route together.';
-    el('page-notice').textContent = foundry ? 'Three rooms. Power gates, share passages, and move a crate together.' : 'Try Different Dangers, a cooperative navigation mission.';
+    el('page-notice').textContent = foundry ? 'Four rooms. Power gates, share passages, and trade support roles.' : 'Try Different Dangers, a cooperative navigation mission.';
     el('room-code').textContent = view.room.code;
     el('role').textContent = `You are Player ${view.self.role}. Setup owner: ${view.room.owner}.`;
     el('players').textContent = stopped ? 'Room status is not live in this tab.' : (['A', 'B'] as const).map(role => {
@@ -331,6 +331,7 @@ function prepareFoundryBoard(m: MissionView) {
   if (boardMissionId === m.id) return;
   boardMissionId = m.id; inspectedCell = undefined; pullMode = false; foundryTiles.length = 0; el('foundry-board').replaceChildren();
   el('foundry-board').style.gridTemplateColumns = `repeat(${m.foundry!.width}, minmax(0, 1fr))`;
+  el('foundry-board').dataset.rows = String(m.foundry!.height);
   for (let cell = 0; cell < m.foundry!.width * m.foundry!.height; cell++) {
   const tile = document.createElement('button'); tile.type = 'button'; tile.className = 'factory-tile';
   tile.onclick = () => {
@@ -480,9 +481,10 @@ function renderMission() {
   const foundry = !!m.foundry;
   el('j1-instructions').hidden = foundry; el('j1-maps').hidden = foundry; el('j1-legend').hidden = foundry;
   el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
-  el('objective').textContent = m.foundry?.crate ? `Leave the crate on Relay ${m.foundry.crate.target}. Reach both exits.` : foundry ? 'Power the path. Reach both exits together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
+  const crateTargetLabel = m.foundry?.crate ? `${m.foundry.gates.some(g=>g.relay===m.foundry!.crate!.target)?'Relay':'Dock'} ${m.foundry.crate.target}` : '';
+  el('objective').textContent = m.foundry?.crate ? `Leave the crate on ${crateTargetLabel}. Reach both exits.` : foundry ? 'Power the path. Reach both exits together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
   el('mission-title').textContent = m.title;
-  el('progress').textContent = independent ? `ROOM 0${m.foundry!.stage} / 0${view.releaseId==='sys-06-crate'?3:2} · ${m.turnsResolved} moves` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
+  el('progress').textContent = independent ? `ROOM ${String(m.foundry!.stage).padStart(2,'0')} / ${String(view.campaign.levels.length).padStart(2,'0')} · ${m.turnsResolved} moves` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
   el('move-heading').textContent = independent ? 'Move your robot' : 'Propose your move';
   el('move-help').hidden = !independent;
   for (const id of ['shared-plan', 'plan-warning', 'readiness']) el(id).hidden = independent;
@@ -491,7 +493,7 @@ function renderMission() {
   el<HTMLButtonElement>('pull-mode').disabled = !planning;
   el('pull-mode').setAttribute('aria-pressed',String(pullMode));
   el('pull-mode').textContent = pullMode?'Pull mode · step away':'Move / Push · switch to Pull';
-  el('cargo-help').textContent = m.foundry?.crate ? `Walk into C to push. Pull: step away with C behind you. ${m.foundry.crate.cell===m.foundry.crate.target?'✓':'○'} Crate on Relay ${m.foundry.crate.target} · ${m.positions.A===m.exits.A?'✓':'○'} A exit · ${m.positions.B===m.exits.B?'✓':'○'} B exit` : '';
+  el('cargo-help').textContent = m.foundry?.crate ? `Walk into C to push. Pull: step away with C behind you. ${m.foundry.crate.cell===m.foundry.crate.target?'✓':'○'} Crate on ${crateTargetLabel} · ${m.positions.A===m.exits.A?'✓':'○'} A exit · ${m.positions.B===m.exits.B?'✓':'○'} B exit` : '';
   el('own-label').textContent = `Your route · ${role}`;
   el('partner-label').textContent = `Partner's dangers · ${partner} only`;
   for (let cell = 0; !foundry && cell < 9; cell++) {
