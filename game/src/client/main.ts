@@ -29,6 +29,7 @@ function endedText() {
 function render() {
   const view = context?.view;
   const connected = socket?.readyState === WebSocket.OPEN;
+  document.body.classList.toggle('entry-screen', !view);
   document.body.classList.toggle('playing', !!view?.mission);
   document.body.classList.toggle('foundry-playing', !!view?.mission?.foundry);
   const roomDetails = el<HTMLDetailsElement>('room-details');
