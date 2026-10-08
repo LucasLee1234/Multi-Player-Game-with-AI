@@ -2,7 +2,7 @@
 
 A cooperative browser puzzle game for two players. Guide two robots through a small factory, power your partner's gates, move a crate and escape together.
 
-Four authored rooms are playable locally. The first container release is being prepared; public Azure deployment and independent two-human/device acceptance tests remain pending.
+Four authored rooms are playable locally. Version 1.0.0 is published as a Linux AMD64 container; public Azure deployment and independent two-human/device acceptance tests remain pending.
 
 ![Handoff Workshop](docs/handoff-workshop-landscape.jpg)
 
@@ -48,7 +48,13 @@ docker build --platform linux/amd64 --build-arg VCS_REF=<commit-sha> -t signal-f
 
 The multi-stage build runs the regression suite. The non-root runtime contains compiled code, production dependencies and public assets, excluding research, tests, contest reference documents and credentials.
 
-Tagged releases publish through GitHub Actions to `ghcr.io/lucaslee1234/signal-foundry`. A workflow file or Git tag alone does not prove that an image exists: verify a successful Actions run and package digest before deploying. Git tag `v1.0.0` produces image tags `1.0.0`, `v1` and a commit-specific tag.
+Version 1.0.0 was published successfully through [GitHub Actions](https://github.com/LucasLee1234/Multi-Player-Game-with-AI/actions/runs/37839259092). Anonymous registry access was verified. Pull it with:
+
+```sh
+docker pull ghcr.io/lucaslee1234/signal-foundry:1.0.0
+```
+
+For an immutable deployment, use `ghcr.io/lucaslee1234/signal-foundry@sha256:f264ddb687286eabcdefe39772698112a31ab8d6e424447d8d3888565dac4ee5`. [Release evidence](releases/v1.0.0.json) records the source commit, local archive checksum and published digest. Git tag `v1.0.0` also produces image tags `v1` and a commit-specific tag.
 
 Azure Container Apps requires HTTPS HTTP ingress, target port 3000, `APP_ORIGIN=https://<assigned-hostname>`, one application worker, one serving revision and minimum/maximum replicas both set to 1. Configure `/health/live` and `/health/ready` probes. [Container instructions and release checklist](docs/azure-container-v1.md).
 

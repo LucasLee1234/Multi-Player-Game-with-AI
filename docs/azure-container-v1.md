@@ -49,11 +49,11 @@ Source code on GitHub is separate from an image published to a registry. Azure p
 
 ## Release acceptance
 
-- [ ] Build the Linux AMD64 image successfully with its regression gate.
-- [ ] Run a disposable container; verify non-root runtime, health, static asset allowlist and two-client room/game commands.
-- [ ] Record image ID, source commit and image tag.
-- [ ] Push the requested public source repository and v1 release tag.
-- [ ] Publish the image to an authenticated registry, or export a portable Docker archive.
+- [x] Build the Linux AMD64 image successfully with its regression gate.
+- [x] Run a disposable container; verify non-root runtime, health, static asset allowlist and two-client room/game commands.
+- [x] Record image ID, source commit and image tag.
+- [x] Push the requested public source repository and v1 release tag.
+- [x] Publish the image to an authenticated registry, or export a portable Docker archive.
 - [ ] Deploy to Azure only after choosing resources and reviewing actual subscription costs.
 - [ ] Verify public two-device/network play and budget runway through judging.
 
@@ -63,6 +63,8 @@ Azure resource creation and cloud spending are not performed by preparing this i
 
 The local Linux AMD64 candidate successfully built with all 75 regressions passing. Its runtime smoke check passed non-root/minimal-file checks, health/assets, secure cookie attributes, real two-wire fourth-room selection, 26-step completion, replay and exit. Docker HEALTHCHECK reported healthy. These are local container checks, not an Azure public endpoint or actual-phone test.
 
-The intended registry is `ghcr.io/lucaslee1234/signal-foundry`. GitHub release tag `v1.0.0` produces image tags `1.0.0`, `v1` and a commit SHA tag. Package visibility and Azure registry access must be confirmed after publication; public source code does not automatically prove anonymous package pull access.
+The published image is `ghcr.io/lucaslee1234/signal-foundry:1.0.0`. GitHub release tag `v1.0.0` also produces image tags `v1` and a commit SHA tag. The release workflow succeeded, and an unauthenticated registry token/manifest request verified anonymous pull access on October 8, 2026. The published index digest is `sha256:f264ddb687286eabcdefe39772698112a31ab8d6e424447d8d3888565dac4ee5`. Use the digest for immutable Azure deployment. See [release evidence](../releases/v1.0.0.json).
+
+A local portable archive is available at `releases/signal-foundry-v1.0.0.tar` and is excluded from Git. Import it with `docker load --input releases/signal-foundry-v1.0.0.tar`. Its local image ID differs from the registry index digest because GitHub independently builds and publishes the image with attestations; both use the source commit recorded in the release evidence.
 
 References: [Docker Node.js guide](https://docs.docker.com/guides/nodejs/), [Azure container requirements](https://learn.microsoft.com/en-us/azure/container-apps/containers), [Azure ingress](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview).
