@@ -24,6 +24,7 @@ venv/
 
 # Local logs and operating-system files
 *.log
+releases/*.tar
 .DS_Store
 Thumbs.db
 Desktop.ini

@@ -2,6 +2,8 @@
 !Dockerfile
 !LICENSE
 !THIRD_PARTY_NOTICES.md
+!docs/
+!docs/signal-foundry-validation.json
 !game/
 !game/package.json
 !game/pnpm-lock.yaml

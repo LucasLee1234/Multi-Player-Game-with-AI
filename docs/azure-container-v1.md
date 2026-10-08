@@ -12,6 +12,8 @@ docker build --platform linux/amd64 --build-arg VCS_REF=<commit-sha> -t signal-f
 
 The build installs locked dependencies and runs the complete regression suite before removing development dependencies. The runtime image contains compiled application code, production dependencies and public assets. It excludes contest reference documents, research, tests, Git history and credentials. The process runs as the non-root `node` user.
 
+One historical validation JSON fixture is copied into the build stage for a regression test, but is not copied into the runtime. GitHub Actions also runs the real two-client runtime smoke check before publishing.
+
 ## Azure Container Apps configuration
 
 | Setting | Value |
@@ -56,5 +58,11 @@ Source code on GitHub is separate from an image published to a registry. Azure p
 - [ ] Verify public two-device/network play and budget runway through judging.
 
 Azure resource creation and cloud spending are not performed by preparing this image.
+
+## Verified local release preparation
+
+The local Linux AMD64 candidate successfully built with all 75 regressions passing. Its runtime smoke check passed non-root/minimal-file checks, health/assets, secure cookie attributes, real two-wire fourth-room selection, 26-step completion, replay and exit. Docker HEALTHCHECK reported healthy. These are local container checks, not an Azure public endpoint or actual-phone test.
+
+The intended registry is `ghcr.io/lucaslee1234/signal-foundry`. GitHub release tag `v1.0.0` produces image tags `1.0.0`, `v1` and a commit SHA tag. Package visibility and Azure registry access must be confirmed after publication; public source code does not automatically prove anonymous package pull access.
 
 References: [Docker Node.js guide](https://docs.docker.com/guides/nodejs/), [Azure container requirements](https://learn.microsoft.com/en-us/azure/container-apps/containers), [Azure ingress](https://learn.microsoft.com/en-us/azure/container-apps/ingress-overview).

@@ -8,6 +8,7 @@ COPY game/scripts/check.mjs ./scripts/check.mjs
 COPY game/src ./src
 COPY game/tests ./tests
 COPY game/public ./public
+COPY docs/signal-foundry-validation.json /docs/signal-foundry-validation.json
 RUN pnpm test
 RUN pnpm prune --prod
 
