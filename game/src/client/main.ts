@@ -21,7 +21,7 @@ let pendingAcknowledged = false;
 let commandFeedback: string | undefined;
 let retryCommandTimer: number | undefined;
 let receivedAt = performance.now();
-const status = (text: string, error = false) => { el('status').textContent = text; el('status').classList.toggle('error', error); };
+const status = (text: string, error = false) => { el('status').textContent = text; el('status').classList.toggle('error', error); el('status').hidden = text === 'Room connected.' && !!context?.view?.mission && context.view.room.phase !== 'paused' && !error; };
 function endedText() {
   const ended = context?.ended, outcome = ended?.outcome;
   return (ended?.reason ?? 'Room ended.') + (outcome ? ` Previous mission: ${outcome.result}.` : '');
@@ -29,6 +29,13 @@ function endedText() {
 function render() {
   const view = context?.view;
   const connected = socket?.readyState === WebSocket.OPEN;
+  document.body.classList.toggle('playing', !!view?.mission);
+  document.body.classList.toggle('foundry-playing', !!view?.mission?.foundry);
+  const roomDetails = el<HTMLDetailsElement>('room-details');
+  if (!view?.mission) roomDetails.open = true;
+  else if (document.body.dataset.mission !== view.mission.id) roomDetails.open = false;
+  document.body.dataset.mission = view?.mission?.id ?? '';
+  el('status').hidden = el('status').textContent === 'Room connected.' && !!view?.mission && view.room.phase !== 'paused' && !el('status').classList.contains('error');
   el('entry').hidden = !!view; el('lobby').hidden = !view;
   el<HTMLButtonElement>('create').disabled = !context || busy;
   el<HTMLButtonElement>('join').disabled = !context || busy;
@@ -39,7 +46,7 @@ function render() {
     const foundry = view.releaseId !== 'sys-02';
     document.title = foundry ? 'Signal Foundry' : 'Signal Rescue';
     el('page-eyebrow').textContent = foundry ? 'Signal Foundry · A cooperative robot adventure' : 'Signal Rescue · Cooperative navigation';
-    el('page-title').textContent = foundry ? 'You power my way. I power yours.' : 'Find a way out together.';
+    el('page-title').textContent = foundry ? 'Signal Foundry' : 'Find a way out together.';
     el('page-subtitle').textContent = foundry ? 'Two robots. One escape. Open a route for your partner, then find your way out together.' : 'You see your partner’s dangers. They see yours. Find a safe route together.';
     el('page-notice').textContent = foundry ? 'Start with First Connection, then tackle shared passages in Trade Places.' : 'Try Different Dangers, a cooperative navigation mission.';
     el('room-code').textContent = view.room.code;
@@ -191,6 +198,8 @@ const moves = ['up', 'left', 'wait', 'right', 'down'] as const;
 const foundryTiles: HTMLButtonElement[] = [];
 let inspectedCell: number | undefined;
 let boardMissionId: string | undefined;
+let lastVisual: MissionView | undefined;
+const motionUntil = new Map<string, number>();
 function prepareFoundryBoard(m: MissionView) {
   if (boardMissionId === m.id) return;
   boardMissionId = m.id; inspectedCell = undefined; foundryTiles.length = 0; el('foundry-board').replaceChildren();
@@ -224,7 +233,13 @@ function destination(direction: typeof moves[number], from: number, m: MissionVi
 function renderFoundry(m: MissionView, role: Role, planning: boolean) {
   const board = m.foundry!;
   prepareFoundryBoard(m);
-  el('foundry-self').textContent = `You: Robot ${role}`;
+  const previous = lastVisual?.id === m.id ? lastVisual : undefined;
+  if (!previous) motionUntil.clear();
+  for (const r of ['A', 'B'] as const) if (previous && previous.positions[r] !== m.positions[r]) motionUntil.set(`robot-${r}`, performance.now() + 260);
+  for (const g of board.gates) if (previous && previous.foundry!.gates.find(old => old.cell === g.cell)?.open !== g.open) motionUntil.set(`gate-${g.cell}`, performance.now() + 400);
+  if (previous && previous.planningRevision !== m.planningRevision && previous.turnsResolved === m.turnsResolved && m.explanations.some(t => /closed|overlap|blocked/.test(t))) motionUntil.set('blocked', performance.now() + 300);
+  el('foundry-self').textContent = `You · ${role}`;
+  el('foundry-self').className = `role-badge role-${role}`;
   el('foundry-hint').textContent = m.result ? board.nextTitle ? `Both robots reached their exits. Choose ${board.nextTitle} together, or practice this room again.` : 'Both robots reached their exits. Practice this room again, or leave to start a new adventure.' : board.stage > 1 ? board.hint : role === 'B' && m.positions.B === 8 && !board.gates[0]!.latched
     ? 'You are powering Gate 1. Let A through; A can then power your gate.'
     : role === 'A' && m.positions.A === 0 ? 'B powers Gate 1 for you. Cross it and reach Relay 2 to help B.'
@@ -239,19 +254,25 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const label = wall ? 'Wall' : gate ? `${gate.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
     const state = gate ? gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
+    tile.classList.toggle('has-robot', !!robot);
+    if ((motionUntil.get(`gate-${cell}`) ?? 0) > performance.now()) tile.classList.add('power-flash');
+    if (cell === m.positions[role] && (motionUntil.get('blocked') ?? 0) > performance.now()) tile.classList.add('blocked-flash');
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
     tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}. ${wall ? 'Impassable.' : 'Point out this tile.'}`);
     // Stable tile nodes preserve focus; only their visual contents change.
     tile.replaceChildren();
     const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
-    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = label; tile.append(name);
-    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = state; tile.append(description);
+    const icon = document.createElement('span'); icon.className = 'tile-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = wall ? '' : gate ? gate.kind === 'pressure' ? '▤' : '▥' : relay ? '◇' : exit ? '↗' : ''; tile.append(icon);
+    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = wall || label === 'Floor' ? '' : gate ? gate.kind === 'pressure' ? 'Hold' : 'Latch' : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
+    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? gate.latched ? 'Latched' : gate.powered ? 'Open' : 'Off' : relay ? `→ ${relay.cell}` : ''; tile.append(description);
     if (robot) {
       const bot = document.createElement('span'); bot.className = `robot robot-${robot}`; bot.textContent = robot;
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
+      if ((motionUntil.get(`robot-${robot}`) ?? 0) > performance.now()) bot.classList.add('bot-step');
     }
     tile.classList.toggle('pinged', Object.values(m.signals).some(p => p?.cell === cell));
   }
+  lastVisual = structuredClone(m);
 }
 function renderMission() {
   const view = context?.view, m = view?.mission;
@@ -270,9 +291,9 @@ function renderMission() {
   const foundry = !!m.foundry;
   el('j1-instructions').hidden = foundry; el('j1-maps').hidden = foundry; el('j1-legend').hidden = foundry;
   el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
-  el('objective').textContent = foundry ? `Power the gates and make room for your partner. Bring A to Exit ${m.exits.A} and B to Exit ${m.exits.B} together.` : 'Bring both robots to their own exits together. You can leave your exit to make room.';
+  el('objective').textContent = foundry ? 'Power the path. Reach both exits together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
   el('mission-title').textContent = m.title;
-  el('progress').textContent = independent ? `Room ${m.foundry!.stage} · Team moves: ${m.turnsResolved} · Move independently · No move limit` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
+  el('progress').textContent = independent ? `ROOM 0${m.foundry!.stage} / 02 · ${m.turnsResolved} moves` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
   el('move-heading').textContent = independent ? 'Move your robot' : 'Propose your move';
   el('move-help').hidden = !independent;
   for (const id of ['shared-plan', 'plan-warning', 'readiness']) el(id).hidden = independent;
@@ -294,6 +315,7 @@ function renderMission() {
   el('signals').textContent = (['A', 'B'] as const).map(r => {
     const clue = m.signals[r]; return foundry ? `${r}: ${clue ? `points to tile ${clue.cell}` : 'no ping'}` : `${r} signal: ${clue ? `${clue.cell} ${clue.safety}` : 'not sent'}`;
   }).join(' · ') + (independent ? '. Select a tile to update your location ping.' : foundry ? '. One tile ping per player per turn.' : '. Learned cells persist.');
+  el('j1-signals').hidden = foundry; el('j1-signals').textContent = el('signals').textContent;
   for (const direction of moves) {
     const target = destination(direction, m.positions[role], m);
     const button = el<HTMLButtonElement>(`move-${direction}`);
@@ -301,7 +323,9 @@ function renderMission() {
     const known = target === null ? undefined : m.ownKnownCells[target];
     button.disabled = !planning || target === null;
     const gate = m.foundry?.gates.find(g => g.cell === target);
-    button.textContent = `${direction === 'wait' ? 'Wait' : direction[0]!.toUpperCase() + direction.slice(1)}${target === null ? ' (blocked)' : ` ${target}${foundry ? gate && !gate.open ? ' · Closed gate' : '' : !known ? ' · Unverified' : known.safety === 'Danger' ? ' · Danger' : ''}`}`;
+    const fullLabel = `${direction === 'wait' ? 'Wait' : direction[0]!.toUpperCase() + direction.slice(1)}${target === null ? ' (blocked)' : ` ${target}${foundry ? gate && !gate.open ? ' · Closed gate' : '' : !known ? ' · Unverified' : known.safety === 'Danger' ? ' · Danger' : ''}`}`;
+    button.textContent = independent ? ({up:'↑',left:'←',right:'→',down:'↓',wait:'·'})[direction] : fullLabel;
+    button.setAttribute('aria-label', fullLabel); button.title = fullLabel;
     if (independent) button.removeAttribute('aria-pressed');
     else button.setAttribute('aria-pressed', String(target !== null && m.proposals[role] === target));
   }

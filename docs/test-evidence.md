@@ -177,3 +177,9 @@ Final suite: **61 passing tests, zero failures/skips**. Seven new tests suppleme
 Screenshots: [shared support](evidence/sf-m2-support.png), [narrow room](evidence/sf-m2-narrow.png), [sixteen-move completion](evidence/sf-m2-result.png). These show a disposable scripted-partner inspection, not independent human evidence. Test room closed and helper stopped after inspection; local server remains available.
 
 Limits: two rooms only; no crate/SF-M3, actual phone/touch, public deployment, separate-network proof, measured production load/latency or independent human observation. Private-information requirements and G2/G3 remain open. GitHub unconfigured; local checkpoint only. Next gameplay cycle: SF-03 crate transport and sustained power.
+
+## UI-01 - Compact presentation
+
+Map-first compact layout implemented without changing gameplay/server rules. Full retained suite: 61 passed. Scripted-partner browser inspection completed both rooms (6/16 moves), Next progression, expanded room/hints and Leave. Robot, power and blocked feedback animation names were checked; gate-block explanation/count preserved. At 390 by 844 emulation, document client/scroll widths both 375, direction buttons 52 wide, controls bottom approximately 761.9 CSS pixels. No horizontal overflow; viewport reset. Reduced-motion support is defined in CSS; actual phone/touch and independent human acceptance remain pending.
+
+Details: [compact UI design](compact-ui-design.md). Screenshots: [desktop](evidence/compact-ui-desktop.png), [narrow](evidence/compact-ui-phone.png). Final visibility correction keeps explicit status/copy/recovery messages visible while hiding only routine connected status; compiled after correction. Test room/helper closed. Local server remains available.

@@ -4,6 +4,8 @@ A two-player cooperative browser game in development. The current **Signal Found
 
 **Status:** Two local Signal Foundry rooms are implemented: First Connection and Trade Places. Both connected players start automatically and move independently with direction buttons or arrow keys / WASD. No Ready or Wait button. Shared passages, latching gates, hold-open pressure gates, public location pings, joint exit, mutual retry and next-room choices are implemented. J1 remains a developer comparison. There is no public deployment or completed independent human playtest.
 
+The current UI emphasizes the map and a compact direction pad. Expand the Room panel for invitation/connection/Leave, or the help panels for rules and symbols. [Compact UI design and evidence](docs/compact-ui-design.md).
+
 ## Planned experience
 
 - Exactly two human players on separate phones or computers.
