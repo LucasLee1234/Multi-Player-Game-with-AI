@@ -106,3 +106,6 @@ Signal Rescue is being developed toward the Handshake AI Skills Studio x OpenAI 
 ## License
 
 No project license has been selected yet. Supplied reference materials retain their respective ownership and terms.
+## Fourth-room design proposal
+
+[Handoff Workshop design](docs/handoff-workshop-design.md) specifies a proposed fourth room using existing gates and crate controls. A production-engine audit found 2,000 reachable configurations, all recoverable, and a shortest 26-step solution. The live campaign still has three rooms; this proposal is not yet registered or playtested by two humans.
