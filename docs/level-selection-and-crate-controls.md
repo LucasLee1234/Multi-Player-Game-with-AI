@@ -29,3 +29,5 @@ Emulated 320-by-568 and 844-by-390 crate layouts had matching document/viewport 
 ![Crate delivered using F and adjacent tile movement](crate-shortcut.jpg)
 
 Final browser check after restarting the latest build: a new room retained the browser's green first/third-room markers while the skipped second room remained unfinished. Expanded help scrolled 160.8 pixels; Close remained at y=12.8 and Leave at y=70.8, both visible. Direct Leave returned to entry. Viewport restored, disposable helper/room closed and localhost server left running.
+
+Current presentation: [menu organization](menu-cleanup.md) replaces the earlier single-column/top-exit layout with Play/Controls/Room and a persistent exit footer. Consent, progress and shortcut behavior stay the same.

@@ -382,3 +382,27 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
 #mode-indicator[aria-pressed="true"] { background: #e0edf2; border-color: #729aaa; color: #345f73; }
 #game-menu .overlay-heading { position: sticky; top: -20px; z-index: 3; background: #fffef9; }
 #menu-exit { position: sticky; top: 24px; z-index: 2; background: #fffef9; }
+/* A short menu, split into three focused sections with a persistent footer. */
+#game-menu[open] { display: flex; flex-direction: column; overflow: hidden; gap: 12px; }
+#game-menu .overlay-heading { position: static; flex-shrink: 0; }
+.menu-tabs { display: flex; gap: 4px; padding: 4px; background: #edf2e9; border-radius: 12px; flex-shrink: 0; }
+.menu-tabs button { flex: 1; width: auto; min-height: 44px; margin: 0; padding: 6px; border: 0; background: transparent; color: #64786b; font-size: 13px; }
+.menu-tabs button[aria-selected="true"] { background: #fffef9; color: #254e43; box-shadow: 0 2px 6px #234e4310; font-weight: 650; }
+.menu-body { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+#game-menu #level-selector { border: 0; padding: 0; }
+#game-menu #level-selector h3 { margin: 0 0 8px; font-size: 12px; color: #708174; }
+#game-menu #level-buttons button { min-height: 46px; padding: 10px 12px; }
+#game-menu #level-status { margin: 10px 0; line-height: 1.5; }
+#game-menu #restart-panel { margin: 14px 0 0; padding: 12px 0 0; border: 0; border-top: 1px solid #e1e7dc; border-radius: 0; background: none; }
+#game-menu #restart-panel:not(.restart-pending) #restart-status { display: none; }
+#game-menu #restart-panel .restart-actions button { flex: 1; }
+#game-menu .menu-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 12px; border-top: 1px solid #e1e7dc; flex-shrink: 0; }
+#game-menu #menu-exit { position: static; background: none; }
+#game-menu #menu-exit #leave, #game-menu #menu-resume { width: 100%; margin: 0; min-height: 44px; padding: 8px; font-size: 12px; }
+#game-menu #menu-exit #leave { background: transparent; border-color: #e1d5cb; }
+#game-menu #room-details { margin: 0; padding: 0; border: 0; }
+#game-menu #room-details > summary { display: none; }
+#game-menu #room-details p { margin: 8px 0; font-size: 12px; }
+#game-menu #menu-shortcuts { margin: 0 0 12px; font-size: 12px; }
+#game-menu #cargo-controls { margin: 0; padding: 10px; }
+#game-menu #cargo-help { font-size: 11px; }

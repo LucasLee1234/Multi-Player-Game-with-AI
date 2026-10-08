@@ -64,7 +64,7 @@ function renderLevels() {
   }
   const requested=campaign.requestedBy!==null;
   const title=campaign.levels.find(l=>l.stage===campaign.target)?.title;
-  el('level-status').textContent=requested ? `Player ${campaign.requestedBy} requests ${title}. Both players must agree; switching resets the chosen level.` : 'Choose any level. Green means completed here or on this browser.';
+  el('level-status').textContent=requested ? `${campaign.requestedBy} requests ${title}. Switch together?` : '✓ Completed · Switching needs both players.';
   el('level-agree').hidden=!requested;el<HTMLButtonElement>('level-agree').disabled=!active||campaign.requestedBy===view.self.role;
   el('level-agree').textContent=campaign.requestedBy===view.self.role?'Waiting for partner':'Agree & switch';
   el('level-cancel').hidden=!requested;el<HTMLButtonElement>('level-cancel').disabled=!active;
@@ -100,7 +100,12 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   compactMissionId = m?.id;
   if ((m?.foundry?.stage ?? 0) > 1) hideTeachingArrows();
   for (const [id, host] of [['leave','menu-exit'],['room-details','menu-room'],['foundry-instructions','menu-help'],['restart-panel','menu-restart'],['cargo-controls','menu-cargo']] as const) if (el(id).parentElement !== el(host)) el(host).append(el(id));
-  for (const node of [mapHelp,el('foundry-link')]) if (node.parentElement !== el('menu-help')) el('menu-help').append(node);
+  el<HTMLDetailsElement>('room-details').open=true;
+  el('menu-room-identity').textContent = `Room ${context!.view!.room.code} · Player ${context!.view!.self.role}`;
+  el('tab-play').textContent = context?.view?.restart.requestedBy || context?.view?.campaign.requestedBy ? 'Play •' : 'Play';
+  if (mapHelp.parentElement !== el('menu-help')) el('menu-help').append(mapHelp);
+  if (el('foundry-link').parentElement !== mapHelp) mapHelp.append(el('foundry-link'));
+  el('menu-shortcuts').textContent = m?.foundry?.crate ? 'Move: arrows / WASD or adjacent tile. Push: walk into crate. Pull: F.' : 'Move: arrows / WASD or adjacent tile. Stay still to wait.';
   const teachingArrows = m?.foundry?.stage === 1 && !arrowsHidden;
   if (teachingArrows) { if (moveButtons.parentElement !== homeSlots.get(moveButtons)!.parentElement) homeSlots.get(moveButtons)!.after(moveButtons); }
   else if (moveButtons.parentElement !== el('menu-moves')) el('menu-moves').append(moveButtons);
@@ -574,10 +579,27 @@ el('pull-mode').onclick = () => { pullMode=!pullMode; render(); };
 el('mode-indicator').onclick = () => { pullMode=!pullMode; render(); };
 el('level-agree').onclick = () => {const v=context?.view;if(v?.mission && v.campaign.target!==null)sendAction({action:'selectLevel',missionId:v.mission.id,levelRevision:v.campaign.revision,stage:v.campaign.target});};
 el('level-cancel').onclick = () => {const v=context?.view;if(v?.mission)sendAction({action:'cancelLevel',missionId:v.mission.id,levelRevision:v.campaign.revision});};
+const menuSections = ['play','controls','room'] as const;
+function selectMenuSection(section: typeof menuSections[number], focus=false) {
+  for (const name of menuSections) {
+    const selected=name===section,tab=el<HTMLButtonElement>(`tab-${name}`);
+    tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;el(`panel-${name}`).hidden=!selected;
+    if(selected && focus)tab.focus();
+  }
+  document.querySelector<HTMLElement>('.menu-body')!.scrollTop=0;
+}
+for(const [index,name] of menuSections.entries()) {
+  el(`tab-${name}`).onclick=()=>selectMenuSection(name);
+  el(`tab-${name}`).onkeydown=event=>{
+    const next=event.key==='ArrowRight'?(index+1)%3:event.key==='ArrowLeft'?(index+2)%3:event.key==='Home'?0:event.key==='End'?2:undefined;
+    if(next!==undefined){event.preventDefault();selectMenuSection(menuSections[next]!,true);}
+  };
+}
 el('game-menu-open').onclick = el('restart-alert').onclick = () => {
-  const menu=el<HTMLDialogElement>('game-menu'); menu.showModal(); menu.scrollTop=0;
+  selectMenuSection('play'); el<HTMLDialogElement>('game-menu').showModal();
 };
 el('game-menu-close').onclick = () => el<HTMLDialogElement>('game-menu').close();
+el('menu-resume').onclick = () => el<HTMLDialogElement>('game-menu').close();
 el('hide-controls').onclick = () => { hideTeachingArrows(); render(); };
 el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'crate' : 'movement'); };
 el('tutorial-dismiss').onclick = () => {

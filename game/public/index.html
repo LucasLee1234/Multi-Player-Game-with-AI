@@ -141,12 +141,26 @@
 <button id="mode-indicator" class="secondary" hidden>Pull active · switch to Move</button>
 <dialog id="game-menu" aria-labelledby="menu-title">
   <div class="overlay-heading"><h2 id="menu-title">Menu</h2><button id="game-menu-close" class="secondary" aria-label="Close menu">×</button></div>
-  <div id="menu-exit"></div>
+  <div class="menu-tabs" role="tablist" aria-label="Menu sections">
+    <button id="tab-play" role="tab" aria-selected="true" aria-controls="panel-play">Play</button>
+    <button id="tab-controls" role="tab" aria-selected="false" aria-controls="panel-controls" tabindex="-1">Controls</button>
+    <button id="tab-room" role="tab" aria-selected="false" aria-controls="panel-room" tabindex="-1">Room</button>
+  </div>
+  <div class="menu-body">
+  <section id="panel-play" role="tabpanel" aria-labelledby="tab-play">
   <section id="level-selector" aria-label="Choose a level"><h3>Levels</h3><div id="level-buttons"></div><p id="level-status" role="status"></p><button id="level-agree" hidden>Agree & switch</button><button id="level-cancel" class="secondary" hidden>Cancel selection</button></section>
-  <div id="menu-restart"></div><div id="menu-cargo"></div>
-  <details><summary>Movement controls</summary><p>Arrow keys / WASD, or tap an adjacent tile. Stay still to wait.</p><div id="menu-moves"></div><button id="hide-controls" class="secondary">Hide teaching arrows</button></details>
-  <button id="replay-tutorial" class="secondary">Review controls</button>
-  <div id="menu-help"></div><p id="menu-feedback"></p><div id="menu-room"></div>
+  <div id="menu-restart"></div>
+  </section>
+  <section id="panel-controls" role="tabpanel" aria-labelledby="tab-controls" hidden>
+  <p id="menu-shortcuts">Move: arrows / WASD or adjacent tile.</p><div id="menu-cargo"></div>
+  <details><summary>Direction buttons</summary><div id="menu-moves"></div><button id="hide-controls" class="secondary">Hide teaching arrows</button></details>
+  <button id="replay-tutorial" class="secondary">Show tutorial</button><div id="menu-help"></div>
+  </section>
+  <section id="panel-room" role="tabpanel" aria-labelledby="tab-room" hidden>
+  <p id="menu-room-identity"></p><div id="menu-room"></div><details><summary>Latest action</summary><p id="menu-feedback"></p></details>
+  </section>
+  </div>
+  <div class="menu-footer"><button id="menu-resume">Back to game</button><div id="menu-exit"></div></div>
 </dialog>
 <dialog id="tutorial" aria-labelledby="tutorial-title">
   <h2 id="tutorial-title">Move together</h2><p id="tutorial-text"></p>

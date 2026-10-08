@@ -219,3 +219,7 @@ Pinned build and full suite: 71 passes. Browser A/scripted B completed rooms one
 ## Level choice and crate shortcuts - October 8, 2026
 
 Full suite: 74 passes. New authority and wire checks verify mutual selection, stale/duplicate fencing, canonical room resets, real completion history and mid-selection exit. Browser A/scripted B completed first/third rooms in 6/22 moves after selecting room three directly; completed entries became green and the skipped second stayed unfinished. F enabled two actual crate pulls, and the visible mode button returned to Move. Direct Menu exit during third-room replay returned to entry. 320x568 and 844x390 emulation: document/viewport sizes match, no tile overflow, mode button remains in bounds. [Contracts and screenshots](level-selection-and-crate-controls.md). Human/physical phone/public proof remains open.
+
+## Menu cleanup - October 8, 2026
+
+Pinned build passed; browser verified Play/Controls/Room click and keyboard navigation, move from Controls, pending request badge/decline, direct room-three choice, crate-control placement, room identity and return/reopen/exit. Expanded help uses only the internal body scroll; 320x568 and 844x390 document sizes match viewports and footer buttons stay visible. [Design and screenshot](menu-cleanup.md). Presentation-only changes; prior 74-test gameplay baseline retained, no fresh suite or physical-phone/human claim. Disposable room/helper closed, viewport restored, local server running.
