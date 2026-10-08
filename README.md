@@ -1,40 +1,33 @@
-# Signal Rescue
+# Signal Foundry
 
-A two-player cooperative browser game in development. The current **Signal Foundry** experiment lets two robots power each other's gates and reach their exits together.
+A cooperative browser puzzle game for two players. Guide two robots through a small factory, power your partner's gates, move a crate and escape together.
 
-**Status:** Four local Signal Foundry rooms are implemented: First Connection, Trade Places, Keep the Power On and Handoff Workshop. Both connected players start automatically and move independently with direction buttons or arrow keys / WASD. No Ready or Wait button. Shared passages, latching gates, hold-open pressure gates, crate Push/Pull, public location pings, joint exit, mutual retry and next-room choices are implemented. J1 remains a developer comparison. There is no public deployment or completed independent human playtest.
+Four authored rooms are playable locally. The first container release is being prepared; public Azure deployment and independent two-human/device acceptance tests remain pending.
 
-The current UI uses a consistent cream workshop theme, blue/pink robots and exits, illustrated machinery, a clearly labeled crate dock and a compact direction pad. [In-game visual evidence](docs/game-visual-refresh.md). Active play now fits a single viewport. Open the upper-left Menu for restart, Pull, room tools, movement buttons and help. Tap adjacent tiles to move; distant tiles publish pings. First-encounter lessons can be reviewed from Menu. Menu uses Play, Controls and Room sections, with Back to game and Leave in a fixed footer; Levels requests any authored room with partner consent and marks completed rooms green. In the crate room, F or the play-surface mode button toggles Pull. [Level selection and quick controls](docs/level-selection-and-crate-controls.md). [Menu organization](docs/menu-cleanup.md). [Single-screen requirements and evidence](docs/single-screen-experience.md). [Compact UI design and evidence](docs/compact-ui-design.md).
+![Handoff Workshop](docs/handoff-workshop-landscape.jpg)
 
-## Planned experience
+## Play
 
-- Exactly two human players on separate phones or computers.
-- Join the same session through a public URL and room code, without a player account or installation.
-- Your robot's relay can open a gate for your partner; cooperation changes the available route.
-- Each player moves their own robot directly; staying still lets the partner act while relay power is maintained.
-- Small authored missions with clear outcomes and retry.
+Create a room and share its six-character code. Your partner joins from another device or independent browser profile. Play starts when both players connect; no player account or installation is required.
 
-The [independent movement specification](docs/independent-movement-spec.md) overrides the [SF-T1 v2](docs/signal-foundry-spec.md) confirmation rules. [SF-02 implementation](docs/shared-passage-implementation.md) adds a shared-passage room: latching gates stay open after first entry; hold-open gates need continued relay occupancy. Exploration has no move limit or numerical score. Private-information content remains a future design question. The earlier [J1-C1 candidate](docs/candidate-gameplay-spec.md) is preserved for comparison and has different hazard, strike, and turn-limit rules. Do not combine the rule versions.
+- Move with arrow keys, WASD or adjacent tile taps. Each robot moves independently; staying still holds its relay.
+- Walk into the crate to push. Press **F** or use the visible mode control to toggle Pull, then step away with the crate directly behind you. Switch back to Move for ordinary movement.
+- Reach both robot exits together. Crate rooms also require parking the crate on the marked dock.
+- Open **Menu** for controls, lessons, restart, levels and Leave room. Restart and level changes require partner consent; leaving does not.
+- Completed rooms receive green marks, remembered in the current browser rather than a cloud account.
 
-The project uses AI assistance during design and development. Runtime AI calls are outside the initial game scope. Azure is the planned hosting provider; deployment configuration and costs remain unverified.
+| Room | Cooperation challenge |
+| --- | --- |
+| First Connection | Power your partner's route through latching gates |
+| Trade Places | Share passages and hold a pressure relay |
+| Keep the Power On | Park a crate on Relay 8 to maintain power |
+| Handoff Workshop | Exchange support roles, turn the crate onto Dock 18 and rescue the support robot |
 
-## Repository layout
+Two tabs in one browser profile share a session. For two independent players on one computer, use normal/private windows or separate profiles.
 
-```text
-game/
-  src/        TypeScript server, versioned gameplay rules, content, client, contracts
-  public/     Allowlisted browser assets
-  tests/      Local authority, lifecycle, and HTTP/WebSocket checks
-  scripts/    Reproducible build/test entry point
-  research/   Python rule analysis, bounded searches, and tests
-docs/         Design, research, workflow, decisions, and validation evidence
-info/         Locally supplied contest reference material
-README.md     Project overview and verified usage instructions
-```
+## Local development
 
-## Run the local gameplay prototype
-
-Verified runtime: bundled Node 24.19.0, pnpm 11.19.0; exact dependencies are in `game/pnpm-lock.yaml`. From the project root, using these tools on PATH:
+Pinned toolchain: Node.js **24.19.0**, pnpm **11.19.0**. Dependencies are locked in `game/pnpm-lock.yaml`.
 
 ```sh
 cd game
@@ -43,69 +36,57 @@ pnpm --ignore-workspace test
 pnpm --ignore-workspace start
 ```
 
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Use a normal and private browser window, or two different profiles, for two independent sessions. Create a room, then join its code. Two tabs in the same profile share a seat: the second must explicitly take control. The mission starts when both are connected. In First Connection, B starts on Relay 8, powering A's Gate 1. A crosses to Relay 2 to power B's Gate 9 immediately. Click a direction or use arrow keys / WASD to move one tile; stay still to wait. A move never needs the partner's confirmation. Tap an adjacent walkable tile to move, or a distant tile to publish or update a location ping. Bring A to Exit 3 and B to Exit 11 together.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Tests compile before running; use `pnpm --ignore-workspace build` to compile separately. The loopback development URL is not reachable from another device. Public hosting requires HTTPS/WSS and an exact `APP_ORIGIN`.
 
-During play, open Menu and choose **Request restart**; your partner must choose **Agree & restart** to reset the current room. Either player can cancel or decline without stopping movement. [Restart behavior and evidence](docs/current-room-restart.md). After success, both choose **Next room: Trade Places** to advance, or **Practice again** to retry. Mismatched choices wait; either player can change their choice. Trade Places has a shared 5-by-3 map. Relay 6 powers latching Gate 2; Relay 8 powers hold-open Gate 11. Closing a gate blocks entry but permits an occupant to leave. Use parking spaces to pass each other; finish with A at Exit 4 and B at Exit 10. Practice again retries the current room. Both choose Next to enter Keep the Power On. Walk into the crate to push it; select Pull and step away with the crate directly behind you to pull it. Switch back to Move to walk normally. Leave the crate on Relay 8, bring A to Exit 4 and B to Exit 10. The crate continues supplying power after robots leave. The final success panel offers Practice again and Leave room. Replay requires both players; Leave room exits immediately without partner approval.
+## Container release and Azure
 
-Seventy-four automated tests passed, including independent movement, actual shared-passage state recovery, pressure-gate boundaries, matched/conflicting next-room choices, duplicate delivery, reconnect and all earlier J1/room checks. Actual rule audits found 21 teaching states and 220 Trade Places states; every state can complete. Trade Places has a shortest 16-step solution and a tested 18-step northern alternative. The crate engine has 2,496 reachable states, all recoverable, and a shortest 18-step route. New checks cover atomic transport, stale crate commands, deduplication, reconnect, reset, real two-client crate snapshots and production three-room progression. Browser-A/development-client-B checks verified six-step teaching completion, progression, sixteen-step shared-room completion, pings and retry. Browser A also used the Pull button twice, left the crate on Relay 8, completed room three in 22 team moves and retried that room. The 390-pixel second/third-room layouts have no horizontal overflow; this is browser emulation, not an actual phone/touch test. Scripted checks do not establish human enjoyment. `tests/manual-partner.mjs` is a development-only wire helper, not served, not automatically started, and not part of the public game.
-
-Default startup uses `GAME_MODE=foundry` and release `sys-06-crate`. To compare the earlier hazard mission, set `GAME_MODE=J1` before starting the server, then create a new room. For example in PowerShell: `$env:GAME_MODE = 'J1'`; remove the variable to return to the default. Changing mode requires a restart and ends existing in-memory rooms. The server factory's default remains J1 for existing regression tests; the actual startup entry point explicitly selects the adventure. No player-facing profile selector is included.
-
-The default server binds only to `127.0.0.1`; a phone cannot use the computer's loopback URL. Public/LAN play needs the planned HTTPS deployment, which has not been provisioned. `HOST`, `PORT`, and exact `APP_ORIGIN` are server settings; a non-loopback host requires an HTTPS origin and an actual HTTPS reverse proxy. Do not publish this plain HTTP development listener.
-
-This Windows environment has a broken default npm launcher and pnpm workspace discovery inherited from a parent directory. The verified fallback uses the bundled executable directly from the project root:
-
-```powershell
-Set-Location game
-$runtimeNode = 'C:/Users/LiHongBo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe'
-$runtimePnpm = 'C:/Users/LiHongBo/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/pnpm/bin/pnpm.mjs'
-& $runtimeNode $runtimePnpm --ignore-workspace install --frozen-lockfile
-& $runtimeNode $runtimePnpm --ignore-workspace test
-& $runtimeNode dist/src/server/main.js
-```
-
-These fallback paths are specific to this machine. Compilation and local Node tests passed; current evidence and untested behavior are in [test-evidence.md](docs/test-evidence.md). No Azure resource or GitHub remote exists. Supplied `info/` references are retained locally and excluded from Git; contest sources are linked in the planning documents. No background synchronization is configured.
-
-## Run the existing research checks
-
-Requirements: Python 3 with the standard library. Run from the project root:
+Build from the repository root:
 
 ```sh
-python -B -m unittest discover -s game/research -p "test_*.py" -v
-python -B game/research/feasibility_probe.py
-python -B game/research/validate_design.py
+docker build --platform linux/amd64 --build-arg VCS_REF=<commit-sha> -t signal-foundry:v1.0.0 -t signal-foundry:v1 .
 ```
 
-These commands exercise the **0.2 research rules**, which remove robots when they reach their exits. They do not implement the proposed joint-exit candidate, networking, a user interface, or a production server. The analysis commands print results; they do not launch a playable game.
+The multi-stage build runs the regression suite. The non-root runtime contains compiled code, production dependencies and public assets, excluding research, tests, contest reference documents and credentials.
 
-Recorded 0.2 evidence includes 15 passing boundary tests and an exhaustive check of 441 fixed 3-by-3 hazard layouts. Of those, 423 have a zero-strike route within eight turns. A later analysis found that all 423 can also finish after two initial information-sharing Wait turns, exposing a weakness in the intended information constraint. These findings motivate further design work; they do not establish human enjoyment or joint-exit solvability.
+Tagged releases publish through GitHub Actions to `ghcr.io/lucaslee1234/signal-foundry`. A workflow file or Git tag alone does not prove that an image exists: verify a successful Actions run and package digest before deploying. Git tag `v1.0.0` produces image tags `1.0.0`, `v1` and a commit-specific tag.
 
-## Design and development
+Azure Container Apps requires HTTPS HTTP ingress, target port 3000, `APP_ORIGIN=https://<assigned-hostname>`, one application worker, one serving revision and minimum/maximum replicas both set to 1. Configure `/health/live` and `/health/ready` probes. [Container instructions and release checklist](docs/azure-container-v1.md).
 
-- [Project brief](docs/project-brief.md): scope and acceptance requirements.
-- [Requirements analysis and SRS](docs/requirements-analysis.md): user needs, functional/non-functional requirements, scenarios, stories, use cases, and acceptance criteria.
-- [Requirements readiness review](docs/requirements-readiness-review.md): completeness findings and conditions for system design.
-- [System architecture](docs/architecture.md): authoritative rooms, filtered views, command/lifecycle contracts, Azure candidate, and the first implementation slice.
-- [Crate implementation](docs/crate-implementation.md): third-room rules, transport authority and verification.
-- [Current tasks](docs/tasks.md): progress and dependencies.
-- [Foundry expansion design](docs/foundry-expansion-design.md): shared-passage/pressure-gate design now implemented; the crate room remains a checked proposal.
-- [Shared-passage implementation](docs/shared-passage-implementation.md): active SF-02 contract, acceptance and implementation evidence.
-- [Short development cycle](docs/short-development-cycle.md): define, implement, verify, inspect, adjust, and sync.
-- [Development workflow](docs/development-workflow.md): stage gates and evidence standards.
-- [Audited 0.2 rules](docs/game-design.md): the rule set used by the existing research code.
-- [Second gameplay review](docs/gameplay-second-review.md): information, participation, and replay risks.
-- [Joint-exit analysis](docs/gameplay-cooperation-analysis.md): proposed change and a manually checked example.
-- [Recorded validation results](docs/gameplay-validation-results.json): bounded 0.2 spatial evidence.
+## State and limits
 
-Next inspect First Connection with two independent human-controlled browser contexts, especially whether partner support and waiting feel useful. Verify actual phone controls and Azure account/cost before public two-device proof. G2/G3 remain open.
+Rooms and sessions live in one Node.js process. Multiple independent rooms are supported, but **restarting or replacing the process ends existing rooms**. There is no server database, cloud progress synchronization or horizontal scaling support.
 
-## Project context
+Defaults: 20 rooms, 500 sessions, a 60-second disconnect recovery window and a two-hour maximum room lifetime. These are lifecycle/admission bounds, not measured production capacity. Reconnection needs the same server to retain the room.
 
-Signal Rescue is being developed toward the Handshake AI Skills Studio x OpenAI multiplayer game challenge. Contest research and submission planning are in [the competition plan](docs/competition-plan.md). Submission and award outcomes are not yet established.
+## Verification
+
+The application passed **75 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, restart, consent-bound levels and four-room progression/replay. Actual-engine searches found all reachable spatial states recoverable in all four rooms; Handoff Workshop has 2,000 configurations and a shortest 26-step completion.
+
+Browser A with a developer scripted partner completed room four and checked F/Pull, parking, replay, green marks and exit. Responsive inspection covered 390x844 and 844x390 without page overflow. These checks do not establish independent two-human enjoyment, actual-phone behavior or public deployment readiness. [Fourth-room evidence](docs/handoff-workshop-implementation.md), [earlier test evidence](docs/test-evidence.md).
+
+`game/tests/manual-partner.mjs` is a development-only helper, not served, automatically started or offered as a public game mode. Historical J1 and Python research variants have different rules and are not the default game.
+
+## Repository
+
+```text
+game/src/       Server, rules, authored rooms, client and contracts
+game/public/    Public HTML and CSS
+game/tests/     Rule, lifecycle and HTTP/WebSocket tests
+game/scripts/   Build/test entry point
+game/research/  Historical experiments and actual-engine audits
+docs/           Requirements, design, planning and validation evidence
+Dockerfile      Regression gate and runtime image
+.github/        Tagged container release workflow
+```
+
+Supplied contest references remain local and are excluded from Git and Docker. Some historical planning links reference those unavailable files; public official sources are also linked in planning documents.
+
+## Development and context
+
+[Requirements](docs/requirements-analysis.md) · [Architecture](docs/architecture.md) · [Short coding cycle](docs/short-development-cycle.md) · [Tasks](docs/tasks.md) · [Competition plan](docs/competition-plan.md)
+
+Built with AI assistance during design and development. Gameplay does not call an AI service at runtime. Prepared for the Handshake AI Skills Studio x OpenAI multiplayer game challenge; submission and award outcomes are not claimed.
 
 ## License
 
-No project license has been selected yet. Supplied reference materials retain their respective ownership and terms.
-## Fourth room: Handoff Workshop
-
-[Handoff Workshop](docs/handoff-workshop-implementation.md) is now the fourth playable room, using support-role exchange, a crate turn and partner rescue. Its production-engine audit found 2,000 reachable configurations, all recoverable, and a shortest 26-step solution. The four-room progression and final replay passed automated integration checks; browser A with a scripted partner completed room four and verified F/Pull, parking feedback and completion marks. Two-human and actual-phone testing remain pending. [Original design](docs/handoff-workshop-design.md).
+Original code and authored documentation use the [MIT License](LICENSE), copyright 2026 HongBo Li. Dependencies retain their own licenses; see [third-party notices](THIRD_PARTY_NOTICES.md). Contest materials and external trademarks are not relicensed by this repository.

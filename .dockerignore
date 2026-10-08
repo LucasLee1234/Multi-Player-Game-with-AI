@@ -1,0 +1,16 @@
+**
+!Dockerfile
+!LICENSE
+!THIRD_PARTY_NOTICES.md
+!game/
+!game/package.json
+!game/pnpm-lock.yaml
+!game/tsconfig.json
+!game/scripts/
+!game/scripts/check.mjs
+!game/src/
+!game/src/**
+!game/tests/
+!game/tests/**
+!game/public/
+!game/public/**
