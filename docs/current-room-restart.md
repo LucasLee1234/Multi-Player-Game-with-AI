@@ -4,7 +4,7 @@ Implemented and verified: October 8, 2026.
 
 ## Player flow
 
-During any of the three active Signal Foundry rooms, the panel below movement controls offers **Request restart**. The other player can choose **Agree & restart** or **Keep playing**. The requester can choose **Cancel request**. Players can continue moving while consent is pending.
+During any of the three active Signal Foundry rooms, the upper-left Menu offers **Request restart**. The other player can choose **Agree & restart** or **Keep playing**. The requester can choose **Cancel request**. Players can continue moving while consent is pending.
 
 Matching consent from two different live players resets only the current authored room. The room code and campaign position remain; robots, crate, pings, gate latches and move count return to their initial state. A new mission ID also resets the client Pull selection. After completion, the existing mutual Practice again / Next room controls apply instead.
 

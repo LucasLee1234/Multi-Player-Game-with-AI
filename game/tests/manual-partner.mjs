@@ -29,6 +29,9 @@ function drive() {
   }
   const m = view.mission;
   if (missionId !== m.id) { missionId = m.id; step = 0; }
+  if (view.campaign?.requestedBy === 'A' && view.campaign.target !== null) {
+    send({action:'selectLevel',missionId:m.id,levelRevision:view.campaign.revision,stage:view.campaign.target});return;
+  }
   if (view.room.phase === 'planning' && m.foundry?.movement === 'independent' && restartReview < 5) {
     const requested = view.restart.requestedBy;
     if (restartReview === 0 && m.positions.A === 1) {

@@ -372,3 +372,13 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
   .single-screen .crate-target-label { font-size: 8px; }
 }
 .single-screen .mission-heading { padding-left: 60px; }
+#menu-exit #leave { background: #fff3ed; color: #8b4d38; border: 1px solid #e4c7b9; min-height: 44px; margin: 14px 0; }
+#level-selector { border-bottom: 1px solid #dde5d6; padding-bottom: 12px; }
+#level-selector h3 { margin: 8px 0; font-size: 14px; }
+#level-buttons button { text-align: left; margin: 3px 0; min-height: 44px; font-size: 12px; }
+#level-buttons button.level-completed { background: #e2f0dc; border-color: #80ac76; color: #326b3d; }
+#level-status { font-size: 11px; }
+.single-screen.has-cargo #resolution { margin-bottom: 40px; }
+#mode-indicator[aria-pressed="true"] { background: #e0edf2; border-color: #729aaa; color: #345f73; }
+#game-menu .overlay-heading { position: sticky; top: -20px; z-index: 3; background: #fffef9; }
+#menu-exit { position: sticky; top: 24px; z-index: 2; background: #fffef9; }

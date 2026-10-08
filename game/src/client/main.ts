@@ -10,6 +10,7 @@ const messages: Record<string, string> = {
   STALE_PLAN: 'Plan changed - check it and confirm again.', STALE_MISSION: 'The mission changed. Check the current board.',
   STALE_POSITION: 'The robot or crate moved already. Check the board and choose your next direction.',
   STALE_RESTART: 'Restart request changed. Check the current request before agreeing.',
+  STALE_LEVEL: 'Level request changed. Check the current choice before agreeing.',
   SIGNAL_UNAVAILABLE: 'You already sent a signal this turn.', NOT_PLANNING: 'This mission is not accepting moves.'
 };
 let context: SessionContext | undefined;
@@ -23,7 +24,7 @@ let commandFeedback: string | undefined;
 let retryCommandTimer: number | undefined;
 let receivedAt = performance.now();
 const homeSlots = new Map<HTMLElement, Comment>();
-for (const id of ['room-details','foundry-instructions','restart-panel','cargo-controls']) {
+for (const id of ['room-details','foundry-instructions','restart-panel','cargo-controls','leave']) {
   const node = el(id), slot = document.createComment(`home:${id}`); node.before(slot); homeSlots.set(node, slot);
 }
 const mapHelp = document.querySelector<HTMLElement>('.map-help')!, moveButtons = document.querySelector<HTMLElement>('.moves')!;
@@ -35,19 +36,55 @@ function hideTeachingArrows() {
   try { localStorage.setItem('foundry.controls.v1.hidden','yes'); } catch { /* Session-only fallback. */ }
 }
 let compactMissionId: string | undefined;
+let exitRequested = false;
+const completedStages = new Set<number>();
+try { const saved:unknown=JSON.parse(localStorage.getItem('foundry.completed.v1') ?? '[]'); if(Array.isArray(saved)) for(const stage of saved) if([1,2,3].includes(stage)) completedStages.add(stage); } catch { /* Session-only progress. */ }
+let levelCatalog = '';
+function renderLevels() {
+  const view=context?.view; if (!view) return;
+  const campaign=view.campaign;
+  for(const stage of campaign.completed) completedStages.add(stage);
+  try { localStorage.setItem('foundry.completed.v1',JSON.stringify([...completedStages])); } catch { /* Session-only progress. */ }
+  const catalog=JSON.stringify(campaign.levels);
+  if(levelCatalog!==catalog) {
+    levelCatalog=catalog; el('level-buttons').replaceChildren();
+    for(const level of campaign.levels) {
+      const button=document.createElement('button');button.className='secondary';button.dataset.stage=String(level.stage);
+      button.onclick=()=>{const v=context?.view;if(v?.mission)sendAction({action:'selectLevel',missionId:v.mission.id,levelRevision:v.campaign.revision,stage:level.stage});};
+      el('level-buttons').append(button);
+    }
+  }
+  const active=socket?.readyState===WebSocket.OPEN && !stopped && !pending && !exitRequested && ['planning','terminal'].includes(view.room.phase);
+  for(const button of el('level-buttons').querySelectorAll<HTMLButtonElement>('button')) {
+    const stage=Number(button.dataset.stage),level=campaign.levels.find(l=>l.stage===stage)!;
+    const completed=completedStages.has(stage),current=view.mission?.foundry?.stage===stage;
+    button.classList.toggle('level-completed',completed);button.disabled=!active;
+    button.textContent=`${completed?'✓ ':''}${stage}. ${level.title}${current?' · Current':''}`;
+    button.setAttribute('aria-label',`${level.title}${completed?', completed':''}${current?', current level':''}. Request this level.`);
+  }
+  const requested=campaign.requestedBy!==null;
+  const title=campaign.levels.find(l=>l.stage===campaign.target)?.title;
+  el('level-status').textContent=requested ? `Player ${campaign.requestedBy} requests ${title}. Both players must agree; switching resets the chosen level.` : 'Choose any level. Green means completed here or on this browser.';
+  el('level-agree').hidden=!requested;el<HTMLButtonElement>('level-agree').disabled=!active||campaign.requestedBy===view.self.role;
+  el('level-agree').textContent=campaign.requestedBy===view.self.role?'Waiting for partner':'Agree & switch';
+  el('level-cancel').hidden=!requested;el<HTMLButtonElement>('level-cancel').disabled=!active;
+  el('level-cancel').textContent=campaign.requestedBy===view.self.role?'Cancel selection':'Keep current level';
+}
 let tutorialKind: 'movement' | 'crate' = 'movement';
 const seenLessons = new Set<string>();
-try { for (const kind of ['movement','crate']) if (localStorage.getItem(`foundry.lesson.v1.${kind}`)==='seen') seenLessons.add(kind); } catch { /* Session-only fallback when storage is unavailable. */ }
+const lessonKey = (kind:string) => `foundry.lesson.${kind==='crate'?'v2':'v1'}.${kind}`;
+try { for (const kind of ['movement','crate']) if (localStorage.getItem(lessonKey(kind))==='seen') seenLessons.add(kind); } catch { /* Session-only fallback when storage is unavailable. */ }
 function showLesson(kind: 'movement' | 'crate') {
   tutorialKind = kind;
   el('tutorial-title').textContent = kind === 'crate' ? 'Move the crate' : 'Move together';
   el('tutorial-text').textContent = kind === 'crate'
-    ? 'Walk into the crate to push it. To pull, open Menu and select Pull, then step away with the crate behind you. Leave the crate on its marked dock and bring both robots to their exits.'
+    ? 'Walk into the crate to push it. Press F or tap the mode button to switch to Pull, then step away with the crate behind you. Press F again to return to Move / Push. Leave the crate on its marked dock and bring both robots to their exits.'
     : 'Use arrow keys / WASD, or tap a tile next to your robot to move. Tap a distant tile to point it out. Stand on relays to power your partner’s gates. Staying still is waiting. Movement buttons are always available in Menu.';
   const dialog = el<HTMLDialogElement>('tutorial'); if (!dialog.open) dialog.showModal();
 }
 function compactLayout(enabled: boolean, m?: MissionView) {
   document.body.classList.toggle('single-screen', enabled);
+  document.body.classList.toggle('has-cargo',enabled && !!m?.foundry?.crate);
   el('game-menu-open').hidden = !enabled;
   if (!enabled) {
     compactMissionId = undefined;
@@ -56,21 +93,26 @@ function compactLayout(enabled: boolean, m?: MissionView) {
     el('restart-alert').hidden = el('mode-indicator').hidden = true;
     return;
   }
-  if (compactMissionId !== m?.id || m?.result) {
+  if (compactMissionId !== m?.id) {
     el<HTMLDialogElement>('game-menu').close();
     if (m?.result) el<HTMLDialogElement>('tutorial').close();
   }
   compactMissionId = m?.id;
   if ((m?.foundry?.stage ?? 0) > 1) hideTeachingArrows();
-  for (const [id, host] of [['room-details','menu-room'],['foundry-instructions','menu-help'],['restart-panel','menu-restart'],['cargo-controls','menu-cargo']] as const) if (el(id).parentElement !== el(host)) el(host).append(el(id));
+  for (const [id, host] of [['leave','menu-exit'],['room-details','menu-room'],['foundry-instructions','menu-help'],['restart-panel','menu-restart'],['cargo-controls','menu-cargo']] as const) if (el(id).parentElement !== el(host)) el(host).append(el(id));
   for (const node of [mapHelp,el('foundry-link')]) if (node.parentElement !== el('menu-help')) el('menu-help').append(node);
   const teachingArrows = m?.foundry?.stage === 1 && !arrowsHidden;
   if (teachingArrows) { if (moveButtons.parentElement !== homeSlots.get(moveButtons)!.parentElement) homeSlots.get(moveButtons)!.after(moveButtons); }
   else if (moveButtons.parentElement !== el('menu-moves')) el('menu-moves').append(moveButtons);
   document.body.classList.toggle('teaching-arrows', teachingArrows);
   el('hide-controls').hidden = !teachingArrows;
-  el('restart-alert').hidden = !context?.view?.restart.requestedBy || context.view.room.phase !== 'planning';
-  el('mode-indicator').hidden = !m?.foundry?.crate || !pullMode;
+  el('restart-alert').hidden = !context?.view?.restart.requestedBy && !context?.view?.campaign.requestedBy;
+  el('restart-alert').textContent = context?.view?.campaign.requestedBy ? 'Level switch request' : 'Restart request';
+  el('mode-indicator').hidden = !m?.foundry?.crate;
+  el('mode-indicator').textContent = pullMode ? 'Pull · F to switch' : 'Move / Push · F to switch';
+  el('mode-indicator').setAttribute('aria-pressed',String(pullMode));
+  el<HTMLButtonElement>('mode-indicator').disabled = !context?.view || context.view.room.phase !== 'planning' || socket?.readyState!==WebSocket.OPEN || stopped || !!pending || exitRequested;
+  renderLevels();
   if (m && context?.view?.room.phase === 'planning' && !el<HTMLDialogElement>('game-menu').open) {
     const kind = m.foundry?.crate ? 'crate' : 'movement';
     if (!seenLessons.has(kind)) showLesson(kind);
@@ -84,6 +126,8 @@ function endedText() {
 function render() {
   const view = context?.view;
   const connected = socket?.readyState === WebSocket.OPEN;
+  if (!view) exitRequested=false;
+  if (exitRequested && view && connected && !stopped && !pending && !busy) { sendAction({action:'leave'}); return; }
   document.body.classList.toggle('entry-screen', !view);
   document.body.classList.toggle('waiting-screen', !!view && !view.mission);
   el('waiting-room').hidden = !view || !!view.mission;
@@ -97,7 +141,8 @@ function render() {
   el('entry').hidden = !!view; el('lobby').hidden = !view;
   el<HTMLButtonElement>('create').disabled = !context || busy;
   el<HTMLButtonElement>('join').disabled = !context || busy;
-  el<HTMLButtonElement>('leave').disabled = busy || !connected || !!pending;
+  el<HTMLButtonElement>('leave').disabled = exitRequested;
+  el('leave').textContent = exitRequested ? 'Leaving when connected…' : 'Leave room';
   el('takeover').hidden = !view || connected || !stopped;
   el('reconnect').hidden = !view || connected || stopped;
   if (view) {
@@ -177,12 +222,14 @@ function connect() {
         }
       }
     } else if (message.type === 'error') {
+      if (pending?.action==='leave') exitRequested=false;
       clearPending();
       status(messages[message.error] ?? message.error, true);
       if (message.error === 'CONTROLLER_REPLACED') { stopped = true; clearPending(); render(); }
       else render();
     } else if (message.type === 'ack' && pending?.requestId === message.requestId) {
       pendingAcknowledged = true; window.clearTimeout(retryCommandTimer);
+      if (!message.ok && pending.action==='leave') exitRequested=false;
       if (!message.ok) { commandFeedback = messages[message.error!] ?? message.error!; status(commandFeedback, true); }
     }
   };
@@ -240,7 +287,7 @@ function transmit() {
 }
 function sendAction(action: Action) {
   const view = context?.view;
-  if (!view || pending || socket?.readyState !== WebSocket.OPEN || stopped) return;
+  if (!view || pending || socket?.readyState !== WebSocket.OPEN || stopped || (exitRequested && action.action!=='leave')) return;
   commandFeedback = undefined; pendingAcknowledged = false;
   pending = { type: 'command', requestId: crypto.randomUUID(), sequence: view.self.nextCommandSequence,
     roomId: view.room.id, controllerEpoch: view.self.controllerEpoch, ...action } as Command;
@@ -499,8 +546,12 @@ let lastKeyboardMove = -Infinity;
 window.addEventListener('keydown', event => {
   const m = context?.view?.mission;
   if (m?.foundry?.movement !== 'independent' || event.altKey || event.ctrlKey || event.metaKey
+    || exitRequested
     || el<HTMLDialogElement>('tutorial').open || el<HTMLDialogElement>('game-menu').open
     || (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) return;
+  if(event.key.toLowerCase()==='f' && m.foundry.crate) {
+    event.preventDefault(); if(!event.repeat && !pending && context?.view?.room.phase==='planning' && socket?.readyState===WebSocket.OPEN && !stopped) { pullMode=!pullMode; render(); } return;
+  }
   const keys: Record<string, typeof moves[number]> = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
   const direction = keys[event.key.toLowerCase()];
   if (!direction) return;
@@ -520,13 +571,17 @@ for (const [id, action] of [['restart-room','restartAgreement'],['cancel-restart
 el('practice').onclick = () => { if (context?.view?.mission) sendAction({ action: 'retryAgreement', missionId: context.view.mission.id }); };
 el('next-room').onclick = () => { if (context?.view?.mission) sendAction({ action: 'nextAgreement', missionId: context.view.mission.id }); };
 el('pull-mode').onclick = () => { pullMode=!pullMode; render(); };
-el('mode-indicator').onclick = () => { pullMode=false; render(); };
-el('game-menu-open').onclick = el('restart-alert').onclick = () => el<HTMLDialogElement>('game-menu').showModal();
+el('mode-indicator').onclick = () => { pullMode=!pullMode; render(); };
+el('level-agree').onclick = () => {const v=context?.view;if(v?.mission && v.campaign.target!==null)sendAction({action:'selectLevel',missionId:v.mission.id,levelRevision:v.campaign.revision,stage:v.campaign.target});};
+el('level-cancel').onclick = () => {const v=context?.view;if(v?.mission)sendAction({action:'cancelLevel',missionId:v.mission.id,levelRevision:v.campaign.revision});};
+el('game-menu-open').onclick = el('restart-alert').onclick = () => {
+  const menu=el<HTMLDialogElement>('game-menu'); menu.showModal(); menu.scrollTop=0;
+};
 el('game-menu-close').onclick = () => el<HTMLDialogElement>('game-menu').close();
 el('hide-controls').onclick = () => { hideTeachingArrows(); render(); };
 el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'crate' : 'movement'); };
 el('tutorial-dismiss').onclick = () => {
-  seenLessons.add(tutorialKind); try { localStorage.setItem(`foundry.lesson.v1.${tutorialKind}`,'seen'); } catch { /* Continue without persistent storage. */ }
+  seenLessons.add(tutorialKind); try { localStorage.setItem(lessonKey(tutorialKind),'seen'); } catch { /* Continue without persistent storage. */ }
   el<HTMLDialogElement>('tutorial').close();
 };
 el<HTMLDialogElement>('tutorial').addEventListener('cancel', event => { event.preventDefault(); el('tutorial-dismiss').click(); });
@@ -535,7 +590,11 @@ el<HTMLFormElement>('join-form').onsubmit = event => { event.preventDefault(); v
 el('takeover').onclick = () => { void admit('/api/controller/takeover'); };
 el('reconnect').onclick = () => { stopped = false; connect(); };
 el('retry').onclick = () => { closeSocket(); void bootstrap(); };
-el('leave').onclick = () => sendAction({ action: 'leave' });
+el('leave').onclick = () => {
+  exitRequested=true;
+  if(socket?.readyState!==WebSocket.OPEN) { status('Leave requested. Reconnect this seat to finish leaving.'); connect(); }
+  render();
+};
 el('copy').onclick = async () => {
   try { await navigator.clipboard.writeText(context?.view?.room.code ?? ''); status('Room code copied.'); }
   catch { status('Copy the room code shown above.'); }

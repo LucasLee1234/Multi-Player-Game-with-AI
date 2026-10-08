@@ -141,6 +141,8 @@
 <button id="mode-indicator" class="secondary" hidden>Pull active · switch to Move</button>
 <dialog id="game-menu" aria-labelledby="menu-title">
   <div class="overlay-heading"><h2 id="menu-title">Menu</h2><button id="game-menu-close" class="secondary" aria-label="Close menu">×</button></div>
+  <div id="menu-exit"></div>
+  <section id="level-selector" aria-label="Choose a level"><h3>Levels</h3><div id="level-buttons"></div><p id="level-status" role="status"></p><button id="level-agree" hidden>Agree & switch</button><button id="level-cancel" class="secondary" hidden>Cancel selection</button></section>
   <div id="menu-restart"></div><div id="menu-cargo"></div>
   <details><summary>Movement controls</summary><p>Arrow keys / WASD, or tap an adjacent tile. Stay still to wait.</p><div id="menu-moves"></div><button id="hide-controls" class="secondary">Hide teaching arrows</button></details>
   <button id="replay-tutorial" class="secondary">Review controls</button>

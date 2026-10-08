@@ -54,6 +54,9 @@ test('two wire seats share atomic crate moves and complete sustained extraction'
   assert.equal(seats.B.view().mission!.turnsResolved,0);assert.equal(seats.B.view().mission!.foundry!.crate!.cell,12);
   seats.A.ws.send(JSON.stringify(restarted));await seats.B.send({action:'ping',cell:8});await sync();
   assert.equal(seats.A.view().mission!.id,newId);
+  await seats.A.send({action:'selectLevel',stage:3,levelRevision:seats.A.view().campaign.revision});await sync();
+  await seats.B.send({action:'selectLevel',stage:3,levelRevision:seats.B.view().campaign.revision});await sync();
+  assert.equal(seats.A.view().mission!.foundry!.stage,3);assert.deepEqual(seats.A.view().campaign,seats.B.view().campaign);
   const route:[Role,number,'move'|'pull'][]=[['A',1,'move'],['A',6,'move'],['B',13,'move'],['B',14,'pull'],['B',9,'move'],['B',8,'move'],['B',3,'pull'],['B',2,'move'],['A',1,'move'],['A',0,'move'],['B',1,'move'],['B',6,'move'],['A',1,'move'],['A',2,'move'],['A',3,'move'],['A',4,'move'],['B',11,'move'],['B',10,'move']];
   for(const [r,c,k] of route)await move(r,c,k);
   assert.equal(seats.A.view().mission!.turnsResolved,18);
