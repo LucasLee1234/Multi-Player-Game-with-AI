@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Fifth-room design follows the 1.1.0 source checkpoint; the playable campaign still has four rooms.
+
+## 1.1.0 - October 8, 2026
+
+Source-only checkpoint. No Docker image was built or published, and Azure was not updated. No `v1.1.0` tag was created because `v*` tags trigger container publication.
+
 - Amber exit-only state and safe-departure guidance for robots occupying an unpowered gate; [behavior and evidence](docs/gate-occupancy.md).
 - Explicit relay destinations (`Relay → Gate N`), including compact landscape layouts and crate docks.
 - Short push/pull diagrams and contextual, dismissible crate guidance.

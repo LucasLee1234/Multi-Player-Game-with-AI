@@ -15,7 +15,7 @@ RUN pnpm prune --prod
 FROM node:24.19.0-bookworm-slim AS runtime
 ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="Signal Foundry" \
-      org.opencontainers.image.version="1.0.0" \
+      org.opencontainers.image.version="1.1.0" \
       org.opencontainers.image.revision=$VCS_REF \
       org.opencontainers.image.source="https://github.com/LucasLee1234/Multi-Player-Game-with-AI"
 WORKDIR /app
