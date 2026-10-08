@@ -34,3 +34,9 @@ A regression run exposed an existing close-order race in the oversized WebSocket
 ## Next bounded cycle
 
 Observe a first-time partner: can they distinguish Move and Pull, place the crate without explanation, and recognize crate-supplied power? Record confusion and each player's active/waiting time before adding another mechanic. Check actual phone controls and public two-device networking when the hosting prerequisites are available. G2/G3 stay open; local solvability is not prize qualification or an enjoyment result.
+
+## UI clarification - visible crate destination
+
+October 8, 2026: participant feedback showed that the persistent Relay 8 delivery requirement was not clear from the map. The target tile now shows a dashed C outline, `Crate dock` and `Park C here`. When occupied by the crate, it shows `Crate dock` and `✓ Keep here`, with a green outline/background. Relay-to-gate linkage remains visible. The target text stays visible under a robot or crate; other rooms have no crate dock marker. The accessible tile label explicitly says the crate must remain here to complete the room. Gameplay and completion rules are unchanged.
+
+The pinned TypeScript build passed. Source inspection confirms mutually exclusive empty/parked labels and target-only styling. Browser visual inspection was attempted but the automation process failed during environment setup; the updated narrow layout has not been visually verified. The label uses nine-pixel text matching the existing mobile tile labels, and hides its placeholder when occupied to preserve space.

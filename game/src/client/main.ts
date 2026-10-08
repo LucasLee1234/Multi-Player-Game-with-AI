@@ -259,23 +259,29 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const exit = (['A', 'B'] as const).find(r => m.exits[r] === cell);
     const robot = (['A', 'B'] as const).find(r => m.positions[r] === cell);
     const cargo = board.crate?.cell===cell;
+    const crateTarget = board.crate?.target === cell;
     const label = wall ? 'Wall' : gate ? `${gate.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
     const state = gate ? gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
     tile.classList.toggle('has-robot', !!robot);
     tile.classList.toggle('gate-tile', !!gate);
-    tile.classList.toggle('crate-target', board.crate?.target===cell);
+    tile.classList.toggle('crate-target', crateTarget);
+    tile.classList.toggle('crate-parked', crateTarget && cargo);
     tile.classList.toggle('has-crate', cargo);
     if ((motionUntil.get(`gate-${cell}`) ?? 0) > performance.now()) tile.classList.add('power-flash');
     if (cell === m.positions[role] && (motionUntil.get('blocked') ?? 0) > performance.now()) tile.classList.add('blocked-flash');
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
     const gateRule = gate ? ` Relay ${gate.relay}. ${gate.kind === 'pressure' ? 'Requires continuous relay power.' : 'Stays open after first entry.'}` : '';
-    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${gateRule} ${wall ? 'Impassable.' : 'Point out this tile.'}`);
+    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${crateTarget ? ` Crate parking target. ${cargo ? 'Crate parked; keep it here.' : 'Leave the crate here to complete the room.'}` : ''}${gateRule} ${wall ? 'Impassable.' : 'Point out this tile.'}`);
     // Stable tile nodes preserve focus; only their visual contents change.
     tile.replaceChildren();
     const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
-    const icon = document.createElement('span'); icon.className = 'tile-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = wall ? '' : gate ? gate.kind === 'pressure' ? '▤' : '▥' : relay ? '◇' : exit ? '↗' : ''; tile.append(icon);
-    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = wall || label === 'Floor' ? '' : gate ? `Gate ${cell}` : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
+    const icon = document.createElement('span'); icon.className = 'tile-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = crateTarget ? 'C' : wall ? '' : gate ? gate.kind === 'pressure' ? '▤' : '▥' : relay ? '◇' : exit ? '↗' : ''; tile.append(icon);
+    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = crateTarget ? 'Crate dock' : wall || label === 'Floor' ? '' : gate ? `Gate ${cell}` : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
+    if (crateTarget) {
+      const marker = document.createElement('span'); marker.className = 'crate-target-label';
+      marker.textContent = cargo ? '✓ Keep here' : 'Park C here'; tile.append(marker);
+    }
     if (gate) {
       const rule = document.createElement('span'); rule.className = 'tile-rule'; rule.textContent = gate.kind === 'pressure' ? 'Hold relay' : 'Stays open'; tile.append(rule);
       const source = document.createElement('span'); source.className = 'tile-source'; source.textContent = `Relay ${gate.relay}`; tile.append(source);

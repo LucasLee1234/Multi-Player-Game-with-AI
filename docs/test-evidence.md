@@ -199,3 +199,7 @@ Browser A and scripted wire B progressed through rooms 1/2/3, used the real Pull
 October 8, 2026: the participant reports A cannot move with Right 1 at the start of room three. An isolated local server loaded Keep the Power On directly, with browser A at 0 and a stationary wire B at 14. The real Right 1 button successfully moved A to 1, incremented the count to 1 and displayed `A: moved to 1.` [Screenshot](crate-first-move-check.jpg). The direct-level fixture displays 03 / 02 because its release metadata has no campaign chain; this fixture was never exposed in the production game.
 
 The player's own browser tab could not be inspected, so the reported-session cause remains unconfirmed. An outdated open client is a hypothesis, not a proven diagnosis. Recommend reloading both clients, which does not restart the server, then record the visible feedback if the failure persists. No gameplay change was made without reproducing the failure. Disposable reproduction room/tab/server were closed; the main localhost server remained running.
+
+## Crate destination marker clarification
+
+October 8, 2026: successful pinned TypeScript build after adding explicit empty/parked crate destination labels and accessibility text. No gameplay rules changed; no new automated gameplay test was required for this display-only change. Browser inspection could not run because its helper process failed during setup, including after a reset; visual verification of this label remains open. Prior 67-test gameplay evidence still describes the unchanged rules.

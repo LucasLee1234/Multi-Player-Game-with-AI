@@ -95,6 +95,11 @@ button.factory-tile.exit { background: #dce9f3; }
 .gate-tile.has-crate .tile-name { display: none; }
 .crate { display: grid; place-items: center; width: 28px; height: 25px; margin-top: 4px; border: 2px solid #906638; border-radius: 4px; background: #d9b882; color: #573b21; font-size: 12px; font-weight: 800; box-shadow: inset 0 0 0 2px #ead0a5; }
 button.factory-tile.crate-target { box-shadow: inset 0 0 0 2px #9b8038; }
+button.factory-tile.crate-target .tile-icon { display: grid; place-items: center; width: 25px; height: 23px; border: 2px dashed #92743c; border-radius: 4px; font-size: 12px; color: #80612d; }
+button.factory-tile.crate-target.has-crate .tile-icon, button.factory-tile.crate-target.has-robot .tile-icon { display: none; }
+.crate-target-label { font-size: 9px; font-weight: 750; line-height: 1.3; color: #684c1f; }
+button.factory-tile.crate-parked { background: #d8ead3; box-shadow: inset 0 0 0 2px #527948; }
+.crate-parked .crate-target-label { color: #315a2d; }
 #cargo-controls { margin-top: 8px; }
 #cargo-controls button { min-height: 44px; margin: 4px 0; font-size: 12px; }
 #cargo-controls button[aria-pressed="true"] { background: #e2ebf3; border-color: #517a94; }
