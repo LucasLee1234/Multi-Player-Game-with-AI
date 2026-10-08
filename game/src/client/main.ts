@@ -539,8 +539,13 @@ function renderMission() {
   el('next-room').hidden = !m.foundry?.nextTitle || m.result !== 'success';
   el<HTMLButtonElement>('next-room').disabled = !active || view.room.phase !== 'terminal' || m.foundry?.choices[role] === 'next';
   el('next-room').textContent = `Next room: ${m.foundry?.nextTitle ?? ''}`;
+  el('result-leave').hidden = !foundry || m.result !== 'success' || !!m.foundry?.nextTitle;
+  el<HTMLButtonElement>('result-leave').disabled = exitRequested;
+  el('result-leave').textContent = exitRequested ? 'Leaving when connected…' : 'Leave room';
   el('retry-agreements').textContent = m.foundry ? (['A', 'B'] as const).map(r => `${r}: ${m.foundry!.choices[r] === 'next' ? 'Next room' : m.foundry!.choices[r] === 'retry' ? 'Practice again' : 'not chosen'}`).join(' · ') + '. Both players must choose the same option. You can change your choice.'
     : `Practice again: A ${m.retryAgreements.A ? 'agreed' : 'not yet'} · B ${m.retryAgreements.B ? 'agreed' : 'not yet'}`;
+  if (foundry && m.result === 'success' && !m.foundry?.nextTitle) el('retry-agreements').textContent = m.retryAgreements.A || m.retryAgreements.B
+    ? 'Waiting for both players to replay. You can leave at any time.' : 'Replay together, or leave the room.';
 }
 for (const direction of moves) el(`move-${direction}`).onclick = () => {
   const m = context?.view?.mission; if (!m) return;
@@ -612,11 +617,12 @@ el<HTMLFormElement>('join-form').onsubmit = event => { event.preventDefault(); v
 el('takeover').onclick = () => { void admit('/api/controller/takeover'); };
 el('reconnect').onclick = () => { stopped = false; connect(); };
 el('retry').onclick = () => { closeSocket(); void bootstrap(); };
-el('leave').onclick = () => {
+function requestLeave() {
   exitRequested=true;
   if(socket?.readyState!==WebSocket.OPEN) { status('Leave requested. Reconnect this seat to finish leaving.'); connect(); }
   render();
-};
+}
+el('leave').onclick = el('result-leave').onclick = requestLeave;
 el('copy').onclick = async () => {
   try { await navigator.clipboard.writeText(context?.view?.room.code ?? ''); status('Room code copied.'); }
   catch { status('Copy the room code shown above.'); }

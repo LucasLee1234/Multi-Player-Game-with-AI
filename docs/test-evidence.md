@@ -223,3 +223,7 @@ Full suite: 74 passes. New authority and wire checks verify mutual selection, st
 ## Menu cleanup - October 8, 2026
 
 Pinned build passed; browser verified Play/Controls/Room click and keyboard navigation, move from Controls, pending request badge/decline, direct room-three choice, crate-control placement, room identity and return/reopen/exit. Expanded help uses only the internal body scroll; 320x568 and 844x390 document sizes match viewports and footer buttons stay visible. [Design and screenshot](menu-cleanup.md). Presentation-only changes; prior 74-test gameplay baseline retained, no fresh suite or physical-phone/human claim. Disposable room/helper closed, viewport restored, local server running.
+
+## Final-room success exit - October 8, 2026
+
+Build passed. Browser A/scripted B completed the production crate room in 22 moves and verified both Practice again and the prominent Leave room button in the success panel. Final copy reads Replay together, or leave the room; queued replay copy explicitly permits exit. Clicking the result button returned to entry with the prior success retained. The button shares the existing queued/direct exit handler; no server/gameplay changes or fresh full-suite claim. [390-pixel screenshot](final-room-exit.jpg). Disposable room/helper closed, viewport restored, updated server running.

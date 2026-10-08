@@ -112,3 +112,5 @@ SF-03 local completion authority: [crate-implementation.md](crate-implementation
 | Oct 8, 2026 | UX-LEVELS short cycle | Direct Menu exit, revision-bound two-player level selection, green completion history and F/touch mode switching | 74 passing tests; wire consent; scripted browser first/third-room completion, direct selection, real shortcut pulls and exit; narrow/landscape layout checks | First-time human/phone inspection; public deployment prerequisites |
 
 | Oct 8, 2026 | UX-MENU cleanup | Grouped Menu into Play, Controls and Room; persistent return/exit footer; shorter default presentation and request badge | Build passed; scripted browser tab/keyboard, direction control, restart decline, room-three selection, return/reopen/leave and constrained-screen footer checks | Observe participant feedback on menu clarity before expanding content |
+
+| Oct 8, 2026 | UX-FINAL-EXIT | Added prominent direct exit alongside Practice again on final-room success; clarified independent exit versus mutual replay | Build and production third-room browser completion/direct result exit verified; final-room-exit.jpg | Participant inspection |
