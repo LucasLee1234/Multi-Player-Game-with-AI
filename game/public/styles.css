@@ -387,6 +387,21 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
 #level-status { font-size: 11px; }
 .single-screen.has-cargo #resolution { margin-bottom: 40px; }
 #mode-indicator[aria-pressed="true"] { background: #e0edf2; border-color: #729aaa; color: #345f73; }
+/* Short crate lessons and contextual cues stay out of the board layout. */
+#crate-coach { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 3; width: min(440px,calc(100% - 32px)); padding: 8px 12px; border: 1px solid #c7d9bd; border-radius: 12px; background: #fffef5; box-shadow: 0 4px 18px #234e4320; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+#crate-coach[hidden] { display: none; }
+#crate-coach-dismiss { flex-shrink: 0; width: 32px; min-height: 32px; margin: 0; padding: 0; }
+.factory-tile.crate-action { outline: 3px solid #3c8b87; outline-offset: -4px; }
+.crate-action-label { position: absolute; top: 3px; right: 3px; padding: 2px 4px; border-radius: 4px; background: #e3f5ef; color: #1b6256; font-size: 10px; font-weight: 750; pointer-events: none; }
+.demo-board { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; margin: 12px 0; }
+.demo-board span { display: grid; place-items: center; min-height: 44px; border-radius: 8px; border: 1px dashed #bdcdb6; font-size: 12px; }
+.demo-board .demo-robot { background: #dceced; border: 2px solid #5c9494; }
+.demo-board .demo-crate { background: #e4c891; border: 2px solid #987343; }
+#demo-direction { text-align: center; font-weight: 700; }
+.demo-after { animation: crate-demo 2.5s ease-in-out infinite; }
+@keyframes crate-demo { 0%,25% { opacity: .35; } 50%,100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .demo-after { animation: none; } }
+@media (max-height:600px) { #tutorial-demo .demo-board { margin: 6px 0; } #tutorial-demo p { margin: 6px 0; } .demo-board span { min-height: 30px; } #crate-coach { font-size: 11px; bottom: 54px; } }
 #game-menu .overlay-heading { position: sticky; top: -20px; z-index: 3; background: #fffef9; }
 #menu-exit { position: sticky; top: 24px; z-index: 2; background: #fffef9; }
 /* A short menu, split into three focused sections with a persistent footer. */

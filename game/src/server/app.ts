@@ -9,6 +9,7 @@ interface Options { store?: Store; origin?: string; host?: string; port?: number
 const cookieName = 'sr_dev_session';
 const assets = new Map([
   ['/', ['../../../public/index.html', 'text/html; charset=utf-8']],
+  ['/crate-help.js', ['../client/crate-help.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['../../../public/styles.css', 'text/css; charset=utf-8']],
   ['/client.js', ['../client/main.js', 'text/javascript; charset=utf-8']]
 ]);

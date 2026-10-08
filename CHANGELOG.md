@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Short push/pull diagrams and contextual, dismissible crate guidance.
+- Successful-action learning, legal direction previews and clear parked-crate objectives.
+- Exhaustive preview checks against both crate-room engines; 78 tests pass.
+- See [crate onboarding evidence](docs/crate-onboarding.md). The v1.0.0 image remains unchanged.
+
 ## 1.0.0 - October 8, 2026
 
 First container-release candidate for Signal Foundry.

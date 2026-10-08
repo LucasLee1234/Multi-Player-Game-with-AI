@@ -1,3 +1,4 @@
+import { crateAction, crateFailure } from './crate-help.js';
 import type { SessionContext, ServerMessage, Command, MissionView, Role } from '../contracts/lobby.js';
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const messages: Record<string, string> = {
@@ -70,17 +71,45 @@ function renderLevels() {
   el('level-cancel').hidden=!requested;el<HTMLButtonElement>('level-cancel').disabled=!active;
   el('level-cancel').textContent=campaign.requestedBy===view.self.role?'Cancel selection':'Keep current level';
 }
-let tutorialKind: 'movement' | 'crate' = 'movement';
-const seenLessons = new Set<string>();
-const lessonKey = (kind:string) => `foundry.lesson.${kind==='crate'?'v2':'v1'}.${kind}`;
-try { for (const kind of ['movement','crate']) if (localStorage.getItem(lessonKey(kind))==='seen') seenLessons.add(kind); } catch { /* Session-only fallback when storage is unavailable. */ }
-function showLesson(kind: 'movement' | 'crate') {
-  tutorialKind = kind;
-  el('tutorial-title').textContent = kind === 'crate' ? 'Move the crate' : 'Move together';
-  el('tutorial-text').textContent = kind === 'crate'
-    ? 'Walk into the crate to push it. Press F or tap the mode button to switch to Pull, then step away with the crate behind you. Press F again to return to Move / Push. Leave the crate on its marked dock and bring both robots to their exits.'
-    : 'Use arrow keys / WASD, or tap a tile next to your robot to move. Tap a distant tile to point it out. Stand on relays to power your partner’s gates. Staying still is waiting. Movement buttons are always available in Menu.';
+type Lesson = 'movement' | 'push' | 'pull';
+let tutorialKind: Lesson = 'movement';
+const seenLessons = new Set<string>(), offeredLessons = new Set<string>();
+const lessonKey = (kind: string) => `foundry.lesson.${kind === 'movement' ? 'v1' : 'v3'}.${kind}`;
+try { for (const kind of ['movement','push','pull']) if (localStorage.getItem(lessonKey(kind)) === 'seen') seenLessons.add(kind); } catch { /* Session-only fallback. */ }
+function learn(kind: Lesson) {
+  seenLessons.add(kind);
+  try { localStorage.setItem(lessonKey(kind), 'seen'); } catch { /* Session-only fallback. */ }
+}
+let crateTip = '', crateTipUntil = 0, crateTipTimer: number | undefined;
+function coach(text: string) {
+  crateTip = text; crateTipUntil = performance.now() + 7000;
+  window.clearTimeout(crateTipTimer);
+  crateTipTimer = window.setTimeout(() => { crateTip = ''; render(); }, 7000);
+}
+function showLesson(kind: Lesson) {
+  tutorialKind = kind; offeredLessons.add(kind);
+  el('tutorial-title').textContent = kind === 'push' ? 'Push the crate' : kind === 'pull' ? 'Pull the crate' : 'Move together';
+  el('tutorial-text').textContent = kind === 'push' ? 'Walk into the crate to push it one tile. The space behind it must be clear.'
+    : kind === 'pull' ? 'Stand next to the crate. Press F or tap Pull, then step away with the crate behind you.'
+    : 'Use arrow keys / WASD, or tap a tile next to your robot to move. Tap a distant tile to point it out. Stand on relays to power your partner’s gates. Staying still is waiting.';
+  el('tutorial-demo').hidden = kind === 'movement';
+  const before = kind === 'push' ? ['robot','crate','empty'] : ['crate','robot','empty'];
+  const after = kind === 'push' ? ['empty','robot','crate'] : ['empty','crate','robot'];
+  for (const [selector, arrangement] of [['.demo-before', before], ['.demo-after', after]] as const) {
+    document.querySelectorAll<HTMLElement>(`${selector} span`).forEach((node, index) => {
+      const item = arrangement[index]!; node.className = `demo-${item}`;
+      node.textContent = item === 'robot' ? 'You' : item === 'crate' ? 'Crate' : 'Empty';
+    });
+  }
+  el('tutorial-next').textContent = kind === 'push' ? 'How to pull' : 'How to push';
+  el('demo-direction').textContent = kind === 'push' ? '→ Walk right into the crate' : '→ Pull mode: step right, away from the crate';
+  el('tutorial-dismiss').textContent = kind === 'movement' ? 'Got it' : 'Try it';
   const dialog = el<HTMLDialogElement>('tutorial'); if (!dialog.open) dialog.showModal();
+}
+function togglePull() {
+  pullMode = !pullMode;
+  if (pullMode && !seenLessons.has('pull') && !offeredLessons.has('pull')) showLesson('pull');
+  render();
 }
 function compactLayout(enabled: boolean, m?: MissionView) {
   document.body.classList.toggle('single-screen', enabled);
@@ -89,6 +118,7 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   if (!enabled) {
     compactMissionId = undefined;
     for (const [node, slot] of homeSlots) slot.after(node);
+    el('crate-coach').hidden = true;
     for (const id of ['game-menu','tutorial']) el<HTMLDialogElement>(id).close();
     el('restart-alert').hidden = el('mode-indicator').hidden = true;
     return;
@@ -114,13 +144,15 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   el('restart-alert').hidden = !context?.view?.restart.requestedBy && !context?.view?.campaign.requestedBy;
   el('restart-alert').textContent = context?.view?.campaign.requestedBy ? 'Level switch request' : 'Restart request';
   el('mode-indicator').hidden = !m?.foundry?.crate;
-  el('mode-indicator').textContent = pullMode ? 'Pull · F to switch' : 'Move / Push · F to switch';
+  el('mode-indicator').textContent = pullMode ? 'Pull ON · F' : 'Pull OFF · F';
   el('mode-indicator').setAttribute('aria-pressed',String(pullMode));
   el<HTMLButtonElement>('mode-indicator').disabled = !context?.view || context.view.room.phase !== 'planning' || socket?.readyState!==WebSocket.OPEN || stopped || !!pending || exitRequested;
+  el('crate-coach').hidden = !m?.foundry?.crate || !!m.result || performance.now() >= crateTipUntil || !crateTip;
+  el('crate-coach-text').textContent = crateTip;
   renderLevels();
   if (m && context?.view?.room.phase === 'planning' && !el<HTMLDialogElement>('game-menu').open) {
-    const kind = m.foundry?.crate ? 'crate' : 'movement';
-    if (!seenLessons.has(kind)) showLesson(kind);
+    const kind: Lesson = m.foundry?.crate ? 'push' : 'movement';
+    if (!seenLessons.has(kind) && !offeredLessons.has(kind)) showLesson(kind);
   }
 }
 const status = (text: string, error = false) => { el('status').textContent = text; el('status').classList.toggle('error', error); el('status').hidden = text === 'Room connected.' && !!context?.view?.mission && context.view.room.phase !== 'paused' && !error; };
@@ -189,6 +221,15 @@ function apply(next: SessionContext) {
   if (context?.bootId === next.bootId && context.contextVersion > next.contextVersion) return;
   if (context?.bootId === next.bootId && context.view && next.view
       && context.view.room.id === next.view.room.id && context.view.room.roomVersion > next.view.room.roomVersion) return;
+  const previous = context?.view?.mission, mission = next.view?.mission, role = next.view?.self.role;
+  if (previous && mission && role && previous.id === mission.id && previous.planningRevision !== mission.planningRevision) {
+    const own = mission.explanations.find(t => t.startsWith(`${role}: `));
+    if (own?.includes('pushed the crate') && previous.foundry?.crate?.cell !== mission.foundry?.crate?.cell && previous.positions[role] !== mission.positions[role] && !seenLessons.has('push')) { learn('push'); coach('Nice push! Park the crate on its matching dock. Need to pull? Tap Pull or press F.'); }
+    if (own?.includes('pulled the crate') && previous.foundry?.crate?.cell !== mission.foundry?.crate?.cell && previous.positions[role] !== mission.positions[role] && !seenLessons.has('pull')) { learn('pull'); coach('Nice pull! Tap Pull or press F again to return to normal movement.'); }
+    if (own && /closed|block|cannot|Pull needs|Occupied/.test(own) && mission.foundry?.crate) coach(crateFailure(own));
+    if (mission.foundry?.crate && mission.foundry.crate.cell === mission.foundry.crate.target && previous.foundry?.crate?.cell !== mission.foundry.crate.target) coach('✓ Crate parked. Keep it here, then reach both robot exits.');
+  }
+  if (previous?.id !== mission?.id) { crateTip = ''; pullMode = false; }
   context = next; receivedAt = performance.now(); render();
 }
 async function api(path: string, payload?: unknown): Promise<SessionContext> {
@@ -406,6 +447,8 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
     const gateRule = gate ? ` Relay ${gate.relay}. ${gate.kind === 'pressure' ? 'Requires continuous relay power.' : 'Stays open after first entry.'}` : '';
     const adjacentMove = m.foundry!.movement === 'independent' && ['up','left','right','down'].some(d => destination(d as typeof moves[number],m.positions[role],m) === cell);
+    const preview = planning ? crateAction(m, role, cell, pullMode) : null;
+    tile.classList.toggle('crate-action', !!preview);
     tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${crateTarget ? ` Crate parking target. ${cargo ? 'Crate parked; keep it here.' : 'Leave the crate here to complete the room.'}` : ''}${gateRule} ${wall ? 'Impassable.' : adjacentMove ? pullMode ? 'Pull toward this tile.' : 'Move toward this tile.' : 'Point out this tile.'}`);
     // Stable tile nodes preserve focus; only their visual contents change.
     tile.replaceChildren();
@@ -436,7 +479,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = crateTarget ? 'Crate dock' : wall || label === 'Floor' ? '' : gate ? `Gate ${cell}` : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
     if (crateTarget) {
       const marker = document.createElement('span'); marker.className = 'crate-target-label';
-      marker.textContent = cargo ? '✓ Keep here' : 'Park C here'; tile.append(marker);
+      marker.textContent = cargo ? '✓ Crate parked' : 'Park crate here'; tile.append(marker);
     }
     if (gate) {
       const rule = document.createElement('span'); rule.className = 'tile-rule'; rule.textContent = gate.kind === 'pressure' ? 'Hold relay' : 'Stays open'; tile.append(rule);
@@ -448,6 +491,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
       if ((motionUntil.get(`robot-${robot}`) ?? 0) > performance.now()) bot.classList.add('bot-step');
     }
+    if (preview) { const hint = document.createElement('span'); hint.className = 'crate-action-label'; hint.textContent = `${cell > m.positions[role] ? cell - m.positions[role] === board.width ? '↓' : '→' : m.positions[role] - cell === board.width ? '↑' : '←'} ${preview === 'pull' ? 'Pull here' : 'Push'} `; tile.append(hint); }
     if(cargo){const crate=document.createElement('span');crate.className='crate';crate.textContent='C';crate.setAttribute('aria-hidden','true');tile.append(crate);if((motionUntil.get('crate')??0)>performance.now())crate.classList.add('bot-step');}
     tile.classList.toggle('pinged', Object.values(m.signals).some(p => p?.cell === cell));
   }
@@ -482,7 +526,7 @@ function renderMission() {
   el('j1-instructions').hidden = foundry; el('j1-maps').hidden = foundry; el('j1-legend').hidden = foundry;
   el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
   const crateTargetLabel = m.foundry?.crate ? `${m.foundry.gates.some(g=>g.relay===m.foundry!.crate!.target)?'Relay':'Dock'} ${m.foundry.crate.target}` : '';
-  el('objective').textContent = m.foundry?.crate ? `Leave the crate on ${crateTargetLabel}. Reach both exits.` : foundry ? 'Power the path. Reach both exits together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
+  el('objective').textContent = m.foundry?.crate ? m.foundry.crate.cell === m.foundry.crate.target ? '✓ Crate parked. Keep it here; reach both robot exits.' : `Park the crate on ${crateTargetLabel}, then reach both exits.` : foundry ? 'Power the path. Reach both exits together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
   el('mission-title').textContent = m.title;
   el('progress').textContent = independent ? `ROOM ${String(m.foundry!.stage).padStart(2,'0')} / ${String(view.campaign.levels.length).padStart(2,'0')} · ${m.turnsResolved} moves` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
   el('move-heading').textContent = independent ? 'Move your robot' : 'Propose your move';
@@ -562,7 +606,7 @@ window.addEventListener('keydown', event => {
     || el<HTMLDialogElement>('tutorial').open || el<HTMLDialogElement>('game-menu').open
     || (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"]'))) return;
   if(event.key.toLowerCase()==='f' && m.foundry.crate) {
-    event.preventDefault(); if(!event.repeat && !pending && context?.view?.room.phase==='planning' && socket?.readyState===WebSocket.OPEN && !stopped) { pullMode=!pullMode; render(); } return;
+    event.preventDefault(); if(!event.repeat && !pending && context?.view?.room.phase==='planning' && socket?.readyState===WebSocket.OPEN && !stopped) { togglePull(); } return;
   }
   const keys: Record<string, typeof moves[number]> = { arrowup: 'up', w: 'up', arrowdown: 'down', s: 'down', arrowleft: 'left', a: 'left', arrowright: 'right', d: 'right' };
   const direction = keys[event.key.toLowerCase()];
@@ -582,8 +626,8 @@ for (const [id, action] of [['restart-room','restartAgreement'],['cancel-restart
 }
 el('practice').onclick = () => { if (context?.view?.mission) sendAction({ action: 'retryAgreement', missionId: context.view.mission.id }); };
 el('next-room').onclick = () => { if (context?.view?.mission) sendAction({ action: 'nextAgreement', missionId: context.view.mission.id }); };
-el('pull-mode').onclick = () => { pullMode=!pullMode; render(); };
-el('mode-indicator').onclick = () => { pullMode=!pullMode; render(); };
+el('pull-mode').onclick = () => { togglePull(); };
+el('mode-indicator').onclick = () => { togglePull(); };
 el('level-agree').onclick = () => {const v=context?.view;if(v?.mission && v.campaign.target!==null)sendAction({action:'selectLevel',missionId:v.mission.id,levelRevision:v.campaign.revision,stage:v.campaign.target});};
 el('level-cancel').onclick = () => {const v=context?.view;if(v?.mission)sendAction({action:'cancelLevel',missionId:v.mission.id,levelRevision:v.campaign.revision});};
 const menuSections = ['play','controls','room'] as const;
@@ -608,10 +652,13 @@ el('game-menu-open').onclick = el('restart-alert').onclick = () => {
 el('game-menu-close').onclick = () => el<HTMLDialogElement>('game-menu').close();
 el('menu-resume').onclick = () => el<HTMLDialogElement>('game-menu').close();
 el('hide-controls').onclick = () => { hideTeachingArrows(); render(); };
-el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'crate' : 'movement'); };
+el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'push' : 'movement'); };
+el('tutorial-next').onclick = () => showLesson(tutorialKind === 'push' ? 'pull' : 'push');
+el('crate-coach-dismiss').onclick = () => { crateTip = ''; render(); };
 el('tutorial-dismiss').onclick = () => {
-  seenLessons.add(tutorialKind); try { localStorage.setItem(lessonKey(tutorialKind),'seen'); } catch { /* Continue without persistent storage. */ }
-  el<HTMLDialogElement>('tutorial').close();
+  if (tutorialKind === 'movement') learn('movement');
+  else coach(tutorialKind === 'push' ? 'Walk into the crate to push. Its matching dock says “Park crate here”.' : 'Pull is a mode: tap Pull or press F, then step away from the crate.');
+  el<HTMLDialogElement>('tutorial').close(); render();
 };
 el<HTMLDialogElement>('tutorial').addEventListener('cancel', event => { event.preventDefault(); el('tutorial-dismiss').click(); });
 el('create').onclick = () => { void admit('/api/rooms'); };

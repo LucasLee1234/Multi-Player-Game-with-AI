@@ -4,7 +4,8 @@ import { WebSocket } from 'ws';
 import { randomUUID } from 'node:crypto';
 const code = process.argv[2];
 if (!/^[A-Z2-9]{6}$/.test(code ?? '')) throw new Error('Provide a disposable local room code.');
-const origin = 'http://127.0.0.1:3000';
+const origin = process.env.FOUNDRY_TEST_ORIGIN ?? 'http://127.0.0.1:3000';
+if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) throw new Error('The development partner requires a loopback origin.');
 async function post(path, payload, cookie) {
   const r = await fetch(origin + path, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) }, body: JSON.stringify(payload) });
   const data = await r.json(); if (!data.ok) throw new Error(data.error);
