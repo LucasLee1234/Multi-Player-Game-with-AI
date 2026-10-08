@@ -1,4 +1,4 @@
-import { crateAction, crateFailure } from './crate-help.js';
+import { crateAction, crateFailure, pullDirection } from './crate-help.js';
 import type { SessionContext, ServerMessage, Command, MissionView, Role } from '../contracts/lobby.js';
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const messages: Record<string, string> = {
@@ -90,7 +90,7 @@ function showLesson(kind: Lesson) {
   tutorialKind = kind; offeredLessons.add(kind);
   el('tutorial-title').textContent = kind === 'push' ? 'Push the crate' : kind === 'pull' ? 'Pull the crate' : 'Move together';
   el('tutorial-text').textContent = kind === 'push' ? 'Walk into the crate to push it one tile. The space behind it must be clear.'
-    : kind === 'pull' ? 'Stand next to the crate. Press F or tap Pull, then step away with the crate behind you.'
+    : kind === 'pull' ? 'Pull moves straight away from the crate. With the crate on your left, pull RIGHT; UP and DOWN will not work. Turn Pull OFF with F or the button to walk freely.'
     : 'Use arrow keys / WASD, or tap a tile next to your robot to move. Tap a distant tile to point it out. Stand on relays to power your partner’s gates. Staying still is waiting.';
   el('tutorial-demo').hidden = kind === 'movement';
   const before = kind === 'push' ? ['robot','crate','empty'] : ['crate','robot','empty'];
@@ -144,7 +144,9 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   el('restart-alert').hidden = !context?.view?.restart.requestedBy && !context?.view?.campaign.requestedBy;
   el('restart-alert').textContent = context?.view?.campaign.requestedBy ? 'Level switch request' : 'Restart request';
   el('mode-indicator').hidden = !m?.foundry?.crate;
-  el('mode-indicator').textContent = pullMode ? 'Pull ON · F' : 'Pull OFF · F';
+  const pull = m && context?.view ? pullDirection(m, context.view.self.role) : null;
+  el('mode-indicator').textContent = pullMode ? `Pull ON ${pull?.arrow ?? ''} · F` : 'Pull OFF · F';
+  el('mode-indicator').title = pullMode ? pull ? `Pull ${pull.name}, straight away from the crate. Turn OFF to walk in other directions.` : 'Stand next to the crate. Turn Pull OFF to walk freely.' : 'Turn Pull ON to drag a crate. F switches modes.';
   el('mode-indicator').setAttribute('aria-pressed',String(pullMode));
   el<HTMLButtonElement>('mode-indicator').disabled = !context?.view || context.view.room.phase !== 'planning' || socket?.readyState!==WebSocket.OPEN || stopped || !!pending || exitRequested;
   el('crate-coach').hidden = !m?.foundry?.crate || !!m.result || performance.now() >= crateTipUntil || !crateTip;
@@ -226,7 +228,7 @@ function apply(next: SessionContext) {
     const own = mission.explanations.find(t => t.startsWith(`${role}: `));
     if (own?.includes('pushed the crate') && previous.foundry?.crate?.cell !== mission.foundry?.crate?.cell && previous.positions[role] !== mission.positions[role] && !seenLessons.has('push')) { learn('push'); coach('Nice push! Park the crate on its matching dock. Need to pull? Tap Pull or press F.'); }
     if (own?.includes('pulled the crate') && previous.foundry?.crate?.cell !== mission.foundry?.crate?.cell && previous.positions[role] !== mission.positions[role] && !seenLessons.has('pull')) { learn('pull'); coach('Nice pull! Tap Pull or press F again to return to normal movement.'); }
-    if (own && /closed|block|cannot|Pull needs|Occupied/.test(own) && mission.foundry?.crate) coach(crateFailure(own));
+    if (own && /closed|block|cannot|Pull needs|Occupied/.test(own) && mission.foundry?.crate) coach(crateFailure(own, mission, role));
     if (mission.foundry?.crate && mission.foundry.crate.cell === mission.foundry.crate.target && previous.foundry?.crate?.cell !== mission.foundry.crate.target) coach('✓ Crate parked. Keep it here, then reach both robot exits.');
   }
   if (previous?.id !== mission?.id) { crateTip = ''; pullMode = false; }
@@ -449,7 +451,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const adjacentMove = m.foundry!.movement === 'independent' && ['up','left','right','down'].some(d => destination(d as typeof moves[number],m.positions[role],m) === cell);
     const preview = planning ? crateAction(m, role, cell, pullMode) : null;
     tile.classList.toggle('crate-action', !!preview);
-    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${crateTarget ? ` Crate parking target. ${cargo ? 'Crate parked; keep it here.' : 'Leave the crate here to complete the room.'}` : ''}${gateRule} ${wall ? 'Impassable.' : adjacentMove ? pullMode ? 'Pull toward this tile.' : 'Move toward this tile.' : 'Point out this tile.'}`);
+    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${cargo?', Crate':''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${crateTarget ? ` Crate parking target. ${cargo ? 'Crate parked; keep it here.' : 'Leave the crate here to complete the room.'}` : ''}${gateRule} ${wall ? 'Impassable.' : adjacentMove ? preview === 'pull' ? 'Pull toward this tile.' : pullMode ? 'Turn Pull OFF to walk here.' : preview === 'push' ? 'Push the crate toward this tile.' : 'Move toward this tile.' : 'Point out this tile.'}`);
     // Stable tile nodes preserve focus; only their visual contents change.
     tile.replaceChildren();
     const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
@@ -657,7 +659,7 @@ el('tutorial-next').onclick = () => showLesson(tutorialKind === 'push' ? 'pull' 
 el('crate-coach-dismiss').onclick = () => { crateTip = ''; render(); };
 el('tutorial-dismiss').onclick = () => {
   if (tutorialKind === 'movement') learn('movement');
-  else coach(tutorialKind === 'push' ? 'Walk into the crate to push. Its matching dock says “Park crate here”.' : 'Pull is a mode: tap Pull or press F, then step away from the crate.');
+  else coach(tutorialKind === 'push' ? 'Walk into the crate to push. Its matching dock says “Park crate here”.' : 'Crate on your left? Pull RIGHT. Turn Pull OFF (F or the button) to walk UP, DOWN or toward the crate.');
   el<HTMLDialogElement>('tutorial').close(); render();
 };
 el<HTMLDialogElement>('tutorial').addEventListener('cancel', event => { event.preventDefault(); el('tutorial-dismiss').click(); });

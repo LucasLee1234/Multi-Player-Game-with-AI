@@ -14,8 +14,22 @@ export function crateAction(m: MissionView, role: Role, destination: number, pul
   return destination === c.cell && adjacent(c.cell, cargo) && enter(cargo) && cargo !== partner ? 'push' : null;
 }
 
-export function crateFailure(reason: string): string {
-  if (reason.includes('Pull needs')) return 'Stand next to the crate, switch to Pull, then step away from it.';
+export function pullDirection(m: MissionView, role: Role): { name: string; arrow: string } | null {
+  const b = m.foundry, crate = b?.crate;
+  if (!b || !crate) return null;
+  const from = m.positions[role], dx = from % b.width - crate.cell % b.width;
+  const dy = Math.floor(from / b.width) - Math.floor(crate.cell / b.width);
+  if (Math.abs(dx) + Math.abs(dy) !== 1) return null;
+  return dx === 1 ? { name: 'right', arrow: '→' } : dx === -1 ? { name: 'left', arrow: '←' }
+    : dy === 1 ? { name: 'down', arrow: '↓' } : { name: 'up', arrow: '↑' };
+}
+
+export function crateFailure(reason: string, m?: MissionView, role?: Role): string {
+  if (reason.includes('Pull needs')) {
+    const direction = m && role ? pullDirection(m, role) : null;
+    return direction ? `Pull ${direction.name} ${direction.arrow}, straight away from the crate. Turn Pull OFF (F or the button) to walk in another direction.`
+      : 'Stand next to the crate first. Turn Pull OFF (F or the button) to walk, then switch it ON and step away from the crate.';
+  }
   if (reason.includes('wall or off')) return 'No space behind the crate. Stand on another side, or use Pull.';
   if (reason.includes('closed')) return 'The gate is closed. Ask your partner to power its relay.';
   if (reason.includes('blocking') || reason.includes('Occupied')) return 'Your partner is in the way. Ask them to make room.';

@@ -29,3 +29,14 @@ Ask a new player to attempt a crate room without verbal coaching. Observe whethe
 ## Release boundary
 
 These changes are source/local-development improvements. The immutable v1.0.0 image and deployed Azure app are not replaced by editing the repository. Publish a new versioned image and deploy it explicitly after acceptance; do not overwrite the existing v1.0.0 release or its digest.
+
+## Follow-up: visible control and straight-away pulling
+
+Player feedback identified two remaining issues: the fixed bottom Pull button was easy to miss, and players expected to walk sideways while Pull was active.
+
+- Moved the Pull control into the mission toolbar above the board, next to room progress. Removed the obsolete bottom-control space reservation.
+- Pull ON now displays the geometric direction arrow when the robot is adjacent to the crate. This direction still requires a clear, powered destination; legal actions remain highlighted separately.
+- The lesson explicitly explains that a crate on the robot's left can only be pulled right. Up/down movement requires turning Pull OFF with F or the visible button.
+- A failed pull now names the current straight-away direction, or tells a nonadjacent player to switch OFF and approach the crate. Accessible tile labels no longer describe illegal pulls as available actions.
+- 79 regressions passed, including all four correction directions and row-boundary rejection. Browser validation reproduced crate-left/robot-right, verified the right arrow and failed-up correction, and confirmed upward walking succeeds after switching Pull OFF.
+- At 390x844 the Pull control started at y=99; at 844x390 it started at y=88. Neither viewport had page overflow. [Mobile control and correction evidence](pull-control-preview.png).

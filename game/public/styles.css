@@ -343,8 +343,9 @@ body.single-screen { height: 100dvh; padding: 8px; overflow: hidden; }
 .single-screen #resolution { width: 100%; margin: 0; padding: 0; border: 0; height: 36px; min-height: 36px; overflow: hidden; font-size: 11px; line-height: 18px; }
 .single-screen #status:not([hidden]) { margin: 0; padding: 6px; font-size: 11px; max-height: 54px; overflow: auto; }
 #game-menu-open { position: fixed; top: 20px; left: max(24px,calc((100vw - 760px)/2 + 24px)); z-index: 3; width: 40px; min-height: 40px; height: 40px; margin: 0; padding: 0; font-size: 20px; }
-#restart-alert, #mode-indicator { position: fixed; bottom: 12px; z-index: 3; width: auto; min-height: 40px; margin: 0; padding: 6px 12px; font-size: 11px; }
-#restart-alert { right: 16px; } #mode-indicator { left: 16px; }
+#restart-alert { position: fixed; bottom: 12px; right: 16px; z-index: 3; width: auto; min-height: 40px; margin: 0; padding: 6px 12px; font-size: 11px; }
+.mission-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#mode-indicator { flex-shrink: 0; width: auto; min-height: 40px; margin: 0; padding: 6px 12px; font-size: 11px; }
 dialog { width: min(calc(100% - 24px),440px); max-height: calc(100dvh - 24px); overflow: auto; border: 1px solid #d2dece; border-radius: 18px; background: #fffef9; color: #284e42; padding: 20px; box-shadow: 0 20px 80px #234e4340; }
 dialog::backdrop { background: #173e3459; }
 dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
@@ -385,7 +386,6 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
 #level-buttons button { text-align: left; margin: 3px 0; min-height: 44px; font-size: 12px; }
 #level-buttons button.level-completed { background: #e2f0dc; border-color: #80ac76; color: #326b3d; }
 #level-status { font-size: 11px; }
-.single-screen.has-cargo #resolution { margin-bottom: 40px; }
 #mode-indicator[aria-pressed="true"] { background: #e0edf2; border-color: #729aaa; color: #345f73; }
 /* Short crate lessons and contextual cues stay out of the board layout. */
 #crate-coach { position: fixed; bottom: 58px; left: 50%; transform: translateX(-50%); z-index: 3; width: min(440px,calc(100% - 32px)); padding: 8px 12px; border: 1px solid #c7d9bd; border-radius: 12px; background: #fffef5; box-shadow: 0 4px 18px #234e4320; font-size: 12px; display: flex; align-items: center; gap: 8px; }

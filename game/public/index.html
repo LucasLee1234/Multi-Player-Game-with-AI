@@ -88,7 +88,7 @@
     <section id="game" hidden aria-label="Cooperative mission">
       <div class="mission-heading"><h2 id="mission-title"></h2><span id="foundry-self"></span></div>
       <p id="objective"><strong>Bring both robots to their own exits together.</strong></p>
-      <p id="progress"></p>
+      <div class="mission-tools"><p id="progress"></p><button id="mode-indicator" class="secondary" hidden>Pull OFF · F</button></div>
       <details id="j1-instructions"><summary>How to play</summary>
         <ol><li>Your route shows your own Safe, Danger, and Unknown cells. You can see the partner's full danger layer.</li>
         <li>Select a cell on the partner's map to send one truthful signal per turn. Each robot has exactly two hazards; learning both lets you deduce other cells are safe.</li>
@@ -138,7 +138,6 @@
 </main>
 <button id="game-menu-open" class="secondary" hidden aria-label="Open game menu" aria-haspopup="dialog">☰</button>
 <button id="restart-alert" hidden>Restart request</button>
-<button id="mode-indicator" class="secondary" hidden>Pull active · switch to Move</button>
 <div id="crate-coach" hidden role="status"><span id="crate-coach-text"></span><button id="crate-coach-dismiss" class="secondary" aria-label="Hide crate tip">×</button></div>
 <dialog id="game-menu" aria-labelledby="menu-title">
   <div class="overlay-heading"><h2 id="menu-title">Menu</h2><button id="game-menu-close" class="secondary" aria-label="Close menu">×</button></div>
