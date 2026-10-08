@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { foundryAdventure, tradePlaces } from '../src/content/missions.js';
+import { twoRoomAdventure, tradePlaces } from '../src/content/missions.js';
 import { newMission, moveFoundry, project, type Mission } from '../src/rules/joint-exit.js';
 import { Store, type Channel } from '../src/server/store.js';
 import type { Command, Role, ServerMessage } from '../src/contracts/lobby.js';
@@ -57,7 +57,7 @@ test('actual shared-passage rules: 220 reachable states, shortest 16 steps, all 
   console.log(`Shared-passage rule audit: ${states.size} states, ${requests} directional requests, all recoverable; shortest 16 steps.`);
 });
 function setup() {
-  const store=new Store(undefined,{},foundryAdventure), sessions={A:store.bootstrap().session,B:store.bootstrap().session};
+  const store=new Store(undefined,{},twoRoomAdventure), sessions={A:store.bootstrap().session,B:store.bootstrap().session};
   const created=store.admit(sessions.A,{requestId:'shared_create',expectedContextVersion:0},'create');
   store.admit(sessions.B,{requestId:'shared_join',expectedContextVersion:0,code:created.view!.room.code},'join');
   const messages={A:[] as ServerMessage[],B:[] as ServerMessage[]};

@@ -4,6 +4,7 @@ export interface FactoryDefinition {
   starts: { A: number; B: number }; exits: { A: number; B: number };
   gates: readonly { cell: number; relay: number; kind: 'latching' | 'pressure' }[];
   hint: string;
+  crate?: { start: number; target: number };
 }
 export interface MissionDefinition {
   title: string; mode?: 'foundry'; independent?: boolean; hazards: { A: readonly number[]; B: readonly number[] };
@@ -23,4 +24,11 @@ export const tradePlaces: MissionDefinition = {
     gates: [{ cell: 2, relay: 6, kind: 'latching' }, { cell: 11, relay: 8, kind: 'pressure' }],
     hint: 'Share the passages. Hold Relay 8 for Gate 11, or use Relay 6 to latch Gate 2. Make room for your partner.' }
 };
-export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: tradePlaces };
+export const keepPowerOn: MissionDefinition = {
+  title: 'Keep the Power On', mode: 'foundry', independent: true, stage: 3, hazards: { A: [], B: [] },
+  factory: { ...tradePlaces.factory!, walls: [5,7], crate: { start: 12, target: 8 },
+    hint: 'Push by walking into the crate. Select Pull, then step away with the crate behind you. Leave it on Relay 8 and reach both exits.' }
+};
+export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: keepPowerOn } };
+// Frozen two-room profile for the earlier SF-02 regression contracts.
+export const twoRoomAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: tradePlaces };

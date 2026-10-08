@@ -4,11 +4,11 @@ import { randomUUID } from 'node:crypto';
 import { WebSocket } from 'ws';
 import { createApplication } from '../src/server/app.js';
 import { Store } from '../src/server/store.js';
-import { twoRoomAdventure } from '../src/content/missions.js';
+import { keepPowerOn } from '../src/content/missions.js';
 import type { LobbyView, ServerMessage, Role } from '../src/contracts/lobby.js';
 
-test('two wire seats agree on progression, share the pressure gate, complete and retry the current room', async t => {
-  const app=await createApplication({store:new Store(undefined,{},twoRoomAdventure)});t.after(()=>app.close());
+test('two wire seats share atomic crate moves and complete sustained extraction', async t => {
+  const app=await createApplication({store:new Store(undefined,{},keepPowerOn)});t.after(()=>app.close());
   async function post(path:string,body:unknown,cookie?:string) {
     const r=await fetch(app.origin+path,{method:'POST',headers:{Origin:app.origin,'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(body)});
     assert.equal(r.status,200);return {data:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0]};
@@ -37,19 +37,21 @@ test('two wire seats agree on progression, share the pressure gate, complete and
   const seats={A:client(a.cookie!),B:client(b.cookie!)};
   await Promise.all(Object.values(seats).map(c=>c.until(()=>!!c.view()?.mission)));
   async function sync(){const v=Math.max(...Object.values(seats).map(c=>c.view().room.roomVersion));await Promise.all(Object.values(seats).map(c=>c.until(()=>c.view().room.roomVersion===v)));}
-  async function move(r:Role,c:number){await seats[r].send({action:'move',from:seats[r].view().mission!.positions[r],destination:c});await sync();}
-  for(const [r,c] of [['A',1],['A',2],['B',9],['B',10],['B',11],['A',3]] as [Role,number][])await move(r,c);
-  const first=seats.A.view().mission!.id;
-  await seats.A.send({action:'nextAgreement'});await sync();await seats.B.send({action:'retryAgreement'});await sync();
-  assert.equal(seats.A.view().mission!.id,first);assert.deepEqual(seats.B.view().mission!.foundry!.choices,{A:'next',B:'retry'});
-  const next=await seats.B.send({action:'nextAgreement'});await sync();const second=seats.A.view().mission!.id;
-  assert.notEqual(second,first);assert.equal(seats.B.view().mission!.foundry!.width,5);
-  seats.B.ws.send(JSON.stringify(next));await seats.A.send({action:'ping',cell:8});await sync();assert.equal(seats.B.view().mission!.id,second);
-  const route:[Role,number][]=[['A',1],['B',13],['A',6],['B',8],['A',11],['A',12],['B',13],['B',14],['A',13],['A',8],['B',13],['B',12],['B',11],['A',3],['A',4],['B',10]];
-  for(const [r,c] of route){await move(r,c);assert.equal(seats.A.view().mission!.positions[r],c);}
-  assert.deepEqual(seats.A.view().mission,seats.B.view().mission);assert.equal(seats.A.view().mission!.turnsResolved,16);
-  assert.equal(seats.A.view().mission!.result,'success');assert.equal(seats.A.view().mission!.foundry!.nextTitle,null);
+  async function move(r:Role,c:number,kind:'move'|'pull'='move'){
+    const m=seats[r].view().mission!;
+    await seats[r].send({action:'crateMove',from:m.positions[r],crateFrom:m.foundry!.crate!.cell,destination:c,kind});await sync();
+    assert.deepEqual(seats.A.view().mission,seats.B.view().mission);
+  }
+  const route:[Role,number,'move'|'pull'][]=[['A',1,'move'],['A',6,'move'],['B',13,'move'],['B',14,'pull'],['B',9,'move'],['B',8,'move'],['B',3,'pull'],['B',2,'move'],['A',1,'move'],['A',0,'move'],['B',1,'move'],['B',6,'move'],['A',1,'move'],['A',2,'move'],['A',3,'move'],['A',4,'move'],['B',11,'move'],['B',10,'move']];
+  for(const [r,c,k] of route)await move(r,c,k);
+  assert.equal(seats.A.view().mission!.turnsResolved,18);
+  assert.equal(seats.A.view().mission!.result,'success');
+  assert.equal(seats.A.view().mission!.foundry!.crate!.cell,8);
+  assert.equal(seats.B.view().mission!.foundry!.gates[1]!.powered,true);
+  assert.equal(seats.A.view().mission!.foundry!.nextTitle,null);
   await seats.A.send({action:'retryAgreement'});await sync();await seats.B.send({action:'retryAgreement'});await sync();
-  assert.equal(seats.A.view().mission!.title,'Trade Places');assert.equal(seats.B.view().mission!.turnsResolved,0);
-  assert.deepEqual(seats.A.view().mission!.positions,{A:0,B:14});assert.deepEqual(seats.A.view().mission!.signals,{A:null,B:null});
+  assert.equal(seats.A.view().mission!.title,'Keep the Power On');
+  assert.equal(seats.B.view().mission!.turnsResolved,0);
+  assert.deepEqual(seats.A.view().mission!.positions,{A:0,B:14});
+  assert.equal(seats.A.view().mission!.foundry!.crate!.cell,12);
 });

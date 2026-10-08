@@ -3,9 +3,9 @@
 Updated: October 8, 2026
 Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
-Primary next task: SF-03 crate Push/Pull and sustained power, using the independent control contract; retain actual phone/public and two-human inspection requirements
+Primary next task: SF-04 first-time partner inspection of the three-room campaign, including crate Push/Pull clarity; retain actual phone/public requirements
 
-Current control baseline: direct independent movement, automatic start and idle waiting. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts. SF-02 is implemented in [shared-passage-implementation.md](shared-passage-implementation.md): First Connection leads to Trade Places through matching next-room choices; pressure gates and authored geometry are verified. Sixty-one regression tests pass. SF-03 remains unimplemented.
+Current control baseline: direct independent movement, automatic start and idle waiting. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts. SF-02 is implemented in [shared-passage-implementation.md](shared-passage-implementation.md): First Connection leads to Trade Places through matching next-room choices; pressure gates and authored geometry are verified. Sixty-seven regression tests pass. SF-03 adds Keep the Power On after Trade Places: [crate-implementation.md](crate-implementation.md).
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
@@ -42,7 +42,7 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | SF-02 | P1 | DONE | Authored geometry, SF-M2 shared passages/pressure gate and mutually selected progression; 220 actual-engine states all recoverable, both routes tested, 61 regressions and narrow/browser completion checked | SF-D02; participant continuation | SR-03 to SR-08 |
 | UI-01 | P1 | DONE | Compact map-first interface, expandable room/help, accessible arrow pad and CSS feedback; 61 regressions and desktop/narrow scripted inspection | Participant simple-UI request | SR-08 |
 | UI-02 | P1 | DONE | Gate tiles expose relay ID, persistent/hold behavior and current state; locked-open inspection explains relay no longer needed; compile and browser/narrow checks passed | Participant gate confusion | SR-08 |
-| SF-03 | P1 | TODO | Add one crate with explicit Push/Pull and sustained-power completion; implement SF-M3 and verify recovery/reset/transport conflicts | SF-02 | SR-03 to SR-08 |
+| SF-03 | P1 | DONE | Add one crate with explicit Push/Pull and sustained-power completion; implement SF-M3 and verify recovery/reset/transport conflicts | SF-02 | SR-03 to SR-08 |
 | SYS-03 | P1 | TODO | Observe first-time SF-T1 understanding and inspect actual phone controls; adjust onboarding/interaction to concrete confusion | SF-01; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
 | TECH-01 | P0 | TODO | Confirm Azure balance/expiry/access; select and cost a small deployment route, including review-window operation | Participant account access | SR-09 |
 | TECH-02 | P0 | TODO | Establish source control/runtime and deploy one playable interaction on two devices with correct private views | GP-01, TECH-01; provisional rules clearly labeled | SR-01, SR-02, SR-05, SR-09 |
@@ -100,3 +100,7 @@ P0 denotes importance, not a requirement to finish every P0 before any independe
 | Oct 6, 2026 | SYS-02 coding cycle | Implemented J1-C1 asymmetric mission and synchronized turns, filtered views, mutual start/retry, outcomes and phase-preserving recovery | `test-evidence.md` SYS-02: 36 tests passed; browser A plus scripted B completed seven-turn/zero-strike witness; final signal-to-confirm flow checked; no human/mobile/public claim | Human two-context inspection, SYS-03 teaching/phone work; TECH-01 Azure account/cost; no GitHub remote |
 
 | Oct 7, 2026 | SF-02 short cycle | Generalized factory geometry; implemented Trade Places, pressure gates and matched next-room/retry choices | 61 passing tests; 220 actual states all recoverable; scripted browser progression, 16-step completion, retry and narrow layout | SF-03 crate transport; human/phone/public proof remains open |
+
+| Oct 8, 2026 | SF-03 short cycle | Implemented third room, atomic Push/Pull, crate relay power and three-part extraction objective | 67 passing tests; 2,496 actual states all recoverable; 18-step minimum; three-room browser progression, 22-step crate completion, replay and narrow layout with scripted B | SF-04 first-time partner/phone inspection; public deployment prerequisites |
+
+SF-03 local completion authority: [crate-implementation.md](crate-implementation.md). Scripted browser evidence does not close G2/G3. The next cycle should test whether first-time players understand Pull and sustained power before expanding mechanics.

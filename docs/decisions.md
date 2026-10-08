@@ -199,3 +199,11 @@ Date: October 7, 2026. Status: Participant requested continuing work after indep
 - First Connection leads to Trade Places through matching Next choices. Retry/Next mismatch waits and can be revised; current-room Retry does not return to the tutorial. Disconnect clears consent, and cached replay cannot restore it.
 - Actual engine: 220 reachable states, 876 directional requests, all recoverable; southern/northern routes complete in 16/18 steps. Full suite: 61 passes. Browser progression/completion/retry and 390-pixel emulation checked with scripted B, not independent human evidence.
 - Authority: [shared-passage-implementation.md](shared-passage-implementation.md). No public deployment, cloud spending, runtime AI or GitHub push.
+
+## DEC-014 - Implement the bounded crate room
+
+Date: October 8, 2026. Status: Participant requested continuing programming; SF-03 implemented locally.
+
+Add Keep the Power On after Trade Places, with one crate, explicit Pull toggle, walk-to-Push, service bay 9 and sustained target-relay extraction. Preserve independent controls, implicit waiting and simple map-focused UI. Ordered server commands atomically commit robot/crate positions; own from and crateFrom guard stale requests while partner walking remains independent. Exactly two humans remain the product scope; the development wire partner is testing only.
+
+Actual engine: 2,496 states, 23,300 accepted directional requests, all recoverable, shortest 18 successful moves. All 67 regressions pass. Browser inspection completed all three rooms, crate Pull/delivery, 22-move extraction, replay and narrow layout. Next: first-time partner and actual phone/public proof; no new mechanic, runtime AI, cloud spending or GitHub push in this cycle. Authority: [crate-implementation.md](crate-implementation.md).

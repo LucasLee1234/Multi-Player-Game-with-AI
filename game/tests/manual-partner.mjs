@@ -35,6 +35,16 @@ function drive() {
   const base = { missionId: m.id, turn: m.turn, planningRevision: m.planningRevision };
   if (m.foundry?.movement === 'independent') {
     const from = m.positions.B;
+    if (m.foundry.stage === 3) {
+      const route = [{cell:9},{cell:8},{cell:3},{cell:2,a:6},{cell:1},{cell:0},{cell:1,cargo:8},{cell:6,cargo:8},{cell:11,cargo:8},{cell:10,cargo:8}];
+      while (route[step]?.cell === from) step++;
+      const target = route[step];
+      if (target && (target.a === undefined || m.positions.A === target.a)
+          && (target.cargo === undefined || m.foundry.crate.cell === target.cargo)) {
+        send({ action: 'crateMove', missionId: m.id, from, crateFrom: m.foundry.crate.cell, destination: target.cell, kind: 'move' });
+      }
+      return;
+    }
     if (m.foundry.stage === 2) {
       const route = [{cell:13},{cell:8,a:6},{cell:13,a:12},{cell:14,a:12},{cell:13,a:8},{cell:12,a:8},{cell:11,a:8},{cell:10,a:3}];
       while (route[step]?.cell === from) step++;

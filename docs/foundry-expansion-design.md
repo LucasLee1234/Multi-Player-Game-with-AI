@@ -4,7 +4,7 @@ Date: October 7, 2026
 Version: Expansion research E1
 
 Control update, October 7: the participant requested independent movement. [independent-movement-spec.md](independent-movement-spec.md) overrides the confirmation/turn assumptions below. An ordered, single-action re-audit found no unrecoverable state in either room, with shortest routes of 16/18 individual steps: [new evidence](foundry-independent-expansion-validation.json). The nine/eleven-turn witnesses below remain historical simultaneous examples. Do not add Ready to the future expansion or treat two simultaneous crate requests as its new resolution model.
-Implementation update, October 7: SF-M2 is now playable after First Connection. [SF-02 implementation](shared-passage-implementation.md) is the active shared-room contract; its actual TypeScript search matches 220 reachable states, all recoverable, shortest 16 individual steps. Sixty-one regressions and scripted-partner browser inspection passed. SF-M3 remains a research proposal. Earlier simultaneous tables below are historical model evidence.
+Implementation update, October 7: SF-M2 is now playable after First Connection. [SF-02 implementation](shared-passage-implementation.md) is the active shared-room contract; its actual TypeScript search matches 220 reachable states, all recoverable, shortest 16 individual steps. Sixty-one regressions and scripted-partner browser inspection passed. SF-M3 was subsequently implemented on October 8: [crate implementation](crate-implementation.md). Actual ordered rules have 2,496 recoverable states and an 18-step minimum; 67 regressions and scripted browser delivery/retry/narrow checks passed. Earlier simultaneous tables below are historical model evidence.
 
 ## 1. Feedback and intended outcome
 

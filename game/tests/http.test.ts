@@ -77,8 +77,15 @@ test('oversized WebSocket frame closes without mutating a seat', async t => {
   await new Promise<void>(resolve => ws.once('message', () => resolve()));
   const closed = new Promise<number>(resolve => ws.once('close', code => resolve(code)));
   ws.send('x'.repeat(9000)); assert.equal(await closed, 1009);
-  const response = await fetch(app.origin + '/api/session', { headers: { Cookie: cookie } });
-  const { context } = await response.json() as { context: SessionContext };
+  // Client close can precede the server's close handler; await its observable lifecycle result.
+  const deadline = Date.now() + 2000;
+  let context: SessionContext;
+  do {
+    const response = await fetch(app.origin + '/api/session', { headers: { Cookie: cookie } });
+    ({ context } = await response.json() as { context: SessionContext });
+    if (context.view!.room.phase === 'paused') break;
+    await new Promise(resolve => setTimeout(resolve, 10));
+  } while (Date.now() < deadline);
   assert.equal(context.view!.self.nextCommandSequence, 1); assert.equal(context.view!.room.phase, 'paused');
 });
 

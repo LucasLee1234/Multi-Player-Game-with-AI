@@ -7,6 +7,7 @@ export interface Mission {
   ready: Record<Role, boolean>; signals: MissionView['signals']; knowledge: Record<Role, Knowledge[]>;
   result: MissionView['result']; explanations: string[]; retryAgreements: Record<Role, boolean>;
   latchedGates: number[];
+  crate: number | null;
   choices: Record<Role, 'retry' | 'next' | null>;
 }
 const roles = ['A', 'B'] as const;
@@ -23,10 +24,11 @@ export function newMission(id: string, definition: MissionDefinition): Mission {
       || new Set(f.walls).size !== f.walls.length || f.walls.some(c => !Number.isInteger(c) || c < 0 || c >= f.width * f.height)
       || !roles.every(r => validCell(f.starts[r]) && validCell(f.exits[r])) || f.starts.A === f.starts.B || f.exits.A === f.exits.B
       || new Set(f.gates.map(g => g.cell)).size !== f.gates.length
-      || f.gates.some(g => !validCell(g.cell) || !validCell(g.relay) || g.cell === g.relay || !['latching', 'pressure'].includes(g.kind))) throw new Error('Invalid authored factory');
+      || f.gates.some(g => !validCell(g.cell) || !validCell(g.relay) || g.cell === g.relay || !['latching', 'pressure'].includes(g.kind))
+      || (f.crate && (!definition.independent || !validCell(f.crate.start) || !validCell(f.crate.target) || roles.some(r=>f.starts[r]===f.crate!.start)))) throw new Error('Invalid authored factory');
     return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
     positions: { ...f.starts }, proposals: { ...f.starts }, planningRevision: 0, ready: { A: false, B: false },
-    signals: { A: null, B: null }, knowledge: { A: [], B: [] }, latchedGates: [], result: null,
+    signals: { A: null, B: null }, knowledge: { A: [], B: [] }, latchedGates: [], crate: f.crate?.start ?? null, result: null,
     explanations: [f.hint], retryAgreements: { A: false, B: false }, choices: { A: null, B: null } };
   }
   for (const role of roles) {
@@ -37,7 +39,7 @@ export function newMission(id: string, definition: MissionDefinition): Mission {
   return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
     positions: { A: 3, B: 5 }, proposals: { A: 3, B: 5 }, planningRevision: 0,
     ready: { A: false, B: false }, signals: { A: null, B: null }, knowledge: { A: known(), B: known() },
-    result: null, explanations: [], latchedGates: [], retryAgreements: { A: false, B: false }, choices: { A: null, B: null } };
+    result: null, explanations: [], latchedGates: [], crate: null, retryAgreements: { A: false, B: false }, choices: { A: null, B: null } };
 }
 function learn(m: Mission, role: Role, cell: number, safety: 'Safe' | 'Danger', source: NonNullable<Knowledge>['source']) {
   if (!m.knowledge[role][cell]) m.knowledge[role][cell] = { safety, source };
@@ -79,9 +81,11 @@ export function ready(m: Mission, role: Role): Mission {
   return next.ready.A && next.ready.B ? resolve(next) : next;
 }
 /** One authorized seat moves immediately; the other robot remains in place. */
-export function moveFoundry(m: Mission, role: Role, destination: number): Mission {
+export function moveFoundry(m: Mission, role: Role, destination: number, kind: 'move' | 'pull' = 'move'): Mission {
   if (!isFoundry(m) || !m.definition.independent) throw new RuleFault('INVALID_INPUT');
   const planned = propose(m, role, destination); // Validates geometry and terminal state.
+  if (m.crate !== null) return moveCargo(planned, role, destination, kind);
+  if (kind !== 'move') throw new RuleFault('INVALID_INPUT');
   if (destination === m.positions[role]) return m;
   const intent = structuredClone(planned);
   intent.proposals = { ...m.positions, [role]: destination };
@@ -90,6 +94,40 @@ export function moveFoundry(m: Mission, role: Role, destination: number): Missio
   // Display successful individual steps, not idle time or blocked requests.
   if (next.positions[role] === m.positions[role]) { next.turnsResolved = m.turnsResolved; next.turn = m.turn; }
   return next;
+}
+/** One atomic robot/crate transaction; partner occupancy and power use current state. */
+function moveCargo(m: Mission, role: Role, destination: number, kind: 'move' | 'pull'): Mission {
+  if (!['move','pull'].includes(kind)) throw new RuleFault('INVALID_INPUT');
+  const f=factory(m), from=m.positions[role], crate=m.crate!, next=structuredClone(m);
+  next.explanations=[];next.proposals={...m.positions};
+  const adjacent=(a:number,b:number)=>floor(m,b) && Math.abs(a%f.width-b%f.width)+Math.abs(Math.floor(a/f.width)-Math.floor(b/f.width))===1;
+  const enter=(cell:number)=> {
+    const gate=f.gates.find(g=>g.cell===cell);
+    return !gate || (gate.kind==='latching' && m.latchedGates.includes(cell)) || m.crate===gate.relay || roles.some(r=>m.positions[r]===gate.relay);
+  };
+  const blocked=(reason:string)=>{next.explanations=[`${role}: ${reason}`];revision(next);return next;};
+  if(destination===from)return kind==='move'?m:blocked('Pull needs a step away from the crate.');
+  let cargo=crate;
+  if(kind==='pull') {
+    if(2*from-destination!==crate || !adjacent(from,crate))return blocked('Pull needs the crate directly behind you.');
+    if(!enter(from))return blocked('The crate cannot enter a closed gate.');
+    cargo=from;
+  } else if(destination===crate) {
+    cargo=2*crate-from;
+    if(!adjacent(crate,cargo))return blocked('The crate cannot be pushed into a wall or off the map.');
+    if(roles.some(r=>m.positions[r]===cargo))return blocked('Your partner is blocking the crate.');
+    if(!enter(cargo))return blocked('The crate cannot enter a closed gate.');
+  }
+  if(!enter(destination))return blocked('Gate is closed. Power its relay before entering.');
+  if(destination===m.positions[partner(role)] || destination===cargo || cargo===m.positions[partner(role)])return blocked('Occupied space blocks movement. Make room for each other.');
+  next.positions[role]=destination;next.crate=cargo;next.proposals={...next.positions};
+  for(const gate of f.gates)if(gate.kind==='latching' && !next.latchedGates.includes(gate.cell)
+    && (destination===gate.cell || (cargo!==crate && cargo===gate.cell)))next.latchedGates.push(gate.cell);
+  next.turnsResolved++;next.turn++;
+  next.result=roles.every(r=>next.positions[r]===f.exits[r]) && cargo===f.crate!.target?'success':null;
+  next.explanations=[`${role}: ${cargo===crate?`moved to ${destination}`:`${kind==='pull'?'pulled':'pushed'} the crate to ${cargo}`}.`];
+  if(cargo===f.crate!.target)next.explanations.push(`Crate powers Relay ${cargo}. Keep it there for extraction.`);
+  revision(next);return next;
 }
 /** Pure transition: hazards, then overlap/swap, then failure/joint exit/turn limit. */
 export function resolve(m: Mission): Mission {
@@ -165,14 +203,14 @@ export function clearAgreement(m: Mission): Mission {
 export function project(m: Mission, role: Role): MissionView {
   if (isFoundry(m)) {
     const f = factory(m);
-    return { id: m.id, ruleVersion: m.definition.factory ? 'SF-M2-v1' : m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
+    return { id: m.id, ruleVersion: f.crate ? 'SF-M3-v1' : m.definition.factory ? 'SF-M2-v1' : m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
     turnsResolved: m.turnsResolved, strikes: 0, positions: { ...m.positions }, exits: { ...f.exits },
     proposals: { ...m.proposals }, planningRevision: m.planningRevision, ready: { ...m.ready },
     signals: structuredClone(m.signals), ownKnownCells: [], partnerHazards: [], result: m.result,
     explanations: [...m.explanations], retryAgreements: { ...m.retryAgreements },
     foundry: { width: f.width, height: f.height, walls: [...f.walls], movement: m.definition.independent ? 'independent' : 'confirmed',
-      stage: m.definition.stage ?? 1, hint: f.hint, nextTitle: m.definition.nextMission?.title ?? null, choices: { ...m.choices }, gates: f.gates.map(g => {
-      const powered = roles.some(r => m.positions[r] === g.relay), latched = g.kind === 'latching' && m.latchedGates.includes(g.cell);
+      stage: m.definition.stage ?? 1, hint: f.hint, nextTitle: m.definition.nextMission?.title ?? null, choices: { ...m.choices }, crate: f.crate ? {cell:m.crate!,target:f.crate.target}:null, gates: f.gates.map(g => {
+      const powered = m.crate===g.relay || roles.some(r => m.positions[r] === g.relay), latched = g.kind === 'latching' && m.latchedGates.includes(g.cell);
       return { ...g, powered, latched, open: powered || latched };
     }) } };
   }

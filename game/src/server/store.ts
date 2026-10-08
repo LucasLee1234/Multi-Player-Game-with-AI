@@ -42,6 +42,7 @@ function command(value: unknown): Command {
   const action = (value as Record<string, unknown>).action;
   const extras: Record<string, string[]> = { leave: [], startAgreement: ['lobbyRevision'],
     move: ['missionId', 'from', 'destination'], ping: ['missionId', 'cell'],
+    crateMove: ['missionId', 'from', 'crateFrom', 'destination', 'kind'],
     propose: ['missionId', 'turn', 'planningRevision', 'destination'], signal: ['missionId', 'turn', 'planningRevision', 'cell'],
     ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'], nextAgreement: ['missionId'] };
   if (typeof action !== 'string' || !Object.hasOwn(extras, action)) throw new Fault('INVALID_INPUT');
@@ -53,6 +54,8 @@ function command(value: unknown): Command {
   for (const key of extras[action]!) {
     if (key === 'missionId') {
       if (typeof value[key] !== 'string' || value[key].length > 80) throw new Fault('INVALID_INPUT');
+    } else if (key === 'kind') {
+      if (value[key] !== 'move' && value[key] !== 'pull') throw new Fault('INVALID_INPUT');
     } else if (!Number.isSafeInteger(value[key]) || (value[key] as number) < 0) throw new Fault('INVALID_INPUT');
   }
   return value as unknown as Command;
@@ -61,7 +64,7 @@ function command(value: unknown): Command {
 /** All mutations are synchronous on one Node event loop: no await inside this store. */
 export class Store {
   readonly bootId = randomUUID();
-  get releaseId() { return this.definition.nextMission ? 'sys-05-shared-passage' : this.definition.independent ? 'sys-04-free-move' : this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
+  get releaseId() { return this.definition.nextMission?.nextMission ? 'sys-06-crate' : this.definition.nextMission ? 'sys-05-shared-passage' : this.definition.independent ? 'sys-04-free-move' : this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
   readonly limits: Limits;
   private sessions = new Map<string, Session>();
   private rooms = new Map<string, Room>();
@@ -274,10 +277,16 @@ export class Store {
       return;
     }
     if (room.phase !== 'planning') throw new Fault('NOT_PLANNING', 409);
-    if (input.action === 'move' || input.action === 'ping') {
+    if (input.action === 'move' || input.action === 'ping' || input.action === 'crateMove') {
       if (!mission.definition.independent) throw new Fault('INVALID_INPUT');
       if (input.action === 'move' && input.from !== mission.positions[role]) throw new Fault('STALE_POSITION', 409);
-      room.mission = input.action === 'move' ? moveFoundry(mission, role, input.destination) : signal(mission, role, input.cell);
+      if (input.action === 'move' && mission.crate !== null) throw new Fault('INVALID_INPUT');
+      if (input.action === 'crateMove') {
+        if (mission.crate===null || !['move','pull'].includes(input.kind)) throw new Fault('INVALID_INPUT');
+        if (input.from!==mission.positions[role] || input.crateFrom!==mission.crate) throw new Fault('STALE_POSITION',409);
+      }
+      room.mission = input.action === 'crateMove' ? moveFoundry(mission,role,input.destination,input.kind)
+        : input.action === 'move' ? moveFoundry(mission, role, input.destination) : signal(mission, role, input.cell);
       if (room.mission.result) room.phase = 'terminal';
       return;
     }
