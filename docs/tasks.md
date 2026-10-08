@@ -1,6 +1,6 @@
 # Signal Rescue Task Board
 
-Updated: October 7, 2026
+Updated: October 8, 2026
 Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
 Primary next task: SF-03 crate Push/Pull and sustained power, using the independent control contract; retain actual phone/public and two-human inspection requirements
@@ -41,6 +41,7 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | SF-CTRL | P1 | DONE | Replace foundry start/step confirmations with automatic two-client start and independent direction/key movement; idle is Wait, live power, deduplicated moves and recovery verified | Participant direct-movement request | SR-01, SR-04 to SR-08 |
 | SF-02 | P1 | DONE | Authored geometry, SF-M2 shared passages/pressure gate and mutually selected progression; 220 actual-engine states all recoverable, both routes tested, 61 regressions and narrow/browser completion checked | SF-D02; participant continuation | SR-03 to SR-08 |
 | UI-01 | P1 | DONE | Compact map-first interface, expandable room/help, accessible arrow pad and CSS feedback; 61 regressions and desktop/narrow scripted inspection | Participant simple-UI request | SR-08 |
+| UI-02 | P1 | DONE | Gate tiles expose relay ID, persistent/hold behavior and current state; locked-open inspection explains relay no longer needed; compile and browser/narrow checks passed | Participant gate confusion | SR-08 |
 | SF-03 | P1 | TODO | Add one crate with explicit Push/Pull and sustained-power completion; implement SF-M3 and verify recovery/reset/transport conflicts | SF-02 | SR-03 to SR-08 |
 | SYS-03 | P1 | TODO | Observe first-time SF-T1 understanding and inspect actual phone controls; adjust onboarding/interaction to concrete confusion | SF-01; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
 | TECH-01 | P0 | TODO | Confirm Azure balance/expiry/access; select and cost a small deployment route, including review-window operation | Participant account access | SR-09 |

@@ -217,7 +217,10 @@ function prepareFoundryBoard(m: MissionView) {
 }
 function showFoundryLink(m: MissionView, cell: number) {
   const link = m.foundry!.gates.find(g => g.cell === cell || g.relay === cell);
-  el('foundry-link').textContent = link ? `Relay ${link.relay} → ${link.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${link.cell} · ${link.latched ? 'Latched open' : link.powered ? 'Powered' : 'Closed'}`
+  el('foundry-link').textContent = link ? link.kind === 'pressure'
+    ? `Gate ${link.cell} · ${link.powered ? 'Powered' : 'Closed'}. Keep Relay ${link.relay} occupied to hold it open.`
+    : link.latched ? `Gate ${link.cell} · Locked open after entry. Relay ${link.relay} is no longer needed.`
+    : `Gate ${link.cell} · ${link.powered ? 'Powered' : 'Closed'}. Stand on Relay ${link.relay}; entering locks it open.`
     : m.foundry!.gates.map(g => `Relay ${g.relay} → ${g.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${g.cell}`).join(' · ');
   for (let index = 0; index < foundryTiles.length; index++) foundryTiles[index]!.classList.toggle('linked', !!link && (index === link.cell || index === link.relay));
 }
@@ -255,16 +258,22 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const state = gate ? gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
     tile.classList.toggle('has-robot', !!robot);
+    tile.classList.toggle('gate-tile', !!gate);
     if ((motionUntil.get(`gate-${cell}`) ?? 0) > performance.now()) tile.classList.add('power-flash');
     if (cell === m.positions[role] && (motionUntil.get('blocked') ?? 0) > performance.now()) tile.classList.add('blocked-flash');
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
-    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}. ${wall ? 'Impassable.' : 'Point out this tile.'}`);
+    const gateRule = gate ? ` Relay ${gate.relay}. ${gate.kind === 'pressure' ? 'Requires continuous relay power.' : 'Stays open after first entry.'}` : '';
+    tile.setAttribute('aria-label', `${cell}: ${label}${state ? `, ${state}` : ''}${robot ? `, Robot ${robot}${robot === role ? ', you' : ', partner'}` : ''}.${gateRule} ${wall ? 'Impassable.' : 'Point out this tile.'}`);
     // Stable tile nodes preserve focus; only their visual contents change.
     tile.replaceChildren();
     const number = document.createElement('span'); number.className = 'tile-number'; number.textContent = String(cell); tile.append(number);
     const icon = document.createElement('span'); icon.className = 'tile-icon'; icon.setAttribute('aria-hidden', 'true'); icon.textContent = wall ? '' : gate ? gate.kind === 'pressure' ? '▤' : '▥' : relay ? '◇' : exit ? '↗' : ''; tile.append(icon);
-    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = wall || label === 'Floor' ? '' : gate ? gate.kind === 'pressure' ? 'Hold' : 'Latch' : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
-    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? gate.latched ? 'Latched' : gate.powered ? 'Open' : 'Off' : relay ? `→ ${relay.cell}` : ''; tile.append(description);
+    const name = document.createElement('span'); name.className = 'tile-name'; name.textContent = wall || label === 'Floor' ? '' : gate ? `Gate ${cell}` : exit ? `Exit ${exit}` : 'Relay'; tile.append(name);
+    if (gate) {
+      const rule = document.createElement('span'); rule.className = 'tile-rule'; rule.textContent = gate.kind === 'pressure' ? 'Hold relay' : 'Stays open'; tile.append(rule);
+      const source = document.createElement('span'); source.className = 'tile-source'; source.textContent = `Relay ${gate.relay}`; tile.append(source);
+    }
+    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ ${relay.cell}` : ''; tile.append(description);
     if (robot) {
       const bot = document.createElement('span'); bot.className = `robot robot-${robot}`; bot.textContent = robot;
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
