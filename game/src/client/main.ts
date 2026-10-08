@@ -30,6 +30,8 @@ function render() {
   const view = context?.view;
   const connected = socket?.readyState === WebSocket.OPEN;
   document.body.classList.toggle('entry-screen', !view);
+  document.body.classList.toggle('waiting-screen', !!view && !view.mission);
+  el('waiting-room').hidden = !view || !!view.mission;
   document.body.classList.toggle('playing', !!view?.mission);
   document.body.classList.toggle('foundry-playing', !!view?.mission?.foundry);
   const roomDetails = el<HTMLDetailsElement>('room-details');
@@ -44,6 +46,18 @@ function render() {
   el('takeover').hidden = !view || connected || !stopped;
   el('reconnect').hidden = !view || connected || stopped;
   if (view) {
+    const liveLobby = connected && !stopped;
+    el('waiting-title').textContent = stopped ? 'Your workshop is open in another tab.'
+      : view.room.phase === 'paused' ? 'Your workshop is waiting.'
+      : 'Your workshop is ready.';
+    el('waiting-description').textContent = liveLobby ? 'One little adventure. Two essential teammates.'
+      : 'Reconnect here to see the latest crew status.';
+    for (const role of ['A', 'B'] as const) {
+      const seat = view.room.players.find(p => p.role === role);
+      el(`seat-${role}-name`).textContent = `Robot ${role}${role === view.self.role ? ' · You' : ' · Partner'}`;
+      el(`seat-${role}-state`).textContent = !liveLobby ? 'Checking connection' : !seat ? 'Waiting for a player' : seat.connected ? 'Connected' : 'Reconnecting';
+      el(`seat-${role}`).classList.toggle('crew-connected', liveLobby && !!seat?.connected);
+    }
     const foundry = view.releaseId !== 'sys-02';
     document.title = foundry ? 'Signal Foundry' : 'Signal Rescue';
     el('page-eyebrow').textContent = foundry ? 'Signal Foundry · A cooperative robot adventure' : 'Signal Rescue · Cooperative navigation';

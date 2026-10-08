@@ -59,8 +59,26 @@
     </form>
   </section>
   <section id="lobby" hidden aria-label="Room lobby">
-    <details id="room-details"><summary>Room <span id="room-code"></span><span class="room-summary">Invite & connection</span></summary>
+    <section id="waiting-room" hidden aria-labelledby="waiting-title">
+      <p class="entry-kicker">WORKSHOP LOBBY</p>
+      <h2 id="waiting-title">Your workshop is ready.</h2>
+      <p id="waiting-description">One little adventure. Two essential teammates.</p>
+      <div class="waiting-crew">
+        <div id="seat-A" class="crew-card crew-A">
+          <div class="crew-bot" aria-hidden="true"><span class="crew-eyes"></span></div>
+          <h3 id="seat-A-name">Robot A</h3><p id="seat-A-state">Waiting for a player</p>
+        </div>
+        <span class="crew-plus" aria-hidden="true">+</span>
+        <div id="seat-B" class="crew-card crew-B">
+          <div class="crew-bot" aria-hidden="true"><span class="crew-eyes"></span></div>
+          <h3 id="seat-B-name">Robot B</h3><p id="seat-B-state">Waiting for a player</p>
+        </div>
+      </div>
+    </section>
+    <details id="room-details"><summary><span class="room-label">Room</span> <span id="room-code"></span><span class="room-summary">Invite & connection</span></summary>
     <button id="copy" class="secondary">Copy room code</button>
+    <p class="waiting-invite">Send your friend this page's URL and the code above.</p>
+    <p class="waiting-same-device">On the same computer, use a private window or another browser profile.</p>
     <p id="role"></p><p id="players"></p><p id="connection"></p>
     <p id="timer"></p>
     <button id="leave" class="secondary" disabled>Leave room</button>

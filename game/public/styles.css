@@ -193,3 +193,58 @@ body:not(.entry-screen) .entry-art, body:not(.entry-screen) .entry-facts { displ
   .entry-description { margin-bottom: 13px; }
   .entry-screen .footnote { margin-top: 18px; }
 }
+/* Waiting room: a code invitation and two live crew seats. */
+.waiting-screen { min-height: 100vh; background: radial-gradient(ellipse at 15% 10%,#dce9df,transparent 50%),#f3f1e9; }
+.waiting-screen main { padding: 32px 40px; background: #fffef9; border: 1px solid #e1e5d9; }
+.waiting-screen #intro { margin-bottom: 28px; }
+.waiting-screen #page-title { font-size: 21px; margin: 0; }
+.waiting-screen #page-eyebrow, .waiting-screen #page-subtitle, .waiting-screen #page-notice { display: none; }
+#waiting-room { text-align: center; }
+#waiting-room .entry-kicker { margin-bottom: 9px; }
+#waiting-title { font-size: clamp(24px,4vw,32px); line-height: 1.2; color: #294e43; }
+#waiting-description { font-size: 13px; color: #708072; margin: 10px 0 22px; }
+.waiting-crew { display: grid; grid-template-columns: minmax(0,1fr) 26px minmax(0,1fr); align-items: center; gap: 12px; margin: 0 auto 26px; }
+.crew-card { min-width: 0; padding: 24px 12px 18px; border: 1px dashed #c9d6cb; border-radius: 17px; background: #f6f7f0; }
+.crew-connected { border-style: solid; background: #edf5ef; }
+.crew-plus { color: #a0b09f; font-size: 24px; font-weight: 300; }
+.crew-card h3 { font-size: 13px; margin: 15px 0 5px; color: #496758; }
+.crew-card p { font-size: 11px; margin: 0; color: #768376; }
+.crew-connected p { color: #3d7256; }
+.crew-connected p::before { content: '● '; font-size: 9px; }
+.crew-bot { position: relative; width: 58px; height: 47px; border-radius: 14px 14px 9px 9px; margin: 0 auto; background: #82aebd; box-shadow: -9px 5px 0 -5px #547a88,9px 5px 0 -5px #547a88; }
+.crew-B .crew-bot { background: #c7a0b4; box-shadow: -9px 5px 0 -5px #977387,9px 5px 0 -5px #977387; }
+.crew-connected.crew-A .crew-bot { background: #2582a0; }
+.crew-connected.crew-B .crew-bot { background: #b8628b; }
+.crew-bot::before { content: ''; position: absolute; width: 3px; height: 8px; background: #617b70; top: -8px; left: 27px; }
+.crew-bot::after { content: ''; position: absolute; width: 7px; height: 7px; background: #bbccbd; border-radius: 50%; top: -13px; left: 25px; }
+.crew-connected .crew-bot::after { background: #76a378; }
+.crew-eyes { display: block; position: absolute; inset: 12px 9px 13px; background: #294e54; border-radius: 8px; }
+.crew-eyes::before, .crew-eyes::after { content: ''; position: absolute; top: 7px; width: 5px; height: 5px; background: #d8eee6; border-radius: 50%; }
+.crew-eyes::before { left: 9px; } .crew-eyes::after { right: 9px; }
+.waiting-screen #status { padding: 10px 14px; border: 1px solid #dee6d9; background: #eff4eb; border-radius: 10px; font-size: 12px; margin: 0 0 24px; overflow-wrap: anywhere; }
+.waiting-screen #status.error { border-color: #dbb7a6; background: #fff0e9; }
+.waiting-screen #room-details { background: #f2f5eb; border: 1px solid #dfe5d5; border-radius: 16px; padding: 20px; margin: 0; text-align: center; }
+.waiting-screen #room-details summary { display: flex; flex-direction: column; gap: 7px; color: #71826f; }
+.waiting-screen #room-details summary::before { display: none; }
+.waiting-screen .room-label { font: 10px ui-monospace,monospace; letter-spacing: .14em; text-transform: uppercase; }
+.waiting-screen #room-code { font: 700 clamp(26px,6vw,38px) ui-monospace,monospace; letter-spacing: .14em; color: #2a5b49; padding-left: .14em; }
+.waiting-screen .room-summary { display: none; }
+.waiting-screen #copy { width: auto; min-width: 190px; margin: 14px 0 0; padding: 8px 16px; font-size: 12px; min-height: 44px; border-color: #ccdacb; background: #fffef9; }
+.waiting-invite, .waiting-same-device { display: none; }
+.waiting-screen .waiting-invite { display: block; font-size: 12px; color: #58725f; margin: 14px 0 6px; }
+.waiting-screen .waiting-same-device { display: block; font-size: 10px; color: #788675; margin: 0 0 16px; }
+.waiting-screen #role, .waiting-screen #players { display: none; }
+.waiting-screen #connection { font-size: 10px; color: #788675; margin: 6px 0; }
+.waiting-screen #timer { font-size: 12px; font-weight: 600; color: #50725a; margin: 10px 0; }
+.waiting-screen #leave { background: transparent; width: auto; border: 0; min-height: 44px; font-size: 11px; color: #778173; margin: 8px 0 0; }
+.waiting-screen #takeover, .waiting-screen #reconnect, .waiting-screen #retry { margin-top: 16px; }
+.waiting-screen .footnote { margin-top: 22px; }
+@media (max-width:540px) {
+  .waiting-screen main { padding: 24px 20px; }
+  .waiting-screen #intro { margin-bottom: 24px; }
+  .waiting-crew { gap: 8px; grid-template-columns: minmax(0,1fr) 16px minmax(0,1fr); }
+  .crew-card { padding: 23px 6px 16px; }
+  .crew-card h3 { font-size: 12px; }
+  .crew-card p { font-size: 10px; }
+  .waiting-screen #room-details { padding: 18px 12px; }
+}
