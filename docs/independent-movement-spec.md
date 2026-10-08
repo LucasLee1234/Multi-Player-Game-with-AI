@@ -50,3 +50,7 @@ Sources: [free-movement.test.ts](../game/tests/free-movement.test.ts), [free-wir
 The E1 rooms are still unimplemented proposals. Re-audited them with one robot action processed at a time: [foundry-independent-expansion-validation.json](foundry-independent-expansion-validation.json). SF-M2 retains 220 reachable states and no unrecoverable state; SF-M3 retains 2,496 and no unrecoverable state. Shortest routes are now 16 and 18 individual command steps, not the former 9/11 simultaneous turns.
 
 Future Push/Pull must atomically commit one robot's action with its crate displacement. Simultaneous two-handler cancellation is obsolete: ordered requests need current actor/crate-position checks. Future progression should retain mutually agreed reset/Next choices; it must not reintroduce per-move Ready. Gate/collision/route witnesses must be tested under the actual generalized engine before releasing new rooms.
+
+## Subsequent SF-02 implementation
+
+October 7, 2026: SF-M2 now runs after First Connection under [shared-passage-implementation.md](shared-passage-implementation.md). The earlier Expansion compatibility section describes the research-only status at SYS-04. SF-M2 has now been audited in the actual TypeScript engine: 220 reachable states, all recoverable, shortest 16 steps. SF-M3 remains research-only. Direct independent control remains unchanged; terminal matching Retry/Next choices extend the earlier retry-only contract.

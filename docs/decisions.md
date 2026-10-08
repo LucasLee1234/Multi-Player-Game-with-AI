@@ -189,3 +189,13 @@ Date: October 7, 2026. Status: Participant explicitly requested removing Ready a
 - Current teaching room has 21 recoverable states/58 directional requests; the 54-test suite passes. Re-audited future rooms under independent ordering: 220/2,496 recoverable states, shortest 16/18 individual steps. Their earlier simultaneous turn counts are historical.
 - Browser button/ArrowRight/D movement completed in six steps with a scripted partner, not human evidence. Mouse relay/link hover was changed to avoid rebuilding clicked contents; pings rechecked.
 - Authority: [independent-movement-spec.md](independent-movement-spec.md). No new rooms, public deployment, cloud spending or remote push in this change.
+
+## DEC-013 - Implement Trade Places as the next short cycle
+
+Date: October 7, 2026. Status: Participant requested continuing work after independent movement; SF-02 implemented locally.
+
+- Continue the approved complexity direction with one shared-passage/pressure-gate room. Preserve automatic start, independent movement and implicit waiting. Defer crate mechanics to SF-03.
+- Generalize authored dimensions, starts/exits and gate kinds. Pressure gates never latch and permit an occupant to leave when closed. Occupied destinations block without damage or counted movement.
+- First Connection leads to Trade Places through matching Next choices. Retry/Next mismatch waits and can be revised; current-room Retry does not return to the tutorial. Disconnect clears consent, and cached replay cannot restore it.
+- Actual engine: 220 reachable states, 876 directional requests, all recoverable; southern/northern routes complete in 16/18 steps. Full suite: 61 passes. Browser progression/completion/retry and 390-pixel emulation checked with scripted B, not independent human evidence.
+- Authority: [shared-passage-implementation.md](shared-passage-implementation.md). No public deployment, cloud spending, runtime AI or GitHub push.

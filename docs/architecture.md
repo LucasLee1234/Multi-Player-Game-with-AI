@@ -342,3 +342,9 @@ Official product/library documentation checked October 6, 2026. These support te
 - **S5:** [ws maintained repository and usage documentation](https://github.com/websockets/ws).
 - **S6:** [Node.js test runner](https://nodejs.org/api/test.html).
 - **S7:** [Azure Container Apps billing](https://learn.microsoft.com/en-us/azure/container-apps/billing).
+
+## 16. SF-02 authored factories and progression
+
+October 7, 2026: startup uses `foundryAdventure` and release `sys-05-shared-passage`. Server-owned factory definitions supply dimensions, walls, starts/exits, gate kinds/links and a hint. Projection allowlists these public fields and only the next title, never the nested server definition. The client regenerates tiles on mission ID changes and renders declared columns; hover updates text/classes without rebuilding clicked tiles.
+
+Ordered independent steps use current positions/power. Latching entry persists; pressure gates never latch and restrict entry only. Successful steps alone count. Terminal `nextAgreement` and `retryAgreement` bind to a mission ID and set revisable per-seat choices. Matching choices transition once; mismatch waits. Next requires success and an authored successor; Retry uses the current definition. Pause clears choices; cached replay acknowledges without restoring consent. Sequences/controller epochs/deduplication continue across new mission IDs. [SF-02 contract](shared-passage-implementation.md) is authoritative. SF-M3 remains unimplemented.

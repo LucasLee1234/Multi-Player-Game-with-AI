@@ -36,12 +36,12 @@ function render() {
   el('takeover').hidden = !view || connected || !stopped;
   el('reconnect').hidden = !view || connected || stopped;
   if (view) {
-    const foundry = view.releaseId === 'sys-03-sf-t1' || view.releaseId === 'sys-04-free-move';
+    const foundry = view.releaseId !== 'sys-02';
     document.title = foundry ? 'Signal Foundry' : 'Signal Rescue';
     el('page-eyebrow').textContent = foundry ? 'Signal Foundry · A cooperative robot adventure' : 'Signal Rescue · Cooperative navigation';
     el('page-title').textContent = foundry ? 'You power my way. I power yours.' : 'Find a way out together.';
     el('page-subtitle').textContent = foundry ? 'Two robots. One escape. Open a route for your partner, then find your way out together.' : 'You see your partner’s dangers. They see yours. Find a safe route together.';
-    el('page-notice').textContent = foundry ? 'Invite a friend to try First Connection, a short teaching room.' : 'Try Different Dangers, a cooperative navigation mission.';
+    el('page-notice').textContent = foundry ? 'Start with First Connection, then tackle shared passages in Trade Places.' : 'Try Different Dangers, a cooperative navigation mission.';
     el('room-code').textContent = view.room.code;
     el('role').textContent = `You are Player ${view.self.role}. Setup owner: ${view.room.owner}.`;
     el('players').textContent = stopped ? 'Room status is not live in this tab.' : (['A', 'B'] as const).map(role => {
@@ -53,7 +53,7 @@ function render() {
     else if (view.room.phase === 'paused') {
       const left = Math.max(0, (view.timers.recoveryRemainingMs ?? 0) - (performance.now() - receivedAt));
       el('timer').textContent = `Room paused. Reconnection window: ${Math.ceil(left / 1000)} seconds.`;
-    } else el('timer').textContent = view.room.phase === 'waiting' ? view.releaseId === 'sys-04-free-move' ? 'The mission begins when both players are connected.' : 'Both players must confirm before the mission starts.' : 'Move at your own pace; inactive rooms still expire.';
+    } else el('timer').textContent = view.room.phase === 'waiting' ? view.releaseId === 'sys-04-free-move' || view.releaseId === 'sys-05-shared-passage' ? 'The mission begins when both players are connected.' : 'Both players must confirm before the mission starts.' : 'Move at your own pace; inactive rooms still expire.';
   }
   renderMission();
 }
@@ -190,7 +190,12 @@ for (let cell = 0; cell < 9; cell++) {
 const moves = ['up', 'left', 'wait', 'right', 'down'] as const;
 const foundryTiles: HTMLButtonElement[] = [];
 let inspectedCell: number | undefined;
-for (let cell = 0; cell < 12; cell++) {
+let boardMissionId: string | undefined;
+function prepareFoundryBoard(m: MissionView) {
+  if (boardMissionId === m.id) return;
+  boardMissionId = m.id; inspectedCell = undefined; foundryTiles.length = 0; el('foundry-board').replaceChildren();
+  el('foundry-board').style.gridTemplateColumns = `repeat(${m.foundry!.width}, minmax(0, 1fr))`;
+  for (let cell = 0; cell < m.foundry!.width * m.foundry!.height; cell++) {
   const tile = document.createElement('button'); tile.type = 'button'; tile.className = 'factory-tile';
   tile.onclick = () => { inspectedCell = cell; gameAction('signal', cell); };
   tile.onfocus = tile.onpointerenter = () => {
@@ -199,11 +204,12 @@ for (let cell = 0; cell < 12; cell++) {
     if (view?.mission?.foundry) showFoundryLink(view.mission, cell);
   };
   foundryTiles.push(tile); el('foundry-board').append(tile);
+  }
 }
 function showFoundryLink(m: MissionView, cell: number) {
   const link = m.foundry!.gates.find(g => g.cell === cell || g.relay === cell);
-  el('foundry-link').textContent = link ? `Relay ${link.relay} → Gate ${link.cell} · ${link.latched ? 'Latched open' : link.powered ? 'Powered' : 'Closed'}`
-    : 'Relay 8 → Gate 1 · Relay 2 → Gate 9';
+  el('foundry-link').textContent = link ? `Relay ${link.relay} → ${link.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${link.cell} · ${link.latched ? 'Latched open' : link.powered ? 'Powered' : 'Closed'}`
+    : m.foundry!.gates.map(g => `Relay ${g.relay} → ${g.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${g.cell}`).join(' · ');
   for (let index = 0; index < foundryTiles.length; index++) foundryTiles[index]!.classList.toggle('linked', !!link && (index === link.cell || index === link.relay));
 }
 function destination(direction: typeof moves[number], from: number, m: MissionView): number | null {
@@ -217,20 +223,20 @@ function destination(direction: typeof moves[number], from: number, m: MissionVi
 }
 function renderFoundry(m: MissionView, role: Role, planning: boolean) {
   const board = m.foundry!;
+  prepareFoundryBoard(m);
   el('foundry-self').textContent = `You: Robot ${role}`;
-  el('foundry-hint').textContent = m.result ? 'Both robots reached their exits. Restore the room with Practice again.' : role === 'B' && m.positions.B === 8 && !board.gates[0]!.latched
+  el('foundry-hint').textContent = m.result ? board.nextTitle ? `Both robots reached their exits. Choose ${board.nextTitle} together, or practice this room again.` : 'Both robots reached their exits. Practice this room again, or leave to start a new adventure.' : board.stage > 1 ? board.hint : role === 'B' && m.positions.B === 8 && !board.gates[0]!.latched
     ? 'You are powering Gate 1. Let A through; A can then power your gate.'
     : role === 'A' && m.positions.A === 0 ? 'B powers Gate 1 for you. Cross it and reach Relay 2 to help B.'
     : 'Help your partner through, then bring both robots to their exits.';
   const link = board.gates.find(g => g.cell === inspectedCell || g.relay === inspectedCell);
-  el('foundry-link').textContent = link ? `Relay ${link.relay} → Gate ${link.cell} · ${link.latched ? 'Latched open' : link.powered ? 'Powered' : 'Closed'}`
-    : 'Relay 8 → Gate 1 · Relay 2 → Gate 9';
-  for (let cell = 0; cell < 12; cell++) {
+  showFoundryLink(m, inspectedCell ?? -1);
+  for (let cell = 0; cell < board.width * board.height; cell++) {
     const tile = foundryTiles[cell]!, wall = board.walls.includes(cell);
     const gate = board.gates.find(g => g.cell === cell), relay = board.gates.find(g => g.relay === cell);
     const exit = (['A', 'B'] as const).find(r => m.exits[r] === cell);
     const robot = (['A', 'B'] as const).find(r => m.positions[r] === cell);
-    const label = wall ? 'Wall' : gate ? `Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
+    const label = wall ? 'Wall' : gate ? `${gate.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
     const state = gate ? gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
@@ -251,7 +257,7 @@ function renderMission() {
   const view = context?.view, m = view?.mission;
   const active = !!view && socket?.readyState === WebSocket.OPEN && !stopped && !pending;
   const start = el<HTMLButtonElement>('start'); start.hidden = !!m;
-  const independent = view?.releaseId === 'sys-04-free-move';
+  const independent = view?.releaseId === 'sys-04-free-move' || view?.releaseId === 'sys-05-shared-passage';
   start.hidden = !!m || independent;
   start.disabled = !active || view?.room.phase !== 'waiting' || view.room.players.length !== 2 || !view.room.players.every(p => p.connected) || !!view.room.startAgreements[view.self.role];
   start.textContent = view?.room.startAgreements[view.self.role] ? 'Waiting for partner to start' : 'Ready to start';
@@ -264,9 +270,9 @@ function renderMission() {
   const foundry = !!m.foundry;
   el('j1-instructions').hidden = foundry; el('j1-maps').hidden = foundry; el('j1-legend').hidden = foundry;
   el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
-  el('objective').textContent = foundry ? 'Power your partner’s gate. Bring A to Exit 3 and B to Exit 11 together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
+  el('objective').textContent = foundry ? `Power the gates and make room for your partner. Bring A to Exit ${m.exits.A} and B to Exit ${m.exits.B} together.` : 'Bring both robots to their own exits together. You can leave your exit to make room.';
   el('mission-title').textContent = m.title;
-  el('progress').textContent = independent ? `Team moves: ${m.turnsResolved} · Move independently · No move limit` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
+  el('progress').textContent = independent ? `Room ${m.foundry!.stage} · Team moves: ${m.turnsResolved} · Move independently · No move limit` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
   el('move-heading').textContent = independent ? 'Move your robot' : 'Propose your move';
   el('move-help').hidden = !independent;
   for (const id of ['shared-plan', 'plan-warning', 'readiness']) el(id).hidden = independent;
@@ -310,7 +316,11 @@ function renderMission() {
   el('result-title').textContent = m.result === 'success' ? foundry ? 'Factory restored. You made it together!' : 'Rescued together' : m.result === 'strikes' ? 'Mission ended: three strikes' : 'Mission ended: turn limit';
   el('result-stats').textContent = independent ? `Completed in ${m.turnsResolved} team moves. Both robots are at their exits.` : foundry ? `Completed in ${m.turnsResolved} turns. Both robots are at their exits.` : `Turns used: ${m.turnsResolved} / 8 · Strikes: ${m.strikes} / 3`;
   el<HTMLButtonElement>('practice').disabled = !active || view.room.phase !== 'terminal' || m.retryAgreements[role];
-  el('retry-agreements').textContent = `Practice again: A ${m.retryAgreements.A ? 'agreed' : 'not yet'} · B ${m.retryAgreements.B ? 'agreed' : 'not yet'}`;
+  el('next-room').hidden = !m.foundry?.nextTitle || m.result !== 'success';
+  el<HTMLButtonElement>('next-room').disabled = !active || view.room.phase !== 'terminal' || m.foundry?.choices[role] === 'next';
+  el('next-room').textContent = `Next room: ${m.foundry?.nextTitle ?? ''}`;
+  el('retry-agreements').textContent = m.foundry ? (['A', 'B'] as const).map(r => `${r}: ${m.foundry!.choices[r] === 'next' ? 'Next room' : m.foundry!.choices[r] === 'retry' ? 'Practice again' : 'not chosen'}`).join(' · ') + '. Both players must choose the same option. You can change your choice.'
+    : `Practice again: A ${m.retryAgreements.A ? 'agreed' : 'not yet'} · B ${m.retryAgreements.B ? 'agreed' : 'not yet'}`;
 }
 for (const direction of moves) el(`move-${direction}`).onclick = () => {
   const m = context?.view?.mission; if (!m) return;
@@ -333,6 +343,7 @@ window.addEventListener('keydown', event => {
 el('start').onclick = () => { if (context?.view) sendAction({ action: 'startAgreement', lobbyRevision: context.view.room.lobbyRevision }); };
 el('ready').onclick = () => gameAction('ready');
 el('practice').onclick = () => { if (context?.view?.mission) sendAction({ action: 'retryAgreement', missionId: context.view.mission.id }); };
+el('next-room').onclick = () => { if (context?.view?.mission) sendAction({ action: 'nextAgreement', missionId: context.view.mission.id }); };
 el('create').onclick = () => { void admit('/api/rooms'); };
 el<HTMLFormElement>('join-form').onsubmit = event => { event.preventDefault(); void admit('/api/rooms/join', el<HTMLInputElement>('code').value.trim().toUpperCase()); };
 el('takeover').onclick = () => { void admit('/api/controller/takeover'); };

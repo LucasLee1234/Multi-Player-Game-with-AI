@@ -154,3 +154,26 @@ Screenshots: [independent controls](evidence/free-move-controls.png), [six-move 
 The future expansion research model was also rerun with one actor acting while the other stays still: [independent expansion validation](foundry-independent-expansion-validation.json). SF-M2 has 220 states and a 16-step shortest witness; SF-M3 has 2,496 states and an 18-step shortest witness. All modeled states are recoverable. These are design-model results; neither expansion is implemented in the browser.
 
 Remaining: two-human observation, actual phone/touch and separate-network proof, production latency/load, public Azure deployment and the advanced room/private-information requirements. G2 and G3 remain open. GitHub is not configured; this cycle is saved locally.
+
+## SF-02 - Trade Places and room progression
+
+Date: October 7, 2026. Release `sys-05-shared-passage`. Active contract: [shared-passage-implementation.md](shared-passage-implementation.md). Default startup now selects First Connection followed by Trade Places.
+
+Final suite: **61 passing tests, zero failures/skips**. Seven new tests supplement the previous 54: [shared-passage rule/store tests](../game/tests/shared-passage.test.ts) and [two-client transport test](../game/tests/shared-passage-wire.test.ts).
+
+| Evidence | Check | Actual result |
+| --- | --- | --- |
+| M2-A01 | Actual TypeScript reachability/reverse recovery | 220 reachable states, 876 directional requests, shortest 16 steps; all states have a path to success |
+| M2-A02 | Two routes | Southern completes in 16 moves without latching Gate 2; northern completes in 18 and latches Gate 2 |
+| M2-A03 | Pressure boundaries | Gate 11 never latches; relay departure closes it; occupant can leave; unpowered re-entry blocks with no move count increment |
+| M2-A04 | Shared geometry | Occupied target blocks; parking permits passage; declared dimensions/exits project correctly; invalid authored starts and invalid moves reject; projected data cannot mutate truth |
+| M2-A05 | Transition authority | Next/Retry mismatch waits; revised match advances once; duplicate Next cannot advance twice; old mission requests reject; Retry resets current Trade Places; final Next rejects |
+| M2-A06 | Recovery consent | Disconnect clears terminal choices; cached prior consent does not restore agreement; new matching choices required |
+| M2-A07 | Real two-cookie WebSocket clients | Matching/conflicting choices, duplicate Next, sixteen-step success, identical projections and current-room retry/reset pass |
+| M2-U01 | Browser A and scripted B | Next room switches to five columns/correct exits; pings, pressure closure/block feedback, parking, exchanged support and sixteen-step success checked |
+| M2-U02 | Current-room retry | Practice again returns to Trade Places and clears pings; scripted B immediately moves one step after reset, explaining the visible count of one |
+| M2-U03 | Narrow layout | innerWidth 390, document client/scroll widths both 375; board approximately 313.6 CSS pixels, five columns approximately 57.5 each; no horizontal overflow; labels inspected; viewport reset |
+
+Screenshots: [shared support](evidence/sf-m2-support.png), [narrow room](evidence/sf-m2-narrow.png), [sixteen-move completion](evidence/sf-m2-result.png). These show a disposable scripted-partner inspection, not independent human evidence. Test room closed and helper stopped after inspection; local server remains available.
+
+Limits: two rooms only; no crate/SF-M3, actual phone/touch, public deployment, separate-network proof, measured production load/latency or independent human observation. Private-information requirements and G2/G3 remain open. GitHub unconfigured; local checkpoint only. Next gameplay cycle: SF-03 crate transport and sustained power.

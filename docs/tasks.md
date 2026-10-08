@@ -3,9 +3,9 @@
 Updated: October 7, 2026
 Active direction: B - Signal Rescue
 Current gate: G0 and G1 complete; G2 open
-Primary next task: implement the bounded SF-M2 shared-passage/pressure-gate cycle from the checked expansion design; retain actual phone/public and two-human inspection requirements
+Primary next task: SF-03 crate Push/Pull and sustained power, using the independent control contract; retain actual phone/public and two-human inspection requirements
 
-Current control baseline: SF-T1 v3 direct independent movement, automatic start and idle waiting are implemented. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts for foundry; future SF-02/03 work must preserve this control choice. Fifty-four regression tests pass; expansion models were re-audited under ordered individual actions.
+Current control baseline: direct independent movement, automatic start and idle waiting. [independent-movement-spec.md](independent-movement-spec.md) supersedes earlier Ready/Wait contracts. SF-02 is implemented in [shared-passage-implementation.md](shared-passage-implementation.md): First Connection leads to Trade Places through matching next-room choices; pressure gates and authored geometry are verified. Sixty-one regression tests pass. SF-03 remains unimplemented.
 
 Status meanings and completion standards: [development-workflow.md](development-workflow.md).
 
@@ -39,7 +39,7 @@ Feasibility review: [feasibility-analysis.md](feasibility-analysis.md). GP-01 is
 | SF-01 | P1 | DONE | Implement the SF-T1 relay/gate teaching room, tile pings, joint exit and mutual retry; actual rules match research state counts and recover from every reachable state | Participant implementation request; SF-T1 spec | SF-01 to SF-07; SR-01 to SR-08 scoped experimental coverage |
 | SF-D02 | P1 | DONE | Define shared-passage and crate rooms, exact gate/transport rules, routes, deadlock repairs and implementation criteria; 30 research checks and exhaustive reachability | Participant complexity-design request | SR-03, SR-04, SR-07 |
 | SF-CTRL | P1 | DONE | Replace foundry start/step confirmations with automatic two-client start and independent direction/key movement; idle is Wait, live power, deduplicated moves and recovery verified | Participant direct-movement request | SR-01, SR-04 to SR-08 |
-| SF-02 | P1 | TODO | Generalize authored geometry; add SF-M2 pressure gate/shared passages and mutually agreed progression; verify both routes under actual rules | SF-D02 | SR-03 to SR-08 |
+| SF-02 | P1 | DONE | Authored geometry, SF-M2 shared passages/pressure gate and mutually selected progression; 220 actual-engine states all recoverable, both routes tested, 61 regressions and narrow/browser completion checked | SF-D02; participant continuation | SR-03 to SR-08 |
 | SF-03 | P1 | TODO | Add one crate with explicit Push/Pull and sustained-power completion; implement SF-M3 and verify recovery/reset/transport conflicts | SF-02 | SR-03 to SR-08 |
 | SYS-03 | P1 | TODO | Observe first-time SF-T1 understanding and inspect actual phone controls; adjust onboarding/interaction to concrete confusion | SF-01; participant/device observations | FR-21 to FR-23; NFR-04 to NFR-06 |
 | TECH-01 | P0 | TODO | Confirm Azure balance/expiry/access; select and cost a small deployment route, including review-window operation | Participant account access | SR-09 |
@@ -96,3 +96,5 @@ P0 denotes importance, not a requirement to finish every P0 before any independe
 | Oct 6, 2026 | SYS-01 short coding cycle | Coding explicitly resumed; project-local Git, pinned dependencies, room server and browser interface implemented | `test-evidence.md`: 14 automated checks passed; browser creation, refresh, takeover, leave, invalid-code and restart feedback checked; mobile/public/human proof pending | SYS-02 synchronized J1 turn/private layers; Azure account check before public provisioning; no remote configured |
 
 | Oct 6, 2026 | SYS-02 coding cycle | Implemented J1-C1 asymmetric mission and synchronized turns, filtered views, mutual start/retry, outcomes and phase-preserving recovery | `test-evidence.md` SYS-02: 36 tests passed; browser A plus scripted B completed seven-turn/zero-strike witness; final signal-to-confirm flow checked; no human/mobile/public claim | Human two-context inspection, SYS-03 teaching/phone work; TECH-01 Azure account/cost; no GitHub remote |
+
+| Oct 7, 2026 | SF-02 short cycle | Generalized factory geometry; implemented Trade Places, pressure gates and matched next-room/retry choices | 61 passing tests; 220 actual states all recoverable; scripted browser progression, 16-step completion, retry and narrow layout | SF-03 crate transport; human/phone/public proof remains open |

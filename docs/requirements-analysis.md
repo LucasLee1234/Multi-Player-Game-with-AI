@@ -438,3 +438,7 @@ Applies to the participant-authorized single First Connection room. Detailed rel
 All original accessibility, synchronization, bounded-resource, deployment/cost and submission requirements remain applicable. Measured 390-pixel browser emulation is partial NFR-04/05 evidence; actual phone/touch, two devices, performance/load and public HTTPS remain pending. The implementation's 46 passing tests do not close G2 or G3.
 
 This task delivers requirements analysis only. It does not implement gameplay, configure Git/GitHub, provision Azure, perform a human test, or close G2-G6.
+
+## 16. SF-02 shared-passage and progression profile
+
+October 7, 2026: [shared-passage-implementation.md](shared-passage-implementation.md) extends the independent foundry profile with a shared 5-by-3 room, latching/hold-open gate distinction, current-position occupancy checks and mutually selected Retry/Next progression. FR-12 gate resolution and FR-16 replay/progression follow that contract for this profile; earlier Ready/proposal rules remain historical comparison requirements. Matching terminal choices are revisable, cleared on disconnect, and bound to the completed mission ID. Successful individual steps alone count. SR-03 through SR-08 have bounded implemented coverage, supported by 61 regressions, actual reachable-state recovery and scripted browser inspection. Human, actual phone, public networking and private-information requirements remain open.

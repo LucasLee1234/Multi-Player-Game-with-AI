@@ -43,7 +43,7 @@ function command(value: unknown): Command {
   const extras: Record<string, string[]> = { leave: [], startAgreement: ['lobbyRevision'],
     move: ['missionId', 'from', 'destination'], ping: ['missionId', 'cell'],
     propose: ['missionId', 'turn', 'planningRevision', 'destination'], signal: ['missionId', 'turn', 'planningRevision', 'cell'],
-    ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'] };
+    ready: ['missionId', 'turn', 'planningRevision'], retryAgreement: ['missionId'], nextAgreement: ['missionId'] };
   if (typeof action !== 'string' || !Object.hasOwn(extras, action)) throw new Fault('INVALID_INPUT');
   fields(value, ['type', 'requestId', 'sequence', 'roomId', 'controllerEpoch', 'action', ...extras[action]!]);
   if (value.type !== 'command' || typeof value.requestId !== 'string'
@@ -61,7 +61,7 @@ function command(value: unknown): Command {
 /** All mutations are synchronous on one Node event loop: no await inside this store. */
 export class Store {
   readonly bootId = randomUUID();
-  get releaseId() { return this.definition.independent ? 'sys-04-free-move' : this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
+  get releaseId() { return this.definition.nextMission ? 'sys-05-shared-passage' : this.definition.independent ? 'sys-04-free-move' : this.definition.mode === 'foundry' ? 'sys-03-sf-t1' : 'sys-02'; }
   readonly limits: Limits;
   private sessions = new Map<string, Session>();
   private rooms = new Map<string, Room>();
@@ -263,11 +263,13 @@ export class Store {
     }
     const mission = room.mission;
     if (!mission || input.missionId !== mission.id) throw new Fault('STALE_MISSION', 409);
-    if (input.action === 'retryAgreement') {
+    if (input.action === 'retryAgreement' || input.action === 'nextAgreement') {
       if (room.phase !== 'terminal') throw new Fault('NOT_PLANNING', 409);
-      mission.retryAgreements[role] = true;
-      if (mission.retryAgreements.A && mission.retryAgreements.B) {
-        room.mission = newMission(randomUUID(), this.definition); room.phase = 'planning';
+      if (input.action === 'nextAgreement' && (mission.result !== 'success' || !mission.definition.nextMission)) throw new Fault('INVALID_INPUT');
+      const choice = input.action === 'nextAgreement' ? 'next' : 'retry';
+      mission.choices[role] = choice; mission.retryAgreements[role] = choice === 'retry';
+      if (mission.choices.A === choice && mission.choices.B === choice) {
+        room.mission = newMission(randomUUID(), choice === 'next' ? mission.definition.nextMission! : mission.definition); room.phase = 'planning';
       }
       return;
     }

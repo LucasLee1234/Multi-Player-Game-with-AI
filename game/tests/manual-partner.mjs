@@ -13,7 +13,7 @@ async function post(path, payload, cookie) {
 const session = await post('/api/session', {});
 await post('/api/rooms/join', { requestId: randomUUID(), expectedContextVersion: 0, code }, session.cookie);
 const ws = new WebSocket(origin.replace('http', 'ws') + '/ws', { headers: { Origin: origin, Cookie: session.cookie } });
-let view, pending;
+let view, pending, missionId, step = 0;
 function send(action) {
   pending = randomUUID();
   ws.send(JSON.stringify({ type: 'command', requestId: pending, sequence: view.self.nextCommandSequence,
@@ -26,13 +26,22 @@ function drive() {
     return;
   }
   const m = view.mission;
+  if (missionId !== m.id) { missionId = m.id; step = 0; }
   if (view.room.phase === 'terminal') {
-    if (m.retryAgreements.A && !m.retryAgreements.B) send({ action: 'retryAgreement', missionId: m.id });
+    if (m.foundry?.choices.A === 'next' && m.foundry.choices.B !== 'next') send({ action: 'nextAgreement', missionId: m.id });
+    else if (m.retryAgreements.A && !m.retryAgreements.B) send({ action: 'retryAgreement', missionId: m.id });
     return;
   }
   const base = { missionId: m.id, turn: m.turn, planningRevision: m.planningRevision };
   if (m.foundry?.movement === 'independent') {
     const from = m.positions.B;
+    if (m.foundry.stage === 2) {
+      const route = [{cell:13},{cell:8,a:6},{cell:13,a:12},{cell:14,a:12},{cell:13,a:8},{cell:12,a:8},{cell:11,a:8},{cell:10,a:3}];
+      while (route[step]?.cell === from) step++;
+      const target = route[step];
+      if (target && (target.a === undefined || m.positions.A === target.a || (target.a === 3 && m.positions.A === 4))) send({ action: 'move', missionId: m.id, from, destination: target.cell });
+      return;
+    }
     const gate = m.foundry.gates.find(g => g.cell === from + 1);
     if (from < m.exits.B && (!gate || gate.open)) send({ action: 'move', missionId: m.id, from, destination: from + 1 });
     return;

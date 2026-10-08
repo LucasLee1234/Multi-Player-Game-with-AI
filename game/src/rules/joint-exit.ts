@@ -1,5 +1,5 @@
 import type { GameError, Knowledge, MissionView, Role } from '../contracts/lobby.js';
-import type { MissionDefinition } from '../content/missions.js';
+import { teachingFactory, type MissionDefinition } from '../content/missions.js';
 export class RuleFault extends Error { constructor(public code: GameError | 'INVALID_INPUT') { super(code); } }
 export interface Mission {
   id: string; definition: MissionDefinition; turn: number; turnsResolved: number; strikes: number;
@@ -7,18 +7,28 @@ export interface Mission {
   ready: Record<Role, boolean>; signals: MissionView['signals']; knowledge: Record<Role, Knowledge[]>;
   result: MissionView['result']; explanations: string[]; retryAgreements: Record<Role, boolean>;
   latchedGates: number[];
+  choices: Record<Role, 'retry' | 'next' | null>;
 }
 const roles = ['A', 'B'] as const;
 const exits = { A: 5, B: 3 };
-const foundryFloor = [0, 1, 2, 3, 8, 9, 10, 11];
-const foundryGates = [{ cell: 1, relay: 8 }, { cell: 9, relay: 2 }];
+const factory = (m: Mission) => m.definition.factory ?? teachingFactory;
+const floor = (m: Mission, cell: number) => cell >= 0 && cell < factory(m).width * factory(m).height && !factory(m).walls.includes(cell);
 const isFoundry = (m: Mission) => m.definition.mode === 'foundry';
 export const partner = (role: Role): Role => role === 'A' ? 'B' : 'A';
 export function newMission(id: string, definition: MissionDefinition): Mission {
-  if (definition.mode === 'foundry') return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
-    positions: { A: 0, B: 8 }, proposals: { A: 0, B: 8 }, planningRevision: 0, ready: { A: false, B: false },
+  if (definition.mode === 'foundry') {
+    const f = definition.factory ?? teachingFactory;
+    const validCell = (c: number) => Number.isInteger(c) && c >= 0 && c < f.width * f.height && !f.walls.includes(c);
+    if (!Number.isInteger(f.width) || !Number.isInteger(f.height) || f.width < 1 || f.width > 8 || f.height < 1 || f.height > 8
+      || new Set(f.walls).size !== f.walls.length || f.walls.some(c => !Number.isInteger(c) || c < 0 || c >= f.width * f.height)
+      || !roles.every(r => validCell(f.starts[r]) && validCell(f.exits[r])) || f.starts.A === f.starts.B || f.exits.A === f.exits.B
+      || new Set(f.gates.map(g => g.cell)).size !== f.gates.length
+      || f.gates.some(g => !validCell(g.cell) || !validCell(g.relay) || g.cell === g.relay || !['latching', 'pressure'].includes(g.kind))) throw new Error('Invalid authored factory');
+    return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
+    positions: { ...f.starts }, proposals: { ...f.starts }, planningRevision: 0, ready: { A: false, B: false },
     signals: { A: null, B: null }, knowledge: { A: [], B: [] }, latchedGates: [], result: null,
-    explanations: ['B is powering Gate 1 from Relay 8. Help A through, then A can power Gate 9.'], retryAgreements: { A: false, B: false } };
+    explanations: [f.hint], retryAgreements: { A: false, B: false }, choices: { A: null, B: null } };
+  }
   for (const role of roles) {
     const hazards = definition.hazards[role];
     if (hazards.length !== 2 || new Set(hazards).size !== 2 || hazards.some(c => !Number.isInteger(c) || c < 0 || c > 8 || c === 3 || c === 5)) throw new Error('Invalid authored mission');
@@ -27,7 +37,7 @@ export function newMission(id: string, definition: MissionDefinition): Mission {
   return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
     positions: { A: 3, B: 5 }, proposals: { A: 3, B: 5 }, planningRevision: 0,
     ready: { A: false, B: false }, signals: { A: null, B: null }, knowledge: { A: known(), B: known() },
-    result: null, explanations: [], latchedGates: [], retryAgreements: { A: false, B: false } };
+    result: null, explanations: [], latchedGates: [], retryAgreements: { A: false, B: false }, choices: { A: null, B: null } };
 }
 function learn(m: Mission, role: Role, cell: number, safety: 'Safe' | 'Danger', source: NonNullable<Knowledge>['source']) {
   if (!m.knowledge[role][cell]) m.knowledge[role][cell] = { safety, source };
@@ -39,17 +49,17 @@ function revision(m: Mission) { m.planningRevision++; m.ready = { A: false, B: f
 export function propose(m: Mission, role: Role, destination: number): Mission {
   if (m.result) throw new RuleFault('NOT_PLANNING');
   const current = m.positions[role];
-  const width = isFoundry(m) ? 4 : 3;
+  const width = isFoundry(m) ? factory(m).width : 3;
   const distance = Math.abs(Math.floor(current / width) - Math.floor(destination / width)) + Math.abs(current % width - destination % width);
-  if (!Number.isInteger(destination) || destination < 0 || destination > (isFoundry(m) ? 11 : 8) || distance > 1
-    || (isFoundry(m) && !foundryFloor.includes(destination))) throw new RuleFault('INVALID_INPUT');
+  if (!Number.isInteger(destination) || destination < 0 || distance > 1
+    || (isFoundry(m) ? !floor(m, destination) : destination > 8)) throw new RuleFault('INVALID_INPUT');
   if (m.proposals[role] === destination) return m;
   const next = structuredClone(m); next.proposals[role] = destination; revision(next); return next;
 }
 export function signal(m: Mission, role: Role, cell: number): Mission {
   if (m.result) throw new RuleFault('NOT_PLANNING');
   if (isFoundry(m)) {
-    if (!Number.isInteger(cell) || !foundryFloor.includes(cell)) throw new RuleFault('INVALID_INPUT');
+    if (!Number.isInteger(cell) || !floor(m, cell)) throw new RuleFault('INVALID_INPUT');
     if (!m.definition.independent && m.signals[role]) throw new RuleFault('SIGNAL_UNAVAILABLE');
     const next = structuredClone(m);
     // Foundry reuses the bounded signal command as a public tile ping, not a private safety disclosure.
@@ -112,11 +122,12 @@ export function resolve(m: Mission): Mission {
   revision(next); return next;
 }
 function resolveFoundry(m: Mission): Mission {
+  const f = factory(m), foundryGates = f.gates;
   const next = structuredClone(m), tentative = { ...m.proposals };
   next.explanations = [];
   for (const role of roles) {
     const gate = foundryGates.find(g => g.cell === m.proposals[role]);
-    if (gate && m.positions[role] !== gate.cell && !m.latchedGates.includes(gate.cell)
+    if (gate && m.positions[role] !== gate.cell && !(gate.kind === 'latching' && m.latchedGates.includes(gate.cell))
       && !roles.some(r => m.positions[r] === gate.relay)) {
       tentative[role] = m.positions[role];
       const nowPowered = roles.some(r => m.proposals[r] === gate.relay);
@@ -132,7 +143,7 @@ function resolveFoundry(m: Mission): Mission {
     const position = next.positions[role];
     if (position !== m.positions[role]) {
       next.explanations.push(`${role}: moved to ${position}.`);
-      if (foundryGates.some(g => g.cell === position) && !next.latchedGates.includes(position)) {
+      if (foundryGates.some(g => g.cell === position && g.kind === 'latching') && !next.latchedGates.includes(position)) {
         next.latchedGates.push(position); next.explanations.push(`Gate ${position} latched open. You can safely return through it.`);
       }
     }
@@ -143,24 +154,28 @@ function resolveFoundry(m: Mission): Mission {
   }
   if (!next.explanations.length) next.explanations.push('Both robots waited. Take your time to plan.');
   next.turnsResolved++;
-  next.result = next.positions.A === 3 && next.positions.B === 11 ? 'success' : null;
+  next.result = roles.every(r => next.positions[r] === f.exits[r]) ? 'success' : null;
   revision(next);
   if (!next.result) { next.turn++; next.proposals = { ...next.positions }; next.signals = { A: null, B: null }; }
   return next;
 }
 export function clearAgreement(m: Mission): Mission {
-  const next = structuredClone(m); revision(next); next.retryAgreements = { A: false, B: false }; return next;
+  const next = structuredClone(m); revision(next); next.retryAgreements = { A: false, B: false }; next.choices = { A: null, B: null }; return next;
 }
 export function project(m: Mission, role: Role): MissionView {
-  if (isFoundry(m)) return { id: m.id, ruleVersion: m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
-    turnsResolved: m.turnsResolved, strikes: 0, positions: { ...m.positions }, exits: { A: 3, B: 11 },
+  if (isFoundry(m)) {
+    const f = factory(m);
+    return { id: m.id, ruleVersion: m.definition.factory ? 'SF-M2-v1' : m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
+    turnsResolved: m.turnsResolved, strikes: 0, positions: { ...m.positions }, exits: { ...f.exits },
     proposals: { ...m.proposals }, planningRevision: m.planningRevision, ready: { ...m.ready },
     signals: structuredClone(m.signals), ownKnownCells: [], partnerHazards: [], result: m.result,
     explanations: [...m.explanations], retryAgreements: { ...m.retryAgreements },
-    foundry: { width: 4, height: 3, walls: [4, 5, 6, 7], movement: m.definition.independent ? 'independent' : 'confirmed', gates: foundryGates.map(g => {
-      const powered = roles.some(r => m.positions[r] === g.relay), latched = m.latchedGates.includes(g.cell);
+    foundry: { width: f.width, height: f.height, walls: [...f.walls], movement: m.definition.independent ? 'independent' : 'confirmed',
+      stage: m.definition.stage ?? 1, hint: f.hint, nextTitle: m.definition.nextMission?.title ?? null, choices: { ...m.choices }, gates: f.gates.map(g => {
+      const powered = roles.some(r => m.positions[r] === g.relay), latched = g.kind === 'latching' && m.latchedGates.includes(g.cell);
       return { ...g, powered, latched, open: powered || latched };
     }) } };
+  }
   // Explicit allowlist: never serialize Mission/definition and delete fields afterward.
   return { id: m.id, ruleVersion: 'J1-C1', title: m.definition.title, turn: m.turn, turnsResolved: m.turnsResolved,
     strikes: m.strikes, positions: { ...m.positions }, exits: { ...exits }, proposals: { ...m.proposals },
