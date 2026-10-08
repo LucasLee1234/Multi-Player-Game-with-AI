@@ -487,7 +487,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
       const rule = document.createElement('span'); rule.className = 'tile-rule'; rule.textContent = gate.kind === 'pressure' ? 'Hold relay' : 'Stays open'; tile.append(rule);
       const source = document.createElement('span'); source.className = 'tile-source'; source.textContent = `Relay ${gate.relay}`; tile.append(source);
     }
-    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ ${relay.cell}` : ''; tile.append(description);
+    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : ''; tile.append(description);
     if (robot) {
       const bot = document.createElement('span'); bot.className = `robot robot-${robot}`; bot.textContent = robot;
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Explicit relay destinations (`Relay → Gate N`), including compact landscape layouts and crate docks.
 - Short push/pull diagrams and contextual, dismissible crate guidance.
 - Successful-action learning, legal direction previews and clear parked-crate objectives.
 - Pull control above the board, with explicit straight-away direction and mode-switch corrections.

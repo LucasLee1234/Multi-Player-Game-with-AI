@@ -362,6 +362,9 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
   .single-screen .moves { grid-template-columns: repeat(3,40px); grid-template-rows: repeat(2,36px); gap: 3px; }
   .single-screen .moves button { min-height: 36px; }
   .single-screen .tile-source, .single-screen .tile-state, .single-screen .tile-rule { display: none; }
+  .single-screen .relay .tile-state { display: inline; font-size: 8px; white-space: nowrap; }
+  .single-screen button.factory-tile.relay { padding: 4px 2px; }
+  .single-screen .relay .tile-icon { display: none; }
   .single-screen .tile-icon svg { width: 18px; height: 18px; }
   .single-screen .robot { margin-top: 0; transform: scale(.8); }
   .single-screen #objective { font-size: 10px; }

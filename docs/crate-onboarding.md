@@ -40,3 +40,9 @@ Player feedback identified two remaining issues: the fixed bottom Pull button wa
 - A failed pull now names the current straight-away direction, or tells a nonadjacent player to switch OFF and approach the crate. Accessible tile labels no longer describe illegal pulls as available actions.
 - 79 regressions passed, including all four correction directions and row-boundary rejection. Browser validation reproduced crate-left/robot-right, verified the right arrow and failed-up correction, and confirmed upward walking succeeds after switching Pull OFF.
 - At 390x844 the Pull control started at y=99; at 844x390 it started at y=88. Neither viewport had page overflow. [Mobile control and correction evidence](pull-control-preview.png).
+
+## Follow-up: explicit relay destinations
+
+- All relay tiles now name their destination as `→ Gate N`, matching the accessible labels and connection overview. Crate parking targets retain their parking instruction and explicit gate destination.
+- Compact landscape layouts preserve relay destinations and omit decorative relay icons to prevent clipping.
+- The TypeScript build passed. Browser verification covered First Connection, the Relay 8 crate dock in Keep the Power On, and all three relays in Handoff Workshop. At 844x390 the destination labels fit within their tiles and the page had no overflow. [Landscape preview](relay-link-preview.png).
