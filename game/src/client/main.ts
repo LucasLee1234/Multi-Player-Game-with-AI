@@ -394,7 +394,9 @@ function prepareFoundryBoard(m: MissionView) {
 function showFoundryLink(m: MissionView, cell: number) {
   const link = m.foundry!.gates.find(g => g.cell === cell || g.relay === cell);
   el('foundry-link').textContent = link ? link.kind === 'pressure'
-    ? `Gate ${link.cell} · ${link.powered ? 'Powered' : 'Closed'}. Keep Relay ${link.relay} occupied to hold it open.`
+    ? !link.open && Object.values(m.positions).includes(link.cell)
+      ? `Gate ${link.cell} · Exit only. The robot inside can step onto a clear adjacent tile. Power Relay ${link.relay} before entering again.`
+      : `Gate ${link.cell} · ${link.powered ? 'Powered' : 'Closed'}. Keep Relay ${link.relay} occupied to hold it open.`
     : link.latched ? `Gate ${link.cell} · Locked open after entry. Relay ${link.relay} is no longer needed.`
     : `Gate ${link.cell} · ${link.powered ? 'Powered' : 'Closed'}. Stand on Relay ${link.relay}; entering locks it open.`
     : m.foundry!.gates.map(g => `Relay ${g.relay} → ${g.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${g.cell}`).join(' · ');
@@ -432,11 +434,13 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const exit = (['A', 'B'] as const).find(r => m.exits[r] === cell);
     const robot = (['A', 'B'] as const).find(r => m.positions[r] === cell);
     const cargo = board.crate?.cell===cell;
+    const exitOnly = !!gate && !gate.open && !!robot;
     const crateTarget = board.crate?.target === cell;
     const label = wall ? 'Wall' : gate ? `${gate.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
-    const state = gate ? gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
+    const state = gate ? exitOnly ? 'Exit only; the robot inside can leave' : gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
     tile.classList.toggle('has-robot', !!robot);
+    tile.classList.toggle('gate-exit-only', exitOnly);
     tile.classList.toggle('gate-tile', !!gate);
     tile.classList.toggle('relay-powered', !!relay?.powered);
     tile.classList.toggle('exit-A', exit === 'A');
@@ -467,7 +471,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
       };
       if (gate) {
         shape('rect',{x:'4',y:'5',width:'20',height:'19',rx:'3',fill:'none',stroke:'currentColor','stroke-width':'2'});
-        shape('path',{d:gate.open?'M8 9v11m12-11v11':'M9 9v11m5-11v11m5-11v11',fill:'none',stroke:'currentColor','stroke-width':'2','stroke-linecap':'round'});
+        shape('path',{d:gate.open || exitOnly?'M8 9v11m12-11v11':'M9 9v11m5-11v11m5-11v11',fill:'none',stroke:'currentColor','stroke-width':'2','stroke-linecap':'round'});
         shape('circle',{cx:'14',cy:'2',r:'2',fill:'currentColor'});
       } else if (relay) {
         shape('path',{d:'M14 3 25 14 14 25 3 14Z',fill:'none',stroke:'currentColor','stroke-width':'2'});
@@ -487,7 +491,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
       const rule = document.createElement('span'); rule.className = 'tile-rule'; rule.textContent = gate.kind === 'pressure' ? 'Hold relay' : 'Stays open'; tile.append(rule);
       const source = document.createElement('span'); source.className = 'tile-source'; source.textContent = `Relay ${gate.relay}`; tile.append(source);
     }
-    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : ''; tile.append(description);
+    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? exitOnly ? 'Exit only' : gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : ''; tile.append(description);
     if (robot) {
       const bot = document.createElement('span'); bot.className = `robot robot-${robot}`; bot.textContent = robot;
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
@@ -529,6 +533,8 @@ function renderMission() {
   el('foundry-instructions').hidden = !foundry; el('foundry-map').hidden = !foundry;
   const crateTargetLabel = m.foundry?.crate ? `${m.foundry.gates.some(g=>g.relay===m.foundry!.crate!.target)?'Relay':'Dock'} ${m.foundry.crate.target}` : '';
   el('objective').textContent = m.foundry?.crate ? m.foundry.crate.cell === m.foundry.crate.target ? '✓ Crate parked. Keep it here; reach both robot exits.' : `Park the crate on ${crateTargetLabel}, then reach both exits.` : foundry ? 'Power the path. Reach both exits together.' : 'Bring both robots to their own exits together. You can leave your exit to make room.';
+  const unpoweredDoor = m.foundry?.gates.find(g => !g.open && g.cell === m.positions[role]);
+  if (unpoweredDoor && !m.result) el('objective').textContent = `Gate ${unpoweredDoor.cell}: you can leave onto a clear adjacent tile${pullMode ? ' with Pull OFF' : ''}. Power Relay ${unpoweredDoor.relay} to return.`;
   el('mission-title').textContent = m.title;
   el('progress').textContent = independent ? `ROOM ${String(m.foundry!.stage).padStart(2,'0')} / ${String(view.campaign.levels.length).padStart(2,'0')} · ${m.turnsResolved} moves` : foundry ? `Turn ${m.turn} · ${m.turnsResolved} turns completed · No turn limit` : `Turn ${m.turn} / 8 · Resolved ${m.turnsResolved} · Strikes ${m.strikes} / 3`;
   el('move-heading').textContent = independent ? 'Move your robot' : 'Propose your move';

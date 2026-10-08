@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Amber exit-only state and safe-departure guidance for robots occupying an unpowered gate; [behavior and evidence](docs/gate-occupancy.md).
 - Explicit relay destinations (`Relay → Gate N`), including compact landscape layouts and crate docks.
 - Short push/pull diagrams and contextual, dismissible crate guidance.
 - Successful-action learning, legal direction previews and clear parked-crate objectives.

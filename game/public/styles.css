@@ -281,6 +281,9 @@ body:not(.entry-screen) .entry-art, body:not(.entry-screen) .entry-facts { displ
 .foundry-playing .tile-source, .foundry-playing .tile-state { font-size: 9px; }
 .foundry-playing .gate-open .tile-state { color: #3c744e; }
 .foundry-playing .gate-closed .tile-state { color: #8e5a40; }
+.foundry-playing button.factory-tile.gate-exit-only { background: #fff0c8; border-color: #ba9336; border-style: dashed; }
+.foundry-playing .gate-exit-only .tile-icon, .foundry-playing .gate-exit-only .tile-state { color: #795d20; }
+.single-screen .gate-exit-only .tile-rule { display: none; }
 .foundry-playing .robot { width: 34px; height: 30px; padding-top: 16px; margin-top: 4px; border-radius: 10px 10px 6px 6px; font-size: 9px; box-shadow: -5px 4px 0 -2px #345965,5px 4px 0 -2px #345965,0 4px 6px #244b4a20; }
 .foundry-playing .robot-A { background: linear-gradient(#3998b5,#237b97); }
 .foundry-playing .robot-B { background: linear-gradient(#ca80a2,#ab5883); box-shadow: -5px 4px 0 -2px #78516a,5px 4px 0 -2px #78516a,0 4px 6px #244b4a20; }
@@ -363,6 +366,8 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
   .single-screen .moves button { min-height: 36px; }
   .single-screen .tile-source, .single-screen .tile-state, .single-screen .tile-rule { display: none; }
   .single-screen .relay .tile-state { display: inline; font-size: 8px; white-space: nowrap; }
+  .single-screen .gate-exit-only .tile-state { display: inline; font-size: 8px; white-space: nowrap; }
+  .single-screen .gate-exit-only .tile-icon, .single-screen .gate-exit-only .tile-source { display: none; }
   .single-screen button.factory-tile.relay { padding: 4px 2px; }
   .single-screen .relay .tile-icon { display: none; }
   .single-screen .tile-icon svg { width: 18px; height: 18px; }

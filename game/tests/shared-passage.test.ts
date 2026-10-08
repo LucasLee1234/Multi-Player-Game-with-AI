@@ -24,6 +24,9 @@ test('pressure gate never latches and closing permits occupant escape but blocks
   let m=fresh();for(const [r,c] of southern.slice(0,5))m=moveFoundry(m,r,c);
   assert.deepEqual(m.positions,{A:11,B:8});assert.equal(project(m,'A').foundry!.gates[1]!.latched,false);
   m=moveFoundry(m,'B',3);assert.equal(project(m,'A').foundry!.gates[1]!.open,false);
+  assert.equal(m.positions.A,11); // Losing power does not displace or harm the occupant.
+  const otherExit=moveFoundry(m,'A',6);assert.equal(otherExit.positions.A,6);
+  const noReturn=moveFoundry(otherExit,'A',11);assert.equal(noReturn.positions.A,6);
   m=moveFoundry(m,'A',12);const count=m.turnsResolved;
   m=moveFoundry(m,'A',11);assert.equal(m.positions.A,12);assert.equal(m.turnsResolved,count);
   m=moveFoundry(m,'B',8);m=moveFoundry(m,'A',11);assert.equal(m.positions.A,11);
