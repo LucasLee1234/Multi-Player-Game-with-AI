@@ -13,7 +13,7 @@ for(let attempt=0;attempt<50&&!healthy;attempt++) {
 }
 assert.equal(healthy,true,'Container readiness deadline exceeded.');
 assert.match(await (await fetch(base+'/')).text(),/4 rooms/);
-for(const path of ['/styles.css','/client.js','/crate-help.js'])assert.equal((await fetch(base+path)).status,200);
+for(const path of ['/styles.css','/client.js','/crate-help.js','/audio.js'])assert.equal((await fetch(base+path)).status,200);
 for(const path of ['/src/server/store.ts','/tests/manual-partner.mjs','/docs/competition-plan.md'])assert.equal((await fetch(base+path)).status,404);
 async function post(path,body,cookie) {
   const r=await fetch(base+path,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:JSON.stringify(body)});

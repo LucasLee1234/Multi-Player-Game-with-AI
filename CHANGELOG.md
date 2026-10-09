@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Quiet synthesized sound effects with a persistent Sound ON/OFF control under Menu → Controls. Initial/duplicate snapshots and failed moves stay silent; no music or external audio assets. All 87 tests pass. [Verification](docs/audio-feedback.md).
 - Short speech bubbles above each sending robot, alongside existing detailed team messages; bubbles follow movement and expire with the signal.
 - Compact team signals: power requests, Hold position, Got it and explicit tile marking, with named markers, six-second expiry and a server-enforced two-second cooldown. [Behavior and verification](docs/team-signals.md).
 - 84 tests pass, including communication authority, lifecycle and real two-seat delivery.

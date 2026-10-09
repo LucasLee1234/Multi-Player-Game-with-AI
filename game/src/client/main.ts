@@ -1,6 +1,9 @@
 import { crateAction, crateFailure, pullDirection } from './crate-help.js';
+import { GameAudio, transitionSound } from './audio.js';
 import type { SessionContext, ServerMessage, Command, MissionView, Role, LobbyView, TeamSignal, TeamSignalKind } from '../contracts/lobby.js';
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+const audio=new GameAudio();
+for(const event of ['pointerdown','keydown'] as const) document.addEventListener(event,e=>{if(e.isTrusted) audio.unlock();},{capture:true});
 const messages: Record<string, string> = {
   ROOM_FULL: 'This room already has two players.', ROOM_UNAVAILABLE: 'Room not found or expired. Check the code.',
   PAUSED: 'This room is paused and its seats are reserved.', CONTROLLER_ACTIVE: 'Another tab controls your seat. Choose Use this tab to switch.',
@@ -140,6 +143,8 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   if (mapHelp.parentElement !== el('menu-help')) el('menu-help').append(mapHelp);
   if (el('foundry-link').parentElement !== mapHelp) mapHelp.append(el('foundry-link'));
   el('menu-shortcuts').textContent = m?.foundry?.crate ? 'Move: arrows / WASD or adjacent tile. Push: walk into crate. Pull: F.' : 'Move: arrows / WASD or adjacent tile. Stay still to wait.';
+  el('sound-toggle').textContent=audio.enabled?'Sound ON':'Sound OFF';
+  el('sound-toggle').setAttribute('aria-pressed',String(audio.enabled));
   const teachingArrows = m?.foundry?.stage === 1 && !arrowsHidden;
   if (teachingArrows) { if (moveButtons.parentElement !== homeSlots.get(moveButtons)!.parentElement) homeSlots.get(moveButtons)!.after(moveButtons); }
   else if (moveButtons.parentElement !== el('menu-moves')) el('menu-moves').append(moveButtons);
@@ -389,11 +394,15 @@ function renderTeamSignals(m:MissionView,role:Role,planning:boolean) {
     for(const g of m.foundry?.gates??[]) { const option=document.createElement('option'); option.value=String(g.cell); option.textContent=`Gate ${g.cell} · Relay ${g.relay}`; select.append(option); }
   }
   if(teamView!==view) {
+    const hadView=!!teamView;
     teamView=view; teamCooldown=performance.now()+(view.communication?.cooldownMs??0);
     for(const r of ['A','B'] as const) {
       const signal=view.communication?.signals[r], old=visibleSignals.get(r);
       if(!signal) visibleSignals.delete(r);
-      else if(old?.signal.id!==signal.id) visibleSignals.set(r,{signal,deadline:performance.now()+signal.remainingMs});
+      else if(old?.signal.id!==signal.id) {
+        visibleSignals.set(r,{signal,deadline:performance.now()+signal.remainingMs});
+        if(hadView && r!==role) audio.play('signal');
+      }
     }
   }
   const now=performance.now();
@@ -490,6 +499,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
   const board = m.foundry!;
   prepareFoundryBoard(m);
   const previous = lastVisual?.id === m.id ? lastVisual : undefined;
+  const cue=transitionSound(previous,m); if(cue) audio.play(cue);
   if (!previous) motionUntil.clear();
   if (previous?.foundry?.crate && board.crate && previous.foundry.crate.cell !== board.crate.cell) motionUntil.set('crate', performance.now() + 260);
   for (const r of ['A', 'B'] as const) if (previous && previous.positions[r] !== m.positions[r]) motionUntil.set(`robot-${r}`, performance.now() + 260);
@@ -735,6 +745,7 @@ el('game-menu-open').onclick = el('restart-alert').onclick = () => {
   selectMenuSection('play'); el<HTMLDialogElement>('game-menu').showModal();
 };
 el('game-menu-close').onclick = () => el<HTMLDialogElement>('game-menu').close();
+el('sound-toggle').onclick=()=>{audio.toggle();render();};
 el('team-open').onclick=()=>{
   const panel=el('team-panel'); panel.hidden=!panel.hidden;
   el('team-open').setAttribute('aria-expanded',String(!panel.hidden));

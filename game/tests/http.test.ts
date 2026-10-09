@@ -27,6 +27,7 @@ test('actual HTTP and WebSocket flow: two cookie contexts, third rejection, isol
   for (const path of ['/src/server/store.ts', '/research/signal_rescue_rules.py', '/content/mission.json', '/../docs/decisions.md']) assert.equal((await fetch(app.origin + path)).status, 404);
   assert.equal((await fetch(app.origin + '/')).status, 200);
   const js = await fetch(app.origin + '/client.js'); assert.equal(js.status, 200); assert.match(await js.text(), /STALE_PLAN/);
+  const audio = await fetch(app.origin + '/audio.js'); assert.equal(audio.status, 200); assert.match(audio.headers.get('content-type')!, /javascript/); assert.match(await audio.text(), /export class GameAudio/);
   assert.equal((await post('/api/rooms', { requestId: 'oversize1', expectedContextVersion: 0, pad: 'x'.repeat(9000) }, unseated.cookie)).response.status, 413);
 
   function connect(cookie: string, origin = app.origin) {

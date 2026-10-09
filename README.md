@@ -16,6 +16,7 @@ Create a room and share its six-character code. Your partner joins from another 
 - Open **Menu** for controls, lessons, restart, levels and Leave room. Restart and level changes require partner consent; leaving does not.
 - Completed rooms receive green marks, remembered in the current browser rather than a cloud account.
 - Use the speech-bubble button for Need power, Hold position, Got it and Mark a tile. Signals last six seconds; sending has a two-second cooldown and never freezes movement.
+- Quiet sound effects accompany moves, gates, crates, parking, completion and incoming teammate signals. Toggle **Sound ON/OFF** under **Menu → Controls**; your preference is saved in this browser. Sound begins after your first interaction.
 
 | Room | Cooperation challenge |
 | --- | --- |
@@ -68,7 +69,7 @@ Defaults: 20 rooms, 500 sessions, a 60-second disconnect recovery window and a t
 
 ## Verification
 
-The application passed **84 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, team signals and cooldowns, restart, consent-bound levels, five-room progression, crate previews and safe gate departure. Actual-engine searches found all reachable spatial states recoverable in all five rooms; Freight Exchange has 2,000 configurations and a shortest 30-step completion.
+The application passed **87 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, team signals and cooldowns, restart, consent-bound levels, five-room progression, crate previews, safe gate departure and sound event selection. Actual-engine searches found all reachable spatial states recoverable in all five rooms; Freight Exchange has 2,000 configurations and a shortest 30-step completion.
 
 Browser A with a developer scripted partner completed room four and checked F/Pull, parking, replay, green marks and exit. Responsive inspection covered 390x844 and 844x390 without page overflow. These checks do not establish independent two-human enjoyment, actual-phone behavior or public deployment readiness. [Fourth-room evidence](docs/handoff-workshop-implementation.md), [earlier test evidence](docs/test-evidence.md).
 
