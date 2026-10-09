@@ -36,3 +36,13 @@ Signals from an earlier mission are omitted after restart, replay or level selec
 ## Release boundary
 
 Source-only change under the existing 1.1.0 development line. No Docker image or Azure deployment is included. Free-text chat, voice, chat history and a mandatory acknowledgement workflow are outside this iteration.
+
+## Follow-up: robot speech bubbles
+
+Signals now also display short, named speech bubbles above the sending robot: `Power Gate N!`, `Hold position!`, `Look at tile N!` and `Got it!`. The bottom feedback area retains the detailed relay/tile information.
+
+Bubbles share the existing six-second signal lifetime, follow the sender after movement and resize, and use A/B colors. They are rendered outside the tiles to avoid tile clipping, clamped to the viewport, and staggered when their bounds overlap. They ignore pointer input and are hidden from assistive technology because the detailed status area already announces the message.
+
+The TypeScript build passed. Browser verification with the development helper's optional `team-review` argument displayed A's request and B's acknowledgement together, retained bottom details, confirmed A's bubble moved with A, and observed zero remaining bubbles after expiry. At 390x844 and 844x390 bubbles stayed within the viewport and the page had no overflow. The existing server rules and communication protocol were unchanged; the prior 84-test result remains the baseline rather than a newly repeated suite.
+
+[Phone speech bubbles](team-speech-phone.png) · [Landscape speech bubbles](team-speech-landscape.png).

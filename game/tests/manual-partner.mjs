@@ -15,6 +15,7 @@ const session = await post('/api/session', {});
 await post('/api/rooms/join', { requestId: randomUUID(), expectedContextVersion: 0, code }, session.cookie);
 const ws = new WebSocket(origin.replace('http', 'ws') + '/ws', { headers: { Origin: origin, Cookie: session.cookie } });
 let view, pending, missionId, step = 0;
+let repliedTeamSignal;
 // Optional scripted UI inspection: B requests, A declines, A cancels, then B agrees.
 let restartReview = process.argv[3] === 'restart-review' ? 0 : 5;
 function send(action) {
@@ -29,6 +30,14 @@ function drive() {
     return;
   }
   const m = view.mission;
+  if(process.argv[3]==='team-review' && view.room.phase==='planning') {
+    const request=view.communication?.signals.A;
+    if(request && request.id!==repliedTeamSignal && (view.communication?.cooldownMs??0)===0) {
+      repliedTeamSignal=request.id;
+      send({action:'communicate',missionId:m.id,kind:'ack',cell:m.positions.B});
+    }
+    return;
+  }
   if (missionId !== m.id) { missionId = m.id; step = 0; }
   if (view.campaign?.requestedBy === 'A' && view.campaign.target !== null) {
     send({action:'selectLevel',missionId:m.id,levelRevision:view.campaign.revision,stage:view.campaign.target});return;

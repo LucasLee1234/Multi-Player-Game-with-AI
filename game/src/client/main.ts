@@ -117,6 +117,7 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   document.body.classList.toggle('has-cargo',enabled && !!m?.foundry?.crate);
   el('game-menu-open').hidden = !enabled;
   if (!enabled) {
+    el('team-bubbles').replaceChildren();
     el('team-open').hidden=true; markingTile=false; closeTeamPanel(); visibleSignals.clear();
     if(teamTimer!==undefined) window.clearTimeout(teamTimer);
     compactMissionId = undefined;
@@ -403,12 +404,30 @@ function renderTeamSignals(m:MissionView,role:Role,planning:boolean) {
   el('team-open').classList.toggle('marking-tile',markingTile);
   for(const tile of foundryTiles) { tile.classList.remove('team-mark-A','team-mark-B'); tile.querySelector('.team-marker')?.remove(); }
   const messages:string[]=[];
+  const bubbles=el('team-bubbles'); bubbles.replaceChildren();
+  const bubbleBounds:DOMRect[]=[];
   for(const r of ['A','B'] as const) {
     const entry=visibleSignals.get(r); if(!entry || entry.deadline<=now || !planning && !!m.result) continue;
     const s=entry.signal, gate=m.foundry?.gates.find(g=>g.cell===s.cell);
     const target=s.kind==='needPower'?gate?.relay:s.kind==='ack'?undefined:s.cell;
     const text=s.kind==='point'?`${r} marks tile ${s.cell}.`:s.kind==='needPower'?`${r} needs Relay ${gate?.relay} for Gate ${s.cell}.`:s.kind==='hold'?`${r} asks ${r==='A'?'B':'A'} to hold tile ${s.cell}.`:`${r}: Got it.`;
     messages.push(text);
+    const robot=foundryTiles[m.positions[r]]?.querySelector<HTMLElement>('.robot');
+    if(robot) {
+      const bubble=document.createElement('div'); bubble.className=`robot-speech robot-speech-${r}`;
+      const short=s.kind==='needPower'?`Power Gate ${s.cell}!`:s.kind==='hold'?'Hold position!':s.kind==='point'?`Look at tile ${s.cell}!`:'Got it!';
+      bubble.textContent=`${r}: ${short}`; bubbles.append(bubble);
+      const head=robot.getBoundingClientRect(), width=bubble.getBoundingClientRect().width;
+      const center=Math.max(width/2+8,Math.min(innerWidth-width/2-8,head.left+head.width/2));
+      bubble.style.left=`${center}px`; bubble.style.top=`${head.top-7}px`;
+      let bounds=bubble.getBoundingClientRect();
+      for(const other of bubbleBounds) if(bounds.left<other.right+4 && bounds.right>other.left-4 && bounds.top<other.bottom+4 && bounds.bottom>other.top-4) {
+        bubble.style.top=`${other.top-6}px`; bounds=bubble.getBoundingClientRect();
+      }
+      if(bounds.top<8) bubble.style.top=`${8+bounds.height}px`;
+      bubble.style.setProperty('--speech-tail-x',`${Math.max(8,Math.min(width-8,head.left+head.width/2-(center-width/2)))}px`);
+      bubbleBounds.push(bubble.getBoundingClientRect());
+    }
     if(target!==undefined && foundryTiles[target]) {
       const tile=foundryTiles[target]!; tile.classList.add(`team-mark-${r}`);
       const badge=document.createElement('span'); badge.className=`team-marker team-marker-${r}`; badge.textContent=`${r}${s.kind==='needPower'?' ⚡':s.kind==='hold'?' ·':''}`; badge.setAttribute('aria-hidden','true'); tile.append(badge);
@@ -728,6 +747,7 @@ el('team-hold').onclick=()=>sendTeamSignal('hold',context!.view!.mission!.positi
 el('team-ack').onclick=()=>sendTeamSignal('ack',context!.view!.mission!.positions[context!.view!.self.role]);
 el('team-point').onclick=()=>{markingTile=!markingTile;closeTeamPanel();render();};
 window.addEventListener('keydown',event=>{if(event.key==='Escape'){markingTile=false;closeTeamPanel();render();}});
+window.addEventListener('resize',()=>{if(context?.view?.mission?.foundry) render();});
 el('menu-resume').onclick = () => el<HTMLDialogElement>('game-menu').close();
 el('hide-controls').onclick = () => { hideTeachingArrows(); render(); };
 el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'push' : 'movement'); };
