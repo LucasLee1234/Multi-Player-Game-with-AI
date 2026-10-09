@@ -36,11 +36,6 @@
           "cell": 11,
           "relay": 8,
           "kind": "pressure"
-        },
-        {
-          "cell": 13,
-          "relay": 16,
-          "kind": "pressure"
         }
       ],
       "crate": {
@@ -59,12 +54,12 @@
     }
   },
   "evidence": "Exhaustive spatial search using the compiled production engine, not human playtesting.",
-  "reachable": 318,
-  "edges": 1076,
-  "goals": 1,
-  "recoverable": 318,
+  "reachable": 497,
+  "edges": 1876,
+  "goals": 2,
+  "recoverable": 497,
   "unrecoverable": 0,
-  "maximumRecovery": 22,
+  "maximumRecovery": 18,
   "shortest": [
     [
       "A",
@@ -78,57 +73,52 @@
     ],
     [
       "B",
+      13,
+      "move"
+    ],
+    [
+      "B",
+      8,
+      "move"
+    ],
+    [
+      "A",
+      11,
+      "move"
+    ],
+    [
+      "A",
+      16,
+      "move"
+    ],
+    [
+      "A",
+      11,
+      "move"
+    ],
+    [
+      "A",
+      12,
+      "move"
+    ],
+    [
+      "A",
+      13,
+      "move"
+    ],
+    [
+      "A",
+      14,
+      "move"
+    ],
+    [
+      "A",
       9,
       "move"
     ],
     [
       "B",
-      8,
-      "move"
-    ],
-    [
-      "B",
-      3,
-      "move"
-    ],
-    [
-      "B",
-      2,
-      "move"
-    ],
-    [
-      "A",
-      1,
-      "move"
-    ],
-    [
-      "A",
-      0,
-      "move"
-    ],
-    [
-      "B",
-      1,
-      "move"
-    ],
-    [
-      "B",
-      6,
-      "move"
-    ],
-    [
-      "A",
-      1,
-      "move"
-    ],
-    [
-      "A",
-      2,
-      "move"
-    ],
-    [
-      "A",
-      3,
+      13,
       "move"
     ],
     [
@@ -138,12 +128,7 @@
     ],
     [
       "B",
-      11,
-      "move"
-    ],
-    [
-      "B",
-      16,
+      12,
       "move"
     ],
     [

@@ -44,7 +44,7 @@ export const freightExchange: MissionDefinition = {
 };
 export const conveyorHandoff: MissionDefinition = {
   title: 'Conveyor Handoff', mode: 'foundry', independent: true, stage: 6, hazards: { A: [], B: [] },
-  factory: { ...handoffWorkshop.factory!, crate: { start: 12, target: 18 },
+  factory: { ...handoffWorkshop.factory!, gates: handoffWorkshop.factory!.gates.filter(g=>g.cell!==13), crate: { start: 12, target: 18 },
     conveyor: { path: [12,13,18], relay: 16 },
     hint: 'Hold Relay 8 to let your partner reach Switch 16. Stand on Switch 16 to carry the crate along 12 → 13 → Dock 18. Clear the route, then reach both exits.' }
 };

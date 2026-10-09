@@ -110,8 +110,10 @@ function moveCargo(m: Mission, role: Role, destination: number, kind: 'move' | '
   };
   const blocked=(reason:string)=>{next.explanations=[`${role}: ${reason}`];revision(next);return next;};
   if(destination===from)return kind==='move'?m:blocked('Pull needs a step away from the crate.');
+  if(f.conveyor && crate===f.crate!.target && (kind==='pull'||destination===crate))
+    return blocked('Cargo delivered. The dock locks the crate in place. Reach both robot exits.');
   if((kind==='pull' || destination===crate) && f.conveyor?.path.slice(0,-1).includes(crate))
-    return blocked(`The belt carries this crate. Stand on Switch ${f.conveyor.relay} and clear its route. Push or pull from the belt end.`);
+    return blocked(`The belt carries this crate. Stand on Switch ${f.conveyor.relay} and clear its route. No pushing needed.`);
   let cargo=crate;
   if(kind==='pull') {
     if(2*from-destination!==crate || !adjacent(from,crate))return blocked('Pull needs the crate directly behind you.');
@@ -143,15 +145,20 @@ function carryConveyor(m: Mission) {
   const f=factory(m), belt=f.conveyor;
   if(!belt || !roles.some(r=>m.positions[r]===belt.relay) || m.crate===null)return;
   const start=m.crate;
-  let index=belt.path.indexOf(start);
+  const index=belt.path.indexOf(start);
   if(index<0)return;
-  while(index<belt.path.length-1) {
-    const cell=belt.path[index+1]!, gate=f.gates.find(g=>g.cell===cell);
-    if(roles.some(r=>m.positions[r]===cell)) {m.explanations.push(`Belt waiting: clear Tile ${cell}. Switch ${belt.relay} is held.`);break;}
+  const route=belt.path.slice(index+1);
+  // Wait for the whole route so cargo cannot trap a robot in a one-exit receiving bay.
+  for(const cell of route) {
+    const gate=f.gates.find(g=>g.cell===cell);
+    if(roles.some(r=>m.positions[r]===cell)) {m.explanations.push(`Belt waiting: clear Tile ${cell}. Switch ${belt.relay} is held.`);return;}
     if(gate && !(gate.kind==='latching'&&m.latchedGates.includes(cell)) && m.crate!==gate.relay && !roles.some(r=>m.positions[r]===gate.relay)) {
-      m.explanations.push(`Belt waiting: power Relay ${gate.relay} for Gate ${cell}.`);break;
+      m.explanations.push(`Belt waiting: power Relay ${gate.relay} for Gate ${cell}.`);return;
     }
-    m.crate=cell;index++;
+  }
+  for(const cell of route) {
+    const gate=f.gates.find(g=>g.cell===cell);
+    m.crate=cell;
     if(gate?.kind==='latching'&&!m.latchedGates.includes(cell))m.latchedGates.push(cell);
   }
   if(m.crate!==start)m.explanations.push(`Conveyor carried the crate from ${start} to ${m.crate}.`);

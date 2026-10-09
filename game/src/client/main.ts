@@ -78,7 +78,7 @@ function renderLevels() {
 type Lesson = 'movement' | 'push' | 'pull' | 'conveyor';
 let tutorialKind: Lesson = 'movement';
 const seenLessons = new Set<string>(), offeredLessons = new Set<string>();
-const lessonKey = (kind: string) => `foundry.lesson.${kind === 'movement' ? 'v1' : 'v3'}.${kind}`;
+const lessonKey = (kind: string) => `foundry.lesson.${kind === 'movement' ? 'v1' : kind === 'conveyor' ? 'v4' : 'v3'}.${kind}`;
 try { for (const kind of ['movement','push','pull','conveyor']) if (localStorage.getItem(lessonKey(kind)) === 'seen') seenLessons.add(kind); } catch { /* Session-only fallback. */ }
 function learn(kind: Lesson) {
   seenLessons.add(kind);
@@ -93,7 +93,7 @@ function coach(text: string) {
 function showLesson(kind: Lesson) {
   tutorialKind = kind; offeredLessons.add(kind);
   el('tutorial-title').textContent = kind === 'conveyor' ? 'Hold the switch. Clear the belt.' : kind === 'push' ? 'Push the crate' : kind === 'pull' ? 'Pull the crate' : 'Move together';
-  el('tutorial-text').textContent = kind === 'conveyor' ? 'One robot holds Switch 16; the other clears the arrow route 12 → 13 → Dock 18. The belt carries the crate automatically when you move. It waits safely behind robots or closed gates. On the belt, use the switch instead of Push or Pull. Both robots must still reach their exits.' : kind === 'push' ? 'Walk into the crate to push it one tile. The space behind it must be clear.'
+  el('tutorial-text').textContent = kind === 'conveyor' ? 'Switch 16 runs the blue conveyor; it does not open a gate. Hold the switch to carry the crate along 12 → 13 → Dock 18. Tile 13 is the belt corner. Keep the route clear: the crate waits safely if a robot is in the way. You do not need to push it. Then reach both robot exits.' : kind === 'push' ? 'Walk into the crate to push it one tile. The space behind it must be clear.'
     : kind === 'pull' ? 'Pull moves straight away from the crate. With the crate on your left, pull RIGHT; UP and DOWN will not work. Turn Pull OFF with F or the button to walk freely.'
     : 'Use arrow keys / WASD, or tap a tile next to your robot to move. Tap a distant tile to point it out. Stand on relays to power your partner’s gates. Staying still is waiting.';
   el('tutorial-demo').hidden = kind === 'movement' || kind === 'conveyor';
@@ -113,8 +113,8 @@ function showLesson(kind: Lesson) {
 }
 function togglePull() {
   const board=context?.view?.mission?.foundry;
-  if(board?.crate && board.conveyor?.path.slice(0,-1).includes(board.crate.cell)) {
-    coach(`The belt carries this crate. Hold Switch ${board.conveyor.relay} and clear the arrow route. Push/Pull is available at the end.`);render();return;
+  if(board?.crate && board.conveyor) {
+    coach(board.crate.cell===board.crate.target?'Cargo delivered. The dock holds the crate. Reach both robot exits.':`The belt carries this crate. Hold Switch ${board.conveyor.relay} and clear the arrow route. No pushing needed.`);render();return;
   }
   pullMode = !pullMode;
   if (pullMode && !seenLessons.has('pull') && !offeredLessons.has('pull')) showLesson('pull');
@@ -162,9 +162,9 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   el('mode-indicator').textContent = pullMode ? `Pull ON ${pull?.arrow ?? ''} · F` : 'Pull OFF · F';
   el('mode-indicator').title = pullMode ? pull ? `Pull ${pull.name}, straight away from the crate. Turn OFF to walk in other directions.` : 'Stand next to the crate. Turn Pull OFF to walk freely.' : 'Turn Pull ON to drag a crate. F switches modes.';
   el('mode-indicator').setAttribute('aria-pressed',String(pullMode));
-  if(m?.foundry?.conveyor?.path.slice(0,-1).includes(m.foundry.crate!.cell)) {
-    el('mode-indicator').textContent=`Belt · Switch ${m.foundry.conveyor.relay}`;
-    el('mode-indicator').title='Hold the switch and clear the arrow route. Push/Pull is available at the belt end.';
+  if(m?.foundry?.conveyor) {
+    el('mode-indicator').textContent=m.foundry.crate!.cell===m.foundry.crate!.target?'✓ Cargo delivered':`Belt · Switch ${m.foundry.conveyor.relay}`;
+    el('mode-indicator').title='Hold the switch and clear the arrow route. The delivery dock locks the crate in place.';
   }
   el<HTMLButtonElement>('mode-indicator').disabled = !context?.view || context.view.room.phase !== 'planning' || socket?.readyState!==WebSocket.OPEN || stopped || !!pending || exitRequested;
   el('crate-coach').hidden = !m?.foundry?.crate || !!m.result || performance.now() >= crateTipUntil || !crateTip;
@@ -494,7 +494,7 @@ function showFoundryLink(m: MissionView, cell: number) {
     : `Gate ${link.cell} · ${link.powered ? 'Powered' : 'Closed'}. Stand on Relay ${link.relay}; entering locks it open.`
     : m.foundry!.gates.map(g => `Relay ${g.relay} → ${g.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${g.cell}`).join(' · ');
   const belt=m.foundry!.conveyor;
-  if(belt && (belt.path.includes(cell)||belt.relay===cell||cell===-1))el('foundry-link').textContent+=` · Belt ${belt.path.join(' → ')}: hold Switch ${belt.relay}, clear the route. Push/Pull only at the end.`;
+  if(belt && (belt.path.includes(cell)||belt.relay===cell||cell===-1))el('foundry-link').textContent+=` · Blue conveyor ${belt.path.join(' → ')}: hold Switch ${belt.relay} and clear the route. The dock locks delivered cargo.`;
   for (let index = 0; index < foundryTiles.length; index++) foundryTiles[index]!.classList.toggle('linked', !!link && (index === link.cell || index === link.relay));
 }
 function destination(direction: typeof moves[number], from: number, m: MissionView): number | null {
@@ -513,6 +513,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
   const cue=transitionSound(previous,m); if(cue) audio.play(cue);
   if (!previous) motionUntil.clear();
   if (previous?.foundry?.crate && board.crate && previous.foundry.crate.cell !== board.crate.cell) motionUntil.set('crate', performance.now() + 260);
+  if(board.conveyor && previous?.foundry?.crate?.cell!==board.crate?.cell && previous)motionUntil.set('belt',performance.now()+900);
   for (const r of ['A', 'B'] as const) if (previous && previous.positions[r] !== m.positions[r]) motionUntil.set(`robot-${r}`, performance.now() + 260);
   for (const g of board.gates) if (previous && previous.foundry!.gates.find(old => old.cell === g.cell)?.open !== g.open) motionUntil.set(`gate-${g.cell}`, performance.now() + 400);
   if (previous && previous.planningRevision !== m.planningRevision && previous.turnsResolved === m.turnsResolved && m.explanations.some(t => /closed|overlap|block|cannot|Pull needs/.test(t))) motionUntil.set('blocked', performance.now() + 300);
@@ -535,7 +536,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     const belt=board.conveyor, beltIndex=belt?.path.indexOf(cell)??-1, beltSwitch=belt?.relay===cell;
     const beltNext=beltIndex>=0?belt?.path[beltIndex+1]:undefined;
     const beltArrow=beltNext===undefined?'END':beltNext===cell+1?'→':beltNext===cell-1?'←':beltNext===cell+board.width?'↓':'↑';
-    const label = wall ? 'Wall' : gate ? `${gate.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${cell}` : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
+    const label = wall ? 'Wall' : gate ? `${gate.kind === 'pressure' ? 'Hold-open' : 'Latching'} Gate ${cell}` : beltSwitch ? `Conveyor Switch ${cell}` : beltIndex>=0 ? 'Conveyor' : relay ? `Relay ${cell}` : exit ? `Exit ${exit}` : 'Floor';
     const state = gate ? exitOnly ? 'Exit only; the robot inside can leave' : gate.latched ? 'Latched open' : gate.powered ? 'Powered' : 'Closed' : relay ? `→ Gate ${relay.cell}` : '';
     tile.className = `factory-tile${wall ? ' wall' : gate ? gate.open ? ' gate-open' : ' gate-closed' : relay ? ' relay' : exit ? ' exit' : ''}${link && (cell === link.cell || cell === link.relay) ? ' linked' : ''}`;
     tile.classList.toggle('has-robot', !!robot);
@@ -550,6 +551,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
     tile.classList.toggle('conveyor-tile',beltIndex>=0);
     tile.classList.toggle('conveyor-powered',beltIndex>=0 && !!belt?.powered);
     tile.classList.toggle('conveyor-switch',beltSwitch);
+    if(beltIndex>=0 && (motionUntil.get('belt')??0)>performance.now())tile.classList.add('belt-transfer');
     if ((motionUntil.get(`gate-${cell}`) ?? 0) > performance.now()) tile.classList.add('power-flash');
     if (cell === m.positions[role] && (motionUntil.get('blocked') ?? 0) > performance.now()) tile.classList.add('blocked-flash');
     tile.disabled = wall || !planning || (board.movement !== 'independent' && !!m.signals[role]);
@@ -595,7 +597,7 @@ function renderFoundry(m: MissionView, role: Role, planning: boolean) {
       const rule = document.createElement('span'); rule.className = 'tile-rule'; rule.textContent = gate.kind === 'pressure' ? 'Hold relay' : 'Stays open'; tile.append(rule);
       const source = document.createElement('span'); source.className = 'tile-source'; source.textContent = `Relay ${gate.relay}`; tile.append(source);
     }
-    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? exitOnly ? 'Exit only' : gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : beltSwitch ? '→ Belt + Gate 13' : beltIndex>=0&&!crateTarget ? `Switch ${belt!.relay} · ${belt!.powered?'ON':'OFF'}` : relay ? `→ Gate ${relay.cell}` : ''; tile.append(description);
+    const description = document.createElement('span'); description.className = 'tile-state'; description.textContent = gate ? exitOnly ? 'Exit only' : gate.latched ? 'Locked open' : gate.powered ? 'Powered' : 'Closed' : beltSwitch ? '→ Conveyor' : beltIndex>=0&&!crateTarget ? `Switch ${belt!.relay} · ${belt!.powered?'ON':'OFF'}` : relay ? `→ Gate ${relay.cell}` : ''; tile.append(description);
     if (robot) {
       const bot = document.createElement('span'); bot.className = `robot robot-${robot}`; bot.textContent = robot;
       bot.setAttribute('aria-hidden', 'true'); tile.append(bot);
@@ -648,10 +650,11 @@ function renderMission() {
   if (foundry) renderFoundry(m, role, planning);
   el('cargo-controls').hidden = !m.foundry?.crate;
   el<HTMLButtonElement>('pull-mode').disabled = !planning;
+  el('pull-mode').hidden=!!m.foundry?.conveyor;
   el('pull-mode').setAttribute('aria-pressed',String(pullMode));
   el('pull-mode').textContent = pullMode?'Pull mode · step away':'Move / Push · switch to Pull';
   el('cargo-help').textContent = m.foundry?.crate ? `Walk into C to push. Pull: step away with C behind you. ${m.foundry.crate.cell===m.foundry.crate.target?'✓':'○'} Crate on ${crateTargetLabel} · ${m.positions.A===m.exits.A?'✓':'○'} A exit · ${m.positions.B===m.exits.B?'✓':'○'} B exit` : '';
-  if(m.foundry?.conveyor)el('cargo-help').textContent=`Hold Switch ${m.foundry.conveyor.relay} to run the arrow route. Clear robots and power gates. Push/Pull only at the belt end. ${m.foundry.crate!.cell===m.foundry.crate!.target?'✓':'○'} Crate dock · ${m.positions.A===m.exits.A?'✓':'○'} A exit · ${m.positions.B===m.exits.B?'✓':'○'} B exit`;
+  if(m.foundry?.conveyor)el('cargo-help').textContent=`Switch ${m.foundry.conveyor.relay} runs the blue conveyor. Tile 13 is its corner. Hold the switch and clear robots from the route; no pushing needed. ${m.foundry.crate!.cell===m.foundry.crate!.target?'✓':'○'} Crate dock · ${m.positions.A===m.exits.A?'✓':'○'} A exit · ${m.positions.B===m.exits.B?'✓':'○'} B exit`;
   el('own-label').textContent = `Your route · ${role}`;
   el('partner-label').textContent = `Partner's dangers · ${partner} only`;
   for (let cell = 0; !foundry && cell < 9; cell++) {

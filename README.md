@@ -17,7 +17,7 @@ Create a room and share its six-character code. Your partner joins from another 
 - Completed rooms receive green marks, remembered in the current browser rather than a cloud account.
 - Use the speech-bubble button for Need power, Hold position, Got it and Mark a tile. Signals last six seconds; sending has a two-second cooldown and never freezes movement.
 - Quiet sound effects accompany moves, gates, crates, parking, completion and incoming teammate signals. Toggle **Sound ON/OFF** under **Menu → Controls**; your preference is saved in this browser. Sound begins after your first interaction.
-- In Conveyor Handoff, hold Switch 16 and clear the arrow route. The belt carries the crate to Dock 18 and waits safely behind robots or closed gates. Use the switch for intermediate belt tiles; Push/Pull is available at the end.
+- In Conveyor Handoff, Switch 16 runs the blue belt only. Tile 13 is its corner. Clear the entire arrow route to deliver the crate to Dock 18; the dock locks it in place, then both robots reach their exits.
 
 | Room | Cooperation challenge |
 | --- | --- |
@@ -71,7 +71,7 @@ Defaults: 20 rooms, 500 sessions, a 60-second disconnect recovery window and a t
 
 ## Verification
 
-The application passed **94 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, team signals and cooldowns, restart, consent-bound levels, six-room progression, crate previews, conveyor safety, safe gate departure and sound event selection. Actual-engine searches found all reachable spatial states recoverable in all six rooms; Conveyor Handoff has 318 configurations and a shortest 20-step completion.
+The application passed **94 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, team signals and cooldowns, restart, consent-bound levels, six-room progression, crate previews, conveyor safety, safe gate departure and sound event selection. Actual-engine searches found all reachable spatial states recoverable in all six rooms; Conveyor Handoff has 497 configurations and a shortest 18-step completion.
 
 Browser A with a developer scripted partner completed room four and checked F/Pull, parking, replay, green marks and exit. Responsive inspection covered 390x844 and 844x390 without page overflow. These checks do not establish independent two-human enjoyment, actual-phone behavior or public deployment readiness. [Fourth-room evidence](docs/handoff-workshop-implementation.md), [earlier test evidence](docs/test-evidence.md).
 

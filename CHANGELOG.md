@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Added Conveyor Handoff as room six: hold Switch 16, clear the arrow route and deliver the crate to Dock 18. First-use teaching, safe obstacle stops and simplified belt handling. All 94 tests pass; all 318 reachable spatial states are recoverable. [Design](docs/conveyor-design.md) and [verification](docs/conveyor-implementation.md).
+- Added Conveyor Handoff as room six: Switch 16 runs a distinct blue belt; Tile 13 is a corner, with no Gate 13. Delivery waits for the whole route to clear and the dock locks delivered cargo. All 94 tests pass; all 497 reachable spatial states are recoverable. [Design](docs/conveyor-design.md) and [verification](docs/conveyor-implementation.md).
 - Quiet synthesized sound effects with a persistent Sound ON/OFF control under Menu → Controls. Initial/duplicate snapshots and failed moves stay silent; no music or external audio assets. All 87 tests pass. [Verification](docs/audio-feedback.md).
 - Short speech bubbles above each sending robot, alongside existing detailed team messages; bubbles follow movement and expire with the signal.
 - Compact team signals: power requests, Hold position, Got it and explicit tile marking, with named markers, six-second expiry and a server-enforced two-second cooldown. [Behavior and verification](docs/team-signals.md).

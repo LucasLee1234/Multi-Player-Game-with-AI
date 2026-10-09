@@ -4,6 +4,7 @@ import type { MissionView, Role } from '../contracts/lobby.js';
 export function crateAction(m: MissionView, role: Role, destination: number, pull: boolean): 'push' | 'pull' | null {
   const b = m.foundry, c = b?.crate;
   if (!b || !c || m.result) return null;
+  if(b.conveyor && c.cell===c.target)return null;
   if(b.conveyor?.path.slice(0,-1).includes(c.cell)) return null;
   const from = m.positions[role], partner = m.positions[role === 'A' ? 'B' : 'A'];
   const floor = (n: number) => n >= 0 && n < b.width * b.height && !b.walls.includes(n);
