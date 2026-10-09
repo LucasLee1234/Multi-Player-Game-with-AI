@@ -2,7 +2,7 @@
 
 A cooperative browser puzzle game for two players. Guide two robots through a small factory, power your partner's gates, move a crate and escape together.
 
-Current source version: **1.1.0**, now with five playable rooms and improved crate guidance, relay labels and safe gate-departure feedback. Player-reported playtesting informed the earlier usability changes; the new fifth room still needs human playtesting. No 1.1.0 Docker image has been built or published; the existing 1.0.0 image remains separate from current source. See the [changelog](CHANGELOG.md).
+Current source version: **1.1.0**, now with six playable rooms, a cooperative conveyor, team signals and sound effects. Player-reported playtesting informed the earlier usability changes; the new rooms still need human playtesting. No 1.1.0 Docker image has been built or published; the existing 1.0.0 image remains separate from current source. See the [changelog](CHANGELOG.md).
 
 ![Handoff Workshop](docs/handoff-workshop-landscape.jpg)
 
@@ -17,6 +17,7 @@ Create a room and share its six-character code. Your partner joins from another 
 - Completed rooms receive green marks, remembered in the current browser rather than a cloud account.
 - Use the speech-bubble button for Need power, Hold position, Got it and Mark a tile. Signals last six seconds; sending has a two-second cooldown and never freezes movement.
 - Quiet sound effects accompany moves, gates, crates, parking, completion and incoming teammate signals. Toggle **Sound ON/OFF** under **Menu → Controls**; your preference is saved in this browser. Sound begins after your first interaction.
+- In Conveyor Handoff, hold Switch 16 and clear the arrow route. The belt carries the crate to Dock 18 and waits safely behind robots or closed gates. Use the switch for intermediate belt tiles; Push/Pull is available at the end.
 
 | Room | Cooperation challenge |
 | --- | --- |
@@ -25,6 +26,7 @@ Create a room and share its six-character code. Your partner joins from another 
 | Keep the Power On | Park a crate on Relay 8 to maintain power |
 | Handoff Workshop | Exchange support roles, turn the crate onto Dock 18 and rescue the support robot |
 | Freight Exchange | Retrieve the crate from bay 18, hand it between both robots and park it on Relay 6 |
+| Conveyor Handoff | Hold the switch and clear the arrow route to Dock 18 |
 
 Two tabs in one browser profile share a session. For two independent players on one computer, use normal/private windows or separate profiles.
 
@@ -69,7 +71,7 @@ Defaults: 20 rooms, 500 sessions, a 60-second disconnect recovery window and a t
 
 ## Verification
 
-The application passed **87 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, team signals and cooldowns, restart, consent-bound levels, five-room progression, crate previews, safe gate departure and sound event selection. Actual-engine searches found all reachable spatial states recoverable in all five rooms; Freight Exchange has 2,000 configurations and a shortest 30-step completion.
+The application passed **94 automated tests**, including HTTP/WebSocket flows, authorization, duplicate/stale commands, room isolation, team signals and cooldowns, restart, consent-bound levels, six-room progression, crate previews, conveyor safety, safe gate departure and sound event selection. Actual-engine searches found all reachable spatial states recoverable in all six rooms; Conveyor Handoff has 318 configurations and a shortest 20-step completion.
 
 Browser A with a developer scripted partner completed room four and checked F/Pull, parking, replay, green marks and exit. Responsive inspection covered 390x844 and 844x390 without page overflow. These checks do not establish independent two-human enjoyment, actual-phone behavior or public deployment readiness. [Fourth-room evidence](docs/handoff-workshop-implementation.md), [earlier test evidence](docs/test-evidence.md).
 
@@ -80,6 +82,8 @@ Browser A with a developer scripted partner completed room four and checked F/Pu
 [Freight Exchange](docs/freight-exchange-design.md) is playable as room five. Recover the crate from the lower bay to the Relay 6 dock. The actual-engine audit verifies a 30-step solution, all 2,000 reachable configurations recoverable, and both robots necessarily transporting the crate. [Implementation and browser evidence](docs/freight-exchange-implementation.md).
 
 ## Repository
+
+[Conveyor Handoff](docs/conveyor-design.md) is playable as room six. Hold Switch 16 and clear the belt to Dock 18. [Implementation and validation evidence](docs/conveyor-implementation.md).
 
 ```text
 game/src/       Server, rules, authored rooms, client and contracts

@@ -5,6 +5,7 @@ export interface FactoryDefinition {
   gates: readonly { cell: number; relay: number; kind: 'latching' | 'pressure' }[];
   hint: string;
   crate?: { start: number; target: number };
+  conveyor?: { path: readonly number[]; relay: number };
 }
 export interface MissionDefinition {
   title: string; mode?: 'foundry'; independent?: boolean; hazards: { A: readonly number[]; B: readonly number[] };
@@ -41,6 +42,12 @@ export const freightExchange: MissionDefinition = {
   factory: { ...handoffWorkshop.factory!, crate: { start: 18, target: 6 },
     hint: 'Recover the crate from the lower bay. Trade relay support, park it on the Relay 6 dock, then reach both exits.' }
 };
-export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: { ...keepPowerOn, nextMission: { ...handoffWorkshop, nextMission: freightExchange } } } };
+export const conveyorHandoff: MissionDefinition = {
+  title: 'Conveyor Handoff', mode: 'foundry', independent: true, stage: 6, hazards: { A: [], B: [] },
+  factory: { ...handoffWorkshop.factory!, crate: { start: 12, target: 18 },
+    conveyor: { path: [12,13,18], relay: 16 },
+    hint: 'Hold Relay 8 to let your partner reach Switch 16. Stand on Switch 16 to carry the crate along 12 → 13 → Dock 18. Clear the route, then reach both exits.' }
+};
+export const foundryAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: { ...tradePlaces, nextMission: { ...keepPowerOn, nextMission: { ...handoffWorkshop, nextMission: { ...freightExchange, nextMission: conveyorHandoff } } } } };
 // Frozen two-room profile for the earlier SF-02 regression contracts.
 export const twoRoomAdventure: MissionDefinition = { ...firstConnectionFree, stage: 1, nextMission: tradePlaces };

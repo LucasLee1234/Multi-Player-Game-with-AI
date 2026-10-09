@@ -7,10 +7,11 @@ export type ErrorCode = 'INVALID_INPUT' | 'NOT_AUTHORIZED' | 'STALE_CONTEXT' | '
 export type GameError = 'STALE_PLAN' | 'STALE_POSITION' | 'STALE_MISSION' | 'STALE_RESTART' | 'STALE_LEVEL' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
 export type Knowledge = { safety: 'Safe' | 'Danger'; source: 'start/exit' | 'signal' | 'visit' | 'hazard attempt' | 'deduction' } | null;
 export interface MissionView {
-  id: string; ruleVersion: 'J1-C1' | 'SF-T1-v2' | 'SF-T1-v3' | 'SF-M2-v1' | 'SF-M3-v1'; title: string; turn: number; turnsResolved: number; strikes: number;
+  id: string; ruleVersion: 'J1-C1' | 'SF-T1-v2' | 'SF-T1-v3' | 'SF-M2-v1' | 'SF-M3-v1' | 'SF-M4-v1'; title: string; turn: number; turnsResolved: number; strikes: number;
   foundry?: { width: number; height: number; walls: number[]; movement: 'independent' | 'confirmed';
     stage: number; hint: string; nextTitle: string | null; choices: Record<Role, 'retry' | 'next' | null>;
     crate: { cell: number; target: number } | null;
+    conveyor?: { path: number[]; relay: number; powered: boolean };
     gates: { cell: number; relay: number; kind: 'latching' | 'pressure'; powered: boolean; latched: boolean; open: boolean }[] };
   positions: Record<Role, number>; exits: Record<Role, number>; proposals: Record<Role, number>;
   planningRevision: number; ready: Record<Role, boolean>;

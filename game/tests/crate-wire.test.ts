@@ -5,11 +5,12 @@ import { setTimeout as pace } from 'node:timers/promises';
 import { WebSocket } from 'ws';
 import { createApplication } from '../src/server/app.js';
 import { Store } from '../src/server/store.js';
-import { keepPowerOn, freightExchange } from '../src/content/missions.js';
+import { keepPowerOn, freightExchange, conveyorHandoff } from '../src/content/missions.js';
 import { freightRoute } from './freight-route.js';
+import { conveyorRoute } from './conveyor-route.js';
 import type { LobbyView, ServerMessage, Role } from '../src/contracts/lobby.js';
 
-for (const definition of [keepPowerOn,freightExchange]) test(`two wire seats synchronize crate transport and final replay: ${definition.title}`, async t => {
+for (const definition of [keepPowerOn,freightExchange,conveyorHandoff]) test(`two wire seats synchronize crate transport and final replay: ${definition.title}`, async t => {
   const initialCrate=definition.factory!.crate!.start, target=definition.factory!.crate!.target;
   const app=await createApplication({store:new Store(undefined,{},definition)});t.after(()=>app.close());
   async function post(path:string,body:unknown,cookie?:string) {
@@ -71,12 +72,13 @@ for (const definition of [keepPowerOn,freightExchange]) test(`two wire seats syn
   await seats.B.send({action:'selectLevel',stage:definition.stage!,levelRevision:seats.B.view().campaign.revision});await sync();
   assert.equal(seats.A.view().mission!.foundry!.stage,definition.stage);assert.deepEqual(seats.A.view().campaign,seats.B.view().campaign);
   const route:[Role,number,'move'|'pull'][]=[['A',1,'move'],['A',6,'move'],['B',13,'move'],['B',14,'pull'],['B',9,'move'],['B',8,'move'],['B',3,'pull'],['B',2,'move'],['A',1,'move'],['A',0,'move'],['B',1,'move'],['B',6,'move'],['A',1,'move'],['A',2,'move'],['A',3,'move'],['A',4,'move'],['B',11,'move'],['B',10,'move']];
-  const witness=definition===freightExchange?freightRoute:route;
+  const witness=definition===conveyorHandoff?conveyorRoute:definition===freightExchange?freightRoute:route;
   for(const [r,c,k] of witness)await move(r,c,k);
   assert.equal(seats.A.view().mission!.turnsResolved,witness.length);
   assert.equal(seats.A.view().mission!.result,'success');
   assert.equal(seats.A.view().mission!.foundry!.crate!.cell,target);
-  assert.equal(seats.B.view().mission!.foundry!.gates.find(g=>g.relay===target)!.powered,true);
+  const dockGate=seats.B.view().mission!.foundry!.gates.find(g=>g.relay===target);
+  if(dockGate)assert.equal(dockGate.powered,true);
   assert.equal(seats.A.view().mission!.foundry!.nextTitle,null);
   await seats.A.send({action:'retryAgreement'});await sync();await seats.B.send({action:'retryAgreement'});await sync();
   assert.equal(seats.A.view().mission!.title,definition.title);

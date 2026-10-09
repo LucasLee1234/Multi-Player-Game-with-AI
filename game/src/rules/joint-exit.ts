@@ -25,7 +25,10 @@ export function newMission(id: string, definition: MissionDefinition): Mission {
       || !roles.every(r => validCell(f.starts[r]) && validCell(f.exits[r])) || f.starts.A === f.starts.B || f.exits.A === f.exits.B
       || new Set(f.gates.map(g => g.cell)).size !== f.gates.length
       || f.gates.some(g => !validCell(g.cell) || !validCell(g.relay) || g.cell === g.relay || !['latching', 'pressure'].includes(g.kind))
-      || (f.crate && (!definition.independent || !validCell(f.crate.start) || !validCell(f.crate.target) || roles.some(r=>f.starts[r]===f.crate!.start)))) throw new Error('Invalid authored factory');
+      || (f.crate && (!definition.independent || !validCell(f.crate.start) || !validCell(f.crate.target) || roles.some(r=>f.starts[r]===f.crate!.start)))
+      || (f.conveyor && (!f.crate || !definition.independent || !validCell(f.conveyor.relay) || f.conveyor.path.includes(f.conveyor.relay)
+        || f.conveyor.path.length<2 || new Set(f.conveyor.path).size!==f.conveyor.path.length
+        || f.conveyor.path.some((c,i)=>!validCell(c) || (i>0 && Math.abs(c%f.width-f.conveyor!.path[i-1]!%f.width)+Math.abs(Math.floor(c/f.width)-Math.floor(f.conveyor!.path[i-1]!/f.width))!==1))))) throw new Error('Invalid authored factory');
     return { id, definition: structuredClone(definition), turn: 1, turnsResolved: 0, strikes: 0,
     positions: { ...f.starts }, proposals: { ...f.starts }, planningRevision: 0, ready: { A: false, B: false },
     signals: { A: null, B: null }, knowledge: { A: [], B: [] }, latchedGates: [], crate: f.crate?.start ?? null, result: null,
@@ -107,6 +110,8 @@ function moveCargo(m: Mission, role: Role, destination: number, kind: 'move' | '
   };
   const blocked=(reason:string)=>{next.explanations=[`${role}: ${reason}`];revision(next);return next;};
   if(destination===from)return kind==='move'?m:blocked('Pull needs a step away from the crate.');
+  if((kind==='pull' || destination===crate) && f.conveyor?.path.slice(0,-1).includes(crate))
+    return blocked(`The belt carries this crate. Stand on Switch ${f.conveyor.relay} and clear its route. Push or pull from the belt end.`);
   let cargo=crate;
   if(kind==='pull') {
     if(2*from-destination!==crate || !adjacent(from,crate))return blocked('Pull needs the crate directly behind you.');
@@ -124,12 +129,32 @@ function moveCargo(m: Mission, role: Role, destination: number, kind: 'move' | '
   for(const gate of f.gates)if(gate.kind==='latching' && !next.latchedGates.includes(gate.cell)
     && (destination===gate.cell || (cargo!==crate && cargo===gate.cell)))next.latchedGates.push(gate.cell);
   next.turnsResolved++;next.turn++;
-  next.result=roles.every(r=>next.positions[r]===f.exits[r]) && cargo===f.crate!.target?'success':null;
   next.explanations=[`${role}: ${cargo===crate?`moved to ${destination}`:`${kind==='pull'?'pulled':'pushed'} the crate to ${cargo}`}.`];
+  carryConveyor(next);
+  cargo=next.crate!;
+  next.result=roles.every(r=>next.positions[r]===f.exits[r]) && cargo===f.crate!.target?'success':null;
   if(cargo===f.crate!.target)next.explanations.push(f.gates.some(g=>g.relay===cargo)
     ? `Crate powers Relay ${cargo}. Keep it there for extraction.`
     : `Crate parked on Dock ${cargo}. Keep it there and reach both exits.`);
   revision(next);return next;
+}
+/** No clock: settle a powered belt inside the accepted move transaction. */
+function carryConveyor(m: Mission) {
+  const f=factory(m), belt=f.conveyor;
+  if(!belt || !roles.some(r=>m.positions[r]===belt.relay) || m.crate===null)return;
+  const start=m.crate;
+  let index=belt.path.indexOf(start);
+  if(index<0)return;
+  while(index<belt.path.length-1) {
+    const cell=belt.path[index+1]!, gate=f.gates.find(g=>g.cell===cell);
+    if(roles.some(r=>m.positions[r]===cell)) {m.explanations.push(`Belt waiting: clear Tile ${cell}. Switch ${belt.relay} is held.`);break;}
+    if(gate && !(gate.kind==='latching'&&m.latchedGates.includes(cell)) && m.crate!==gate.relay && !roles.some(r=>m.positions[r]===gate.relay)) {
+      m.explanations.push(`Belt waiting: power Relay ${gate.relay} for Gate ${cell}.`);break;
+    }
+    m.crate=cell;index++;
+    if(gate?.kind==='latching'&&!m.latchedGates.includes(cell))m.latchedGates.push(cell);
+  }
+  if(m.crate!==start)m.explanations.push(`Conveyor carried the crate from ${start} to ${m.crate}.`);
 }
 /** Pure transition: hazards, then overlap/swap, then failure/joint exit/turn limit. */
 export function resolve(m: Mission): Mission {
@@ -205,13 +230,14 @@ export function clearAgreement(m: Mission): Mission {
 export function project(m: Mission, role: Role): MissionView {
   if (isFoundry(m)) {
     const f = factory(m);
-    return { id: m.id, ruleVersion: f.crate ? 'SF-M3-v1' : m.definition.factory ? 'SF-M2-v1' : m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
+    return { id: m.id, ruleVersion: f.conveyor ? 'SF-M4-v1' : f.crate ? 'SF-M3-v1' : m.definition.factory ? 'SF-M2-v1' : m.definition.independent ? 'SF-T1-v3' : 'SF-T1-v2', title: m.definition.title, turn: m.turn,
     turnsResolved: m.turnsResolved, strikes: 0, positions: { ...m.positions }, exits: { ...f.exits },
     proposals: { ...m.proposals }, planningRevision: m.planningRevision, ready: { ...m.ready },
     signals: structuredClone(m.signals), ownKnownCells: [], partnerHazards: [], result: m.result,
     explanations: [...m.explanations], retryAgreements: { ...m.retryAgreements },
     foundry: { width: f.width, height: f.height, walls: [...f.walls], movement: m.definition.independent ? 'independent' : 'confirmed',
-      stage: m.definition.stage ?? 1, hint: f.hint, nextTitle: m.definition.nextMission?.title ?? null, choices: { ...m.choices }, crate: f.crate ? {cell:m.crate!,target:f.crate.target}:null, gates: f.gates.map(g => {
+      stage: m.definition.stage ?? 1, hint: f.hint, nextTitle: m.definition.nextMission?.title ?? null, choices: { ...m.choices }, crate: f.crate ? {cell:m.crate!,target:f.crate.target}:null,
+      ...(f.conveyor ? {conveyor:{path:[...f.conveyor.path],relay:f.conveyor.relay,powered:roles.some(r=>m.positions[r]===f.conveyor!.relay)}} : {}), gates: f.gates.map(g => {
       const powered = m.crate===g.relay || roles.some(r => m.positions[r] === g.relay), latched = g.kind === 'latching' && m.latchedGates.includes(g.cell);
       return { ...g, powered, latched, open: powered || latched };
     }) } };

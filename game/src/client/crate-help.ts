@@ -4,6 +4,7 @@ import type { MissionView, Role } from '../contracts/lobby.js';
 export function crateAction(m: MissionView, role: Role, destination: number, pull: boolean): 'push' | 'pull' | null {
   const b = m.foundry, c = b?.crate;
   if (!b || !c || m.result) return null;
+  if(b.conveyor?.path.slice(0,-1).includes(c.cell)) return null;
   const from = m.positions[role], partner = m.positions[role === 'A' ? 'B' : 'A'];
   const floor = (n: number) => n >= 0 && n < b.width * b.height && !b.walls.includes(n);
   const adjacent = (a: number, n: number) => floor(n) && Math.abs(a % b.width - n % b.width) + Math.abs(Math.floor(a / b.width) - Math.floor(n / b.width)) === 1;
@@ -25,6 +26,7 @@ export function pullDirection(m: MissionView, role: Role): { name: string; arrow
 }
 
 export function crateFailure(reason: string, m?: MissionView, role?: Role): string {
+  if(reason.includes('belt carries')) return reason.replace(/^[AB]: /, '');
   if (reason.includes('Pull needs')) {
     const direction = m && role ? pullDirection(m, role) : null;
     return direction ? `Pull ${direction.name} ${direction.arrow}, straight away from the crate. Turn Pull OFF (F or the button) to walk in another direction.`

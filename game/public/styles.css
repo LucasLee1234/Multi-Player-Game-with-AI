@@ -460,3 +460,7 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
 #game-menu #menu-shortcuts { margin: 0 0 12px; font-size: 12px; }
 #game-menu #cargo-controls { margin: 0; padding: 10px; }
 #game-menu #cargo-help { font-size: 11px; }
+.factory-tile.conveyor-tile { background-image: repeating-linear-gradient(135deg,transparent 0 10px,#6a939015 10px 15px); border-style: dashed; }
+.factory-tile.conveyor-powered { border-color: #438d7c; }
+.belt-arrow { position: absolute; top: 4px; right: 5px; color: #346d65; font-size: 17px; font-weight: 800; pointer-events: none; }
+.conveyor-switch { outline: 2px solid #7ca29b; outline-offset: -4px; }

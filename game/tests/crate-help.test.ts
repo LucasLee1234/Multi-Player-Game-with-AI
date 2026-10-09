@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { keepPowerOn, handoffWorkshop, freightExchange } from '../src/content/missions.js';
+import { keepPowerOn, handoffWorkshop, freightExchange, conveyorHandoff } from '../src/content/missions.js';
 import { newMission, moveFoundry, project, type Mission } from '../src/rules/joint-exit.js';
 import { crateAction, crateFailure, pullDirection } from '../src/client/crate-help.js';
 
-for (const definition of [keepPowerOn, handoffWorkshop, freightExchange]) test(`crate direction previews match the server in every reachable state: ${definition.title}`, () => {
+for (const definition of [keepPowerOn, handoffWorkshop, freightExchange, conveyorHandoff]) test(`crate direction previews match the server in every reachable state: ${definition.title}`, () => {
   const first = newMission('preview', definition), queue = [first];
   const key = (m: Mission) => `${m.positions.A},${m.positions.B},${m.crate},${m.latchedGates.join(',')}`;
   const seen = new Set([key(first)]);
@@ -16,12 +16,13 @@ for (const definition of [keepPowerOn, handoffWorkshop, freightExchange]) test(`
         const hint = crateAction(view, role, destination, kind === 'pull');
         let next: Mission | undefined;
         try { next = moveFoundry(m, role, destination, kind); } catch { /* Geometry or completed mission. */ }
-        assert.equal(hint !== null, !!next && next.crate !== m.crate, `${key(m)} ${role} ${destination} ${kind}`);
+        const manual = kind==='pull' || destination===m.crate;
+        assert.equal(hint !== null, manual && !!next && next.positions[role]!==m.positions[role] && (definition===conveyorHandoff || next.crate !== m.crate), `${key(m)} ${role} ${destination} ${kind}`);
         if (next && !seen.has(key(next))) { seen.add(key(next)); queue.push(next); }
       }
     }
   }
-  assert.ok(seen.size > 1000);
+  assert.ok(seen.size > (definition===conveyorHandoff?300:1000));
 });
 
 test('crate failures explain the corrective action', () => {
