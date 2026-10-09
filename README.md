@@ -2,7 +2,7 @@
 
 A cooperative browser puzzle game for two players. Guide two robots through a small factory, power your partner's gates, move a crate and escape together.
 
-Current source version: **1.1.0**, now with six playable rooms, a cooperative conveyor, team signals and sound effects. Player-reported playtesting informed the earlier usability changes; the new rooms still need human playtesting. No 1.1.0 Docker image has been built or published; the existing 1.0.0 image remains separate from current source. See the [changelog](CHANGELOG.md).
+Current release: **1.1.0**, with six playable rooms, a cooperative conveyor, team signals and sound effects. The Linux AMD64 Docker image is published and verified; Azure has not been updated as part of this release. Player-reported playtesting informed earlier usability changes; the new rooms still need human playtesting. See the [changelog](CHANGELOG.md).
 
 ![Handoff Workshop](docs/handoff-workshop-landscape.jpg)
 
@@ -45,7 +45,7 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000). Tests compile before runnin
 
 ## Container release and Azure
 
-No container build is part of the 1.1.0 source checkpoint. For a future explicitly requested image build, run from the repository root:
+The 1.1.0 image was built with all 94 regressions passing and passed the two-player container smoke check. To rebuild from the repository root:
 
 ```sh
 docker build --platform linux/amd64 --build-arg VCS_REF=<commit-sha> -t signal-foundry:1.1.0 .
@@ -53,13 +53,13 @@ docker build --platform linux/amd64 --build-arg VCS_REF=<commit-sha> -t signal-f
 
 The multi-stage build runs the regression suite. The non-root runtime contains compiled code, production dependencies and public assets, excluding research, tests, contest reference documents and credentials.
 
-Version 1.0.0 was published successfully through [GitHub Actions](https://github.com/LucasLee1234/Multi-Player-Game-with-AI/actions/runs/37839259092). Anonymous registry access was verified. Pull it with:
+Version 1.1.0 was published successfully through [GitHub Actions](https://github.com/LucasLee1234/Multi-Player-Game-with-AI/actions/runs/37871160486). Anonymous registry access was verified. Pull it with:
 
 ```sh
-docker pull ghcr.io/lucaslee1234/signal-foundry:1.0.0
+docker pull ghcr.io/lucaslee1234/signal-foundry:1.1.0
 ```
 
-For an immutable deployment, use `ghcr.io/lucaslee1234/signal-foundry@sha256:f264ddb687286eabcdefe39772698112a31ab8d6e424447d8d3888565dac4ee5`. [Release evidence](releases/v1.0.0.json) records the source commit, local archive checksum and published digest. Git tag `v1.0.0` also produces image tags `v1` and a commit-specific tag.
+For an immutable deployment, use `ghcr.io/lucaslee1234/signal-foundry@sha256:85ae8db2b1c9b1cad0c2313d04a6de8baf7a673c4ef9431e2cc7a3ea84d7cc77`. [Release evidence](releases/v1.1.0.json) records the source commit, local archive checksum and published digest. The portable archive `releases/signal-foundry-v1.1.0.tar` is available locally and excluded from Git; import it with `docker load --input releases/signal-foundry-v1.1.0.tar`. [Azure settings](docs/azure-container-v1.1.md). The original 1.0.0 image remains available for rollback.
 
 Azure Container Apps requires HTTPS HTTP ingress, target port 3000, `APP_ORIGIN=https://<assigned-hostname>`, one application worker, one serving revision and minimum/maximum replicas both set to 1. Configure `/health/live` and `/health/ready` probes. [Container instructions and release checklist](docs/azure-container-v1.md).
 

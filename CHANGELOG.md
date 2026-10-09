@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - October 8, 2026
+
+Published Linux AMD64 image `ghcr.io/lucaslee1234/signal-foundry:1.1.0` from source tag `v1.1.0`. All 94 regressions and container smoke checks passed locally and in GitHub Actions. Anonymous pull verified; Azure was not updated. [Release evidence](releases/v1.1.0.json).
 
 - Added Conveyor Handoff as room six: Switch 16 runs a distinct blue belt; Tile 13 is a corner, with no Gate 13. Delivery waits for the whole route to clear and the dock locks delivered cargo. All 94 tests pass; all 497 reachable spatial states are recoverable. [Design](docs/conveyor-design.md) and [verification](docs/conveyor-implementation.md).
 - Quiet synthesized sound effects with a persistent Sound ON/OFF control under Menu → Controls. Initial/duplicate snapshots and failed moves stay silent; no music or external audio assets. All 87 tests pass. [Verification](docs/audio-feedback.md).
@@ -11,7 +13,7 @@
 - Five-room progression, consent-bound level selection, green completion history and final-room replay/exit.
 - 82 tests pass, including exhaustive fifth-room previews and synchronized two-seat network completion/replay. [Implementation evidence](docs/freight-exchange-implementation.md).
 
-## 1.1.0 - October 8, 2026
+### Earlier source checkpoint
 
 Source-only checkpoint. No Docker image was built or published, and Azure was not updated. No `v1.1.0` tag was created because `v*` tags trigger container publication.
 

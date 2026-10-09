@@ -1,0 +1,21 @@
+{
+  "version": "1.1.0",
+  "sourceRepository": "https://github.com/LucasLee1234/Multi-Player-Game-with-AI",
+  "sourceCommit": "47012d068af82f586f3f4147925c0d8c55158e94",
+  "gitTag": "v1.1.0",
+  "platform": "linux/amd64",
+  "localImageTags": ["signal-foundry:1.1.0"],
+  "localImageId": "sha256:92cdf04f66e81a6eb9f59912da3962640457c2a7fda047ec8455014a73ba019b",
+  "archive": "signal-foundry-v1.1.0.tar",
+  "archiveBytes": 80573952,
+  "archiveSha256": "0972c2d28862809a17fbfca787a9368b0cb20edbce79f0788db0abfd376aad46",
+  "regressionsPassed": 94,
+  "containerSmokePassed": true,
+  "containerHealth": "healthy",
+  "registryImage": "ghcr.io/lucaslee1234/signal-foundry:1.1.0",
+  "registryDigest": "sha256:85ae8db2b1c9b1cad0c2313d04a6de8baf7a673c4ef9431e2cc7a3ea84d7cc77",
+  "publicationStatus": "success",
+  "anonymousPullVerified": true,
+  "workflowRun": "https://github.com/LucasLee1234/Multi-Player-Game-with-AI/actions/runs/37871160486",
+  "azureDeployed": false
+}

@@ -6,7 +6,11 @@ Six cooperative rooms, including Conveyor Handoff with its dedicated blue belt, 
 
 ## Release gate
 
-The Docker build runs the full regression suite. The GitHub release workflow runs the runtime smoke check before publishing: non-root process, minimal files, health and browser modules, secure session cookies, all six levels, two real WebSocket seats completing rooms four and six, replay and exit. Publishing uses the `v1.1.0` source tag; immutable provenance is recorded in `releases/v1.1.0.json` after verification.
+The Docker build passed all 94 regressions. The GitHub release workflow passed the runtime smoke check before publishing: non-root process, minimal files, health and browser modules, secure session cookies, all six levels, two real WebSocket seats completing rooms four and six, replay and exit. The local container also passed and its Docker health status was healthy. Publication from `v1.1.0` succeeded; anonymous registry access was verified. Immutable provenance is recorded in [release evidence](../releases/v1.1.0.json).
+
+Published digest: `ghcr.io/lucaslee1234/signal-foundry@sha256:85ae8db2b1c9b1cad0c2313d04a6de8baf7a673c4ef9431e2cc7a3ea84d7cc77`.
+
+Local image: `signal-foundry:1.1.0`. Portable archive: `releases/signal-foundry-v1.1.0.tar`, 80,573,952 bytes; import with `docker load --input releases/signal-foundry-v1.1.0.tar`. The archive stays local rather than being committed to GitHub. Local image identity differs from the registry digest because the builds contain independent attestations; both record the same source commit.
 
 ## Azure settings
 
