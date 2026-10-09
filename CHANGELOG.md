@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Compact team signals: power requests, Hold position, Got it and explicit tile marking, with named markers, six-second expiry and a server-enforced two-second cooldown. [Behavior and verification](docs/team-signals.md).
+- 84 tests pass, including communication authority, lifecycle and real two-seat delivery.
 - Added Freight Exchange as room five: recover the crate through a physical handoff between both robots.
 - Five-room progression, consent-bound level selection, green completion history and final-room replay/exit.
 - 82 tests pass, including exhaustive fifth-room previews and synchronized two-seat network completion/replay. [Implementation evidence](docs/freight-exchange-implementation.md).

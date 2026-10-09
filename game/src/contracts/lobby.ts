@@ -1,7 +1,9 @@
 export type Role = 'A' | 'B';
+export type TeamSignalKind = 'point' | 'needPower' | 'hold' | 'ack';
+export interface TeamSignal { id: string; kind: TeamSignalKind; cell: number; remainingMs: number }
 export type ErrorCode = 'INVALID_INPUT' | 'NOT_AUTHORIZED' | 'STALE_CONTEXT' | 'ROOM_UNAVAILABLE'
   | 'ROOM_FULL' | 'ROOM_CLOSED' | 'PAUSED' | 'RATE_LIMITED' | 'SERVER_BUSY'
-  | 'CONTROLLER_ACTIVE' | 'CONTROLLER_REPLACED' | 'OUT_OF_ORDER' | 'REQUEST_TOO_OLD' | 'REQUEST_CONFLICT';
+  | 'CONTROLLER_ACTIVE' | 'CONTROLLER_REPLACED' | 'OUT_OF_ORDER' | 'REQUEST_TOO_OLD' | 'REQUEST_CONFLICT' | 'SIGNAL_COOLDOWN';
 export type GameError = 'STALE_PLAN' | 'STALE_POSITION' | 'STALE_MISSION' | 'STALE_RESTART' | 'STALE_LEVEL' | 'SIGNAL_UNAVAILABLE' | 'NOT_PLANNING';
 export type Knowledge = { safety: 'Safe' | 'Danger'; source: 'start/exit' | 'signal' | 'visit' | 'hazard attempt' | 'deduction' } | null;
 export interface MissionView {
@@ -26,6 +28,7 @@ export interface LobbyView {
   campaign: { levels: { stage: number; title: string }[]; completed: number[]; revision: number; requestedBy: Role | null; target: number | null };
   timers: { recoveryRemainingMs: number | null; lifetimeRemainingMs: number };
   gameplayImplemented: boolean; mission: MissionView | null;
+  communication?: { signals: Record<Role, TeamSignal | null>; cooldownMs: number };
 }
 export interface SessionContext {
   bootId: string; contextVersion: number; view: LobbyView | null;
@@ -38,6 +41,7 @@ export interface LeaveCommand {
 }
 interface Envelope { type: 'command'; requestId: string; sequence: number; roomId: string; controllerEpoch: number }
 export type Command = LeaveCommand
+  | (Envelope & { action: 'communicate'; missionId: string; kind: TeamSignalKind; cell: number })
   | (Envelope & { action: 'selectLevel'; missionId: string; levelRevision: number; stage: number })
   | (Envelope & { action: 'cancelLevel'; missionId: string; levelRevision: number })
   | (Envelope & { action: 'restartAgreement'; missionId: string; restartRevision: number })

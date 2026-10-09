@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomInt, randomUUID } from 'node:crypto';
-import type { Admission, Command, ErrorCode, GameError, LobbyView, Role, ServerMessage, SessionContext } from '../contracts/lobby.js';
+import type { Admission, Command, ErrorCode, GameError, LobbyView, Role, ServerMessage, SessionContext, TeamSignalKind } from '../contracts/lobby.js';
 import { clearAgreement, moveFoundry, newMission, project, propose, ready, RuleFault, signal, type Mission } from '../rules/joint-exit.js';
 import { differentDangers, type MissionDefinition } from '../content/missions.js';
 
@@ -22,6 +22,7 @@ interface Room {
   resumePhase?: 'waiting' | 'planning' | 'terminal'; mission?: Mission; startAgreements: Record<Role, boolean>;
   restart: { revision: number; requestedBy: Role | null };
   level: { revision: number; requestedBy: Role | null; target: number | null }; completed: number[];
+  communication?: Partial<Record<Role, { id: string; missionId: string; kind: TeamSignalKind; cell: number; sentAt: number }>>;
 }
 export interface Limits { rooms: number; sessions: number; recoveryMs: number; idleMs: number; lifetimeMs: number }
 const defaults: Limits = { rooms: 20, sessions: 500, recoveryMs: 60_000, idleMs: 600_000, lifetimeMs: 7_200_000 };
@@ -43,6 +44,7 @@ function command(value: unknown): Command {
   if (!value || typeof value !== 'object') throw new Fault('INVALID_INPUT');
   const action = (value as Record<string, unknown>).action;
   const extras: Record<string, string[]> = { leave: [], startAgreement: ['lobbyRevision'],
+    communicate: ['missionId','kind','cell'],
     move: ['missionId', 'from', 'destination'], ping: ['missionId', 'cell'],
     crateMove: ['missionId', 'from', 'crateFrom', 'destination', 'kind'],
     propose: ['missionId', 'turn', 'planningRevision', 'destination'], signal: ['missionId', 'turn', 'planningRevision', 'cell'],
@@ -59,7 +61,7 @@ function command(value: unknown): Command {
     if (key === 'missionId') {
       if (typeof value[key] !== 'string' || value[key].length > 80) throw new Fault('INVALID_INPUT');
     } else if (key === 'kind') {
-      if (value[key] !== 'move' && value[key] !== 'pull') throw new Fault('INVALID_INPUT');
+      if (action === 'communicate' ? !['point','needPower','hold','ack'].includes(String(value[key])) : value[key] !== 'move' && value[key] !== 'pull') throw new Fault('INVALID_INPUT');
     } else if (!Number.isSafeInteger(value[key]) || (value[key] as number) < 0) throw new Fault('INVALID_INPUT');
   }
   return value as unknown as Command;
@@ -118,6 +120,15 @@ export class Store {
         lifetimeRemainingMs: Math.max(0, room.created + this.limits.lifetimeMs - this.now()) },
       gameplayImplemented: true, mission: room.mission ? project(room.mission, session.role) : null
     };
+    if (view && room) {
+      const signals: NonNullable<LobbyView['communication']>['signals'] = {A:null,B:null};
+      for (const role of ['A','B'] as const) {
+        const s=room.communication?.[role];
+        if(s && s.missionId===room.mission?.id && s.sentAt+6000>this.now()) signals[role]={id:s.id,kind:s.kind,cell:s.cell,remainingMs:s.sentAt+6000-this.now()};
+      }
+      const own=room.communication?.[session.role!];
+      view.communication={signals,cooldownMs:own && own.missionId===room.mission?.id?Math.max(0,own.sentAt+2000-this.now()):0};
+    }
     return { bootId: this.bootId, contextVersion: session.version, view, ended: session.ended };
   }
   admit(session: Session, input: Admission, action: 'create' | 'join' | 'takeover'): SessionContext {
@@ -304,6 +315,18 @@ export class Store {
       return;
     }
     if (room.phase !== 'planning') throw new Fault('NOT_PLANNING', 409);
+    if (input.action === 'communicate') {
+      // The original teaching room uses a built-in board rather than an authored factory.
+      const board=project(mission,role).foundry;
+      if(!mission.definition.independent || !board || !['point','needPower','hold','ack'].includes(input.kind)
+        || !Number.isSafeInteger(input.cell) || input.cell<0 || input.cell>=board.width*board.height || board.walls.includes(input.cell)) throw new Fault('INVALID_INPUT');
+      if(input.kind==='needPower' && !board.gates.some(g=>g.cell===input.cell)) throw new Fault('INVALID_INPUT');
+      const previous=room.communication?.[role];
+      if(previous?.missionId===mission.id && previous.sentAt+2000>this.now()) throw new Fault('SIGNAL_COOLDOWN');
+      const cell=input.kind==='hold'?mission.positions[other(role)]:input.kind==='ack'?mission.positions[role]:input.cell;
+      (room.communication??={})[role]={id:randomUUID(),missionId:mission.id,kind:input.kind,cell,sentAt:this.now()};
+      return;
+    }
     if (input.action === 'restartAgreement' || input.action === 'cancelRestart') {
       if (!mission.definition.independent) throw new Fault('INVALID_INPUT');
       if (input.restartRevision !== room.restart.revision) throw new Fault('STALE_RESTART', 409);

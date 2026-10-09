@@ -48,6 +48,14 @@ for (const definition of [keepPowerOn,freightExchange]) test(`two wire seats syn
     assert.deepEqual(seats.A.view().mission,seats.B.view().mission);
   }
   const original=seats.A.view().mission!.id;
+  const beforeSignal=structuredClone(seats.A.view().mission);
+  await seats.A.send({action:'communicate',kind:'needPower',cell:2});await sync();
+  assert.deepEqual(seats.A.view().mission,beforeSignal);
+  const signalA=seats.A.view().communication!.signals.A!,signalB=seats.B.view().communication!.signals.A!;
+  assert.deepEqual({id:signalA.id,kind:signalA.kind,cell:signalA.cell},{id:signalB.id,kind:signalB.kind,cell:signalB.cell});
+  assert.ok(signalA.remainingMs>0 && signalA.remainingMs<=6000);
+  await seats.B.send({action:'communicate',kind:'ack',cell:14});await sync();
+  assert.equal(seats.A.view().communication!.signals.B!.kind,'ack');
   await move('A',1);
   await seats.A.send({action:'restartAgreement',restartRevision:seats.A.view().restart.revision});await sync();
   assert.equal(seats.B.view().restart.requestedBy,'A');assert.equal(seats.B.view().mission!.id,original);

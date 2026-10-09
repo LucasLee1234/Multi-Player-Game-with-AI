@@ -1,5 +1,5 @@
 import { crateAction, crateFailure, pullDirection } from './crate-help.js';
-import type { SessionContext, ServerMessage, Command, MissionView, Role } from '../contracts/lobby.js';
+import type { SessionContext, ServerMessage, Command, MissionView, Role, LobbyView, TeamSignal, TeamSignalKind } from '../contracts/lobby.js';
 const el = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const messages: Record<string, string> = {
   ROOM_FULL: 'This room already has two players.', ROOM_UNAVAILABLE: 'Room not found or expired. Check the code.',
@@ -7,6 +7,7 @@ const messages: Record<string, string> = {
   CONTROLLER_REPLACED: 'Another tab now controls your seat.', STALE_CONTEXT: 'Your session changed. Refresh its current state.',
   NOT_AUTHORIZED: 'Your session is unavailable. Retry connection.', RATE_LIMITED: 'Too many requests. Wait a moment before trying again.',
   SERVER_BUSY: 'The server is busy. Please try again shortly.', INVALID_INPUT: 'Check your input and try again.',
+  SIGNAL_COOLDOWN: 'Wait two seconds between team signals. You can keep moving.',
   ROOM_CLOSED: 'This room ended. Create a new room.',
   STALE_PLAN: 'Plan changed - check it and confirm again.', STALE_MISSION: 'The mission changed. Check the current board.',
   STALE_POSITION: 'The robot or crate moved already. Check the board and choose your next direction.',
@@ -116,6 +117,8 @@ function compactLayout(enabled: boolean, m?: MissionView) {
   document.body.classList.toggle('has-cargo',enabled && !!m?.foundry?.crate);
   el('game-menu-open').hidden = !enabled;
   if (!enabled) {
+    el('team-open').hidden=true; markingTile=false; closeTeamPanel(); visibleSignals.clear();
+    if(teamTimer!==undefined) window.clearTimeout(teamTimer);
     compactMissionId = undefined;
     for (const [node, slot] of homeSlots) slot.after(node);
     el('crate-coach').hidden = true;
@@ -349,7 +352,7 @@ function gameAction(action: 'ready' | 'propose' | 'signal', cell?: number) {
       if(m.foundry.crate) sendAction({action:'crateMove',missionId:m.id,from:m.positions[context!.view!.self.role],crateFrom:m.foundry.crate.cell,destination:cell!,kind:pullMode?'pull':'move'});
       else sendAction({ action: 'move', missionId: m.id, from: m.positions[context!.view!.self.role], destination: cell! });
     }
-    else if (action === 'signal') sendAction({ action: 'ping', missionId: m.id, cell: cell! });
+    else if (action === 'signal') sendTeamSignal('point',cell!);
     return;
   }
   const base = { missionId: m.id, turn: m.turn, planningRevision: m.planningRevision };
@@ -366,6 +369,58 @@ for (let cell = 0; cell < 9; cell++) {
 const moves = ['up', 'left', 'wait', 'right', 'down'] as const;
 const foundryTiles: HTMLButtonElement[] = [];
 let inspectedCell: number | undefined;
+let markingTile=false, teamMissionId:string|undefined, teamView:LobbyView|undefined;
+let teamCooldown=0, teamTimer:number|undefined;
+const visibleSignals=new Map<Role, {signal:TeamSignal;deadline:number}>();
+function closeTeamPanel() { el('team-panel').hidden=true; el('team-open').setAttribute('aria-expanded','false'); }
+function sendTeamSignal(kind:TeamSignalKind,cell:number) {
+  const m=context?.view?.mission;
+  if(!m || performance.now()<teamCooldown) return;
+  markingTile=false; closeTeamPanel();
+  sendAction({action:'communicate',missionId:m.id,kind,cell});
+}
+function renderTeamSignals(m:MissionView,role:Role,planning:boolean) {
+  const view=context!.view!, available=m.foundry?.movement==='independent';
+  el('team-open').hidden=!available; el<HTMLButtonElement>('team-open').disabled=!planning;
+  if(teamMissionId!==m.id) {
+    teamMissionId=m.id; teamView=undefined; visibleSignals.clear(); markingTile=false; closeTeamPanel();
+    const select=el<HTMLSelectElement>('team-gate'); select.replaceChildren();
+    for(const g of m.foundry?.gates??[]) { const option=document.createElement('option'); option.value=String(g.cell); option.textContent=`Gate ${g.cell} · Relay ${g.relay}`; select.append(option); }
+  }
+  if(teamView!==view) {
+    teamView=view; teamCooldown=performance.now()+(view.communication?.cooldownMs??0);
+    for(const r of ['A','B'] as const) {
+      const signal=view.communication?.signals[r], old=visibleSignals.get(r);
+      if(!signal) visibleSignals.delete(r);
+      else if(old?.signal.id!==signal.id) visibleSignals.set(r,{signal,deadline:performance.now()+signal.remainingMs});
+    }
+  }
+  const now=performance.now();
+  const canSend=planning && now>=teamCooldown;
+  for(const id of ['team-power','team-hold','team-ack','team-point']) el<HTMLButtonElement>(id).disabled=!canSend;
+  el('team-help').textContent=markingTile?'Tap any floor tile to mark it. This tap will not move your robot.':now<teamCooldown?'Wait two seconds between signals. Movement is still available.':'Requests only. Your partner can keep moving.';
+  el('team-point').textContent=markingTile?'Cancel marking':'Mark a tile';
+  el('team-open').classList.toggle('marking-tile',markingTile);
+  for(const tile of foundryTiles) { tile.classList.remove('team-mark-A','team-mark-B'); tile.querySelector('.team-marker')?.remove(); }
+  const messages:string[]=[];
+  for(const r of ['A','B'] as const) {
+    const entry=visibleSignals.get(r); if(!entry || entry.deadline<=now || !planning && !!m.result) continue;
+    const s=entry.signal, gate=m.foundry?.gates.find(g=>g.cell===s.cell);
+    const target=s.kind==='needPower'?gate?.relay:s.kind==='ack'?undefined:s.cell;
+    const text=s.kind==='point'?`${r} marks tile ${s.cell}.`:s.kind==='needPower'?`${r} needs Relay ${gate?.relay} for Gate ${s.cell}.`:s.kind==='hold'?`${r} asks ${r==='A'?'B':'A'} to hold tile ${s.cell}.`:`${r}: Got it.`;
+    messages.push(text);
+    if(target!==undefined && foundryTiles[target]) {
+      const tile=foundryTiles[target]!; tile.classList.add(`team-mark-${r}`);
+      const badge=document.createElement('span'); badge.className=`team-marker team-marker-${r}`; badge.textContent=`${r}${s.kind==='needPower'?' ⚡':s.kind==='hold'?' ·':''}`; badge.setAttribute('aria-hidden','true'); tile.append(badge);
+    }
+  }
+  if(markingTile && planning) messages.unshift('Tap a tile to mark it; your robot will stay still.');
+  if(messages.length && !el('resolution').classList.contains('feedback-blocked')) el('resolution').textContent=messages.join(' ');
+  if(teamTimer!==undefined) window.clearTimeout(teamTimer);
+  const deadlines=[teamCooldown,...[...visibleSignals.values()].map(s=>s.deadline)].filter(t=>t>now);
+  if(deadlines.length) teamTimer=window.setTimeout(()=>render(),Math.min(...deadlines)-now+10);
+  if(!planning) { markingTile=false; closeTeamPanel(); }
+}
 let boardMissionId: string | undefined;
 let pullMode = false;
 let lastVisual: MissionView | undefined;
@@ -379,6 +434,7 @@ function prepareFoundryBoard(m: MissionView) {
   const tile = document.createElement('button'); tile.type = 'button'; tile.className = 'factory-tile';
   tile.onclick = () => {
     inspectedCell = cell;
+    if(markingTile) { sendTeamSignal('point',cell); return; }
     const view = context?.view, mission = view?.mission;
     const adjacent = mission && view && ['up','left','right','down'].some(d => destination(d as typeof moves[number],mission.positions[view.self.role],mission) === cell);
     gameAction(mission?.foundry?.movement === 'independent' && adjacent ? 'propose' : 'signal', cell);
@@ -586,6 +642,7 @@ function renderMission() {
   el('resolution').textContent = m.explanations.join(' ');
   el('menu-feedback').textContent = m.explanations.join(' ');
   el('resolution').classList.toggle('feedback-blocked', !!m.foundry && m.explanations.some(t => /closed|overlap|block|cannot|Pull needs/.test(t)));
+  if(foundry) renderTeamSignals(m,role,planning);
   el('result').hidden = !m.result;
   el('result-title').textContent = m.result === 'success' ? foundry ? 'Factory restored. You made it together!' : 'Rescued together' : m.result === 'strikes' ? 'Mission ended: three strikes' : 'Mission ended: turn limit';
   el('result-stats').textContent = independent ? `Completed in ${m.turnsResolved} team moves. Both robots are at their exits.` : foundry ? `Completed in ${m.turnsResolved} turns. Both robots are at their exits.` : `Turns used: ${m.turnsResolved} / 8 · Strikes: ${m.strikes} / 3`;
@@ -655,9 +712,22 @@ for(const [index,name] of menuSections.entries()) {
   };
 }
 el('game-menu-open').onclick = el('restart-alert').onclick = () => {
+  markingTile=false; closeTeamPanel();
   selectMenuSection('play'); el<HTMLDialogElement>('game-menu').showModal();
 };
 el('game-menu-close').onclick = () => el<HTMLDialogElement>('game-menu').close();
+el('team-open').onclick=()=>{
+  const panel=el('team-panel'); panel.hidden=!panel.hidden;
+  el('team-open').setAttribute('aria-expanded',String(!panel.hidden));
+  const gate=context?.view?.mission?.foundry?.gates.find(g=>g.cell===inspectedCell||g.relay===inspectedCell);
+  if(gate) el<HTMLSelectElement>('team-gate').value=String(gate.cell);
+};
+el('team-close').onclick=()=>{markingTile=false;closeTeamPanel();render();};
+el('team-power').onclick=()=>sendTeamSignal('needPower',Number(el<HTMLSelectElement>('team-gate').value));
+el('team-hold').onclick=()=>sendTeamSignal('hold',context!.view!.mission!.positions[context!.view!.self.role]);
+el('team-ack').onclick=()=>sendTeamSignal('ack',context!.view!.mission!.positions[context!.view!.self.role]);
+el('team-point').onclick=()=>{markingTile=!markingTile;closeTeamPanel();render();};
+window.addEventListener('keydown',event=>{if(event.key==='Escape'){markingTile=false;closeTeamPanel();render();}});
 el('menu-resume').onclick = () => el<HTMLDialogElement>('game-menu').close();
 el('hide-controls').onclick = () => { hideTeachingArrows(); render(); };
 el('replay-tutorial').onclick = () => { el<HTMLDialogElement>('game-menu').close(); showLesson(context?.view?.mission?.foundry?.crate ? 'push' : 'movement'); };

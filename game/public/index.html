@@ -137,6 +137,15 @@
   <details class="footnote"><summary>Playing with a friend</summary><p>Share this page's URL and room code. On one computer, use separate browser profiles or a private window. Tabs in the same profile share a seat.</p></details>
 </main>
 <button id="game-menu-open" class="secondary" hidden aria-label="Open game menu" aria-haspopup="dialog">☰</button>
+<button id="team-open" class="secondary" hidden aria-label="Team signals" aria-controls="team-panel" aria-expanded="false"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M5 3h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H9l-5 3v-3a3 3 0 0 1-2-3V6a3 3 0 0 1 3-3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 10h10M7 14h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
+<section id="team-panel" hidden aria-label="Team signals">
+  <div class="overlay-heading"><strong>Team signals</strong><button id="team-close" aria-label="Close team signals">×</button></div>
+  <label for="team-gate">Request power for</label><select id="team-gate"></select>
+  <button id="team-power">Need power</button>
+  <div class="team-actions"><button id="team-hold">Hold position</button><button id="team-ack">Got it</button></div>
+  <button id="team-point" class="secondary">Mark a tile</button>
+  <p id="team-help" role="status">Requests only. Your partner can keep moving.</p>
+</section>
 <button id="restart-alert" hidden>Restart request</button>
 <div id="crate-coach" hidden role="status"><span id="crate-coach-text"></span><button id="crate-coach-dismiss" class="secondary" aria-label="Hide crate tip">×</button></div>
 <dialog id="game-menu" aria-labelledby="menu-title">

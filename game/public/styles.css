@@ -388,6 +388,24 @@ dialog h2 { font-size: 22px; } dialog p, dialog li { font-size: 13px; }
   .single-screen #foundry-board[data-rows="4"] .crate { flex-shrink: 0; }
 }
 .single-screen .mission-heading { padding-left: 60px; }
+.single-screen .mission-heading { padding-left: 104px; }
+.single-screen .mission-heading h2 { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#team-open { position: fixed; z-index: 3; top: 20px; left: max(70px,calc((100vw - 760px)/2 + 70px)); width: 36px; min-height: 40px; height: 40px; padding: 0; margin: 0; font-size: 22px; }
+#team-open.marking-tile { background: #f7e5af; border-color: #a27c24; }
+#team-panel { position: fixed; z-index: 5; top: 66px; left: max(24px,calc((100vw - 760px)/2 + 24px)); width: min(290px,calc(100vw - 48px)); max-height: calc(100dvh - 82px); overflow: auto; padding: 12px; border: 1px solid #cad9c9; border-radius: 14px; background: #fffef7; box-shadow: 0 10px 32px #25493e33; }
+#team-panel label, #team-panel p { font-size: 11px; }
+#team-panel select { width: 100%; padding: 8px; min-height: 40px; background: white; border: 1px solid #cad9c9; border-radius: 8px; color: #284e42; }
+#team-panel button { margin: 6px 0 0; min-height: 40px; font-size: 12px; }
+#team-close { width: 32px; min-height: 32px !important; margin: 0 !important; padding: 0; }
+.team-actions { display: flex; gap: 6px; }
+.team-actions button { flex: 1; }
+.factory-tile.team-mark-A { outline: 3px solid #267f9a; outline-offset: -3px; }
+.factory-tile.team-mark-B { box-shadow: inset 0 0 0 5px #ac547a; }
+.team-marker { position: absolute; top: 2px; right: 3px; font-size: 10px; line-height: 15px; border-radius: 4px; padding: 0 3px; color: white; animation: team-pulse 1s ease-in-out 3; pointer-events: none; }
+.team-marker-A { background: #267f9a; }
+.team-marker-B { background: #ac547a; top: 19px; }
+@keyframes team-pulse { 50% { opacity: .5; } }
+@media (prefers-reduced-motion:reduce) { .team-marker { animation: none; } }
 #menu-exit #leave { background: #fff3ed; color: #8b4d38; border: 1px solid #e4c7b9; min-height: 44px; margin: 14px 0; }
 #level-selector { border-bottom: 1px solid #dde5d6; padding-bottom: 12px; }
 #level-selector h3 { margin: 8px 0; font-size: 14px; }

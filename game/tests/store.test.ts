@@ -30,7 +30,7 @@ test('create/join deduplication, conflicts and occupied seats', () => {
 test('lobby projections contain no credentials or internal state and lookup needs a capability', () => {
   const f = fixture(); f.store.admit(f.b.session, f.join, 'join');
   const view = f.store.context(f.a.session).view!;
-  assert.deepEqual(Object.keys(view).sort(), ['bootId','campaign','gameplayImplemented','mission','protocolVersion','releaseId','restart','room','self','timers'].sort());
+  assert.deepEqual(Object.keys(view).sort(), ['bootId','campaign','communication','gameplayImplemented','mission','protocolVersion','releaseId','restart','room','self','timers'].sort());
   assert.deepEqual(view.restart, { revision: 0, requestedBy: null });
   assert.equal(view.gameplayImplemented, true); assert.equal(view.mission, null);
   const text = JSON.stringify(view);
